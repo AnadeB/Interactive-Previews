@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="popup.css">
+</head>
+
+<body>
+    <div class="header">
+        <div class="title">Interactive Previews</div>
+        <img src="../../assets/icons/icon_settings_24.svg" id="open-settings" class="settings-icon"
+            title="Open full options page">
+    </div>
+
+    <div class="content">
+        <!-- Mode Toggle -->
+        <div class="mode-toggle">
+            <button id="mode-blacklist" class="mode-btn active">Blacklist</button>
+            <button id="mode-whitelist" class="mode-btn">Whitelist</button>
+        </div>
+
+        <div id="status-message" class="hidden"></div>
+
+        <div id="actions">
+            <!-- Buttons will be injected here based on mode -->
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+
+</html>

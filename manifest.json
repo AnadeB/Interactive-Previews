@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "Interactive Previews",
+  "version": "1.0",
+  "description": "Shows interactive previews of images and documents on hover.",
+  "icons": {
+    "48": "assets/icons/icon_app_48.png"
+  },
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_icon": {
+      "48": "assets/icons/icon_app_48.png"
+    }
+  },
+  "options_ui": {
+    "page": "src/options/options.html",
+    "open_in_tab": true
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "src/content/content.js"
+      ],
+      "css": [
+        "src/content/content.css"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+#interactive-preview-container {
+    position: fixed;
+    z-index: 2147483647;
+    pointer-events: none;
+    background: white;
+    padding: 4px;
+    border: 1px solid #ccc;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+    display: none;
+}
+
+#interactive-preview-container.visible {
+    display: block;
+}
+
+#interactive-preview-container img {
+    display: block;
+    object-fit: contain;
+}

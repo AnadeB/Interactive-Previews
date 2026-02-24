@@ -1,0 +1,107 @@
+body {
+    width: 260px;
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #fff;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background-color: #608200;
+    border-bottom: 1px solid #4a6600;
+}
+
+.title {
+    font-weight: 600;
+    color: #fff;
+    font-size: 14px;
+}
+
+.settings-icon {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    filter: brightness(0) invert(1);
+}
+
+.settings-icon:hover {
+    opacity: 1;
+}
+
+.content {
+    padding: 12px;
+}
+
+/* Mode Toggle */
+.mode-toggle {
+    display: flex;
+    gap: 0;
+    margin-bottom: 12px;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid #608200;
+}
+
+.mode-btn {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    background-color: #f5f5f5;
+    color: #608200;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin: 0;
+    border-radius: 0;
+    width: auto;
+}
+
+.mode-btn.active {
+    background-color: #608200;
+    color: #fff;
+}
+
+.mode-btn:hover:not(.active) {
+    background-color: #e8f0d4;
+}
+
+/* Action Buttons */
+button.action-btn {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-bottom: 8px;
+    background-color: #b8f500;
+    color: #333;
+    font-weight: 500;
+}
+
+button.action-btn:hover {
+    background-color: #608200;
+    color: #fff;
+}
+
+#status-message {
+    margin-bottom: 10px;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    background-color: #e8f5cc;
+    color: #3d5200;
+    text-align: center;
+}
+
+.hidden {
+    display: none;
+}
