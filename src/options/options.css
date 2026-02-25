@@ -3,35 +3,72 @@ body {
   background-color: #f4f4f9;
   color: #333;
   margin: 0;
-  padding: 20px;
+  padding: 0;
+  padding-top: 70px;
+  /* space for sticky header */
 }
 
+/* ===== Sticky Header ===== */
+#sticky-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: white;
+  border-bottom: 2px solid #608200;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.header-inner {
+  max-width: 650px;
+  margin: 0 auto;
+  padding: 10px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-left img {
+  width: 36px;
+  height: 36px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.save-hint {
+  font-size: 12px;
+  color: #aaa;
+  font-style: italic;
+  white-space: nowrap;
+}
+
+.save-hint.has-changes {
+  color: #c0820a;
+  font-weight: 500;
+  font-style: normal;
+}
+
+/* ===== Container ===== */
 .container {
   max-width: 650px;
   margin: 0 auto;
-  background: white;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-}
-
-header {
-  border-bottom: 2px solid #608200;
-  margin-bottom: 20px;
-  padding-bottom: 10px;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-header img {
-  width: 48px;
-  height: 48px;
+  padding: 20px 30px 40px;
 }
 
 h1 {
   margin: 0;
-  font-size: 24px;
+  font-size: 20px;
   color: #608200;
 }
 
@@ -149,13 +186,7 @@ input[type="number"] {
   display: none !important;
 }
 
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  margin-top: 20px;
-}
-
+/* ===== Buttons ===== */
 button {
   padding: 10px 20px;
   border: none;
@@ -163,7 +194,7 @@ button {
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
 }
 
 .primary-button {
@@ -175,12 +206,24 @@ button {
   background-color: #4a6600;
 }
 
+.primary-button.outline {
+  background-color: transparent;
+  color: #608200;
+  border: 2px solid #608200;
+}
+
+.primary-button.outline:hover {
+  background-color: #f0f4e8;
+}
+
+/* ===== Status ===== */
 #status {
   margin-right: 15px;
   color: #608200;
   opacity: 0;
   transition: opacity 0.3s;
   font-weight: 500;
+  font-size: 13px;
 }
 
 #status.show {
@@ -201,4 +244,140 @@ input[type="checkbox"]:checked {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.sub-option-list {
+  margin-left: 28px;
+  margin-top: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sub-option-list label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.sub-label {
+  font-weight: 500;
+  font-size: 14px;
+  margin-left: 4px;
+}
+
+#infobar-suboptions.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ===== Drag-and-drop list ===== */
+.drag-list-wrapper {
+  margin-left: 28px;
+  margin-top: 8px;
+}
+
+.drag-list {
+  min-height: 10px;
+  border-radius: 4px;
+}
+
+.drag-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  margin-bottom: 4px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  cursor: default;
+  user-select: none;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+
+.drag-item:hover {
+  border-color: #c0c0c0;
+}
+
+.drag-item.dragging {
+  opacity: 0.5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border-color: #608200;
+}
+
+.drag-item .drag-handle {
+  cursor: grab;
+  opacity: 0.5;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  transition: opacity 0.15s;
+  filter: brightness(0);
+}
+
+.drag-item:hover .drag-handle {
+  opacity: 0.7;
+}
+
+.drag-item .drag-handle:active {
+  cursor: grabbing;
+}
+
+.drag-item .drag-label {
+  font-size: 14px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.drag-item .drag-example {
+  color: #aaa;
+  font-size: 12px;
+  font-style: italic;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.drag-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 0;
+  color: #555;
+  font-size: 12px;
+  font-weight: 600;
+  user-select: none;
+  border-top: 1px dashed #ccc;
+  border-bottom: 1px dashed #ccc;
+  margin: 4px 0;
+}
+
+.drag-divider span {
+  padding: 0 10px;
+}
+
+.drag-list-hidden .drag-item {
+  opacity: 0.5;
+  border-style: dashed;
+}
+
+.drag-list-hidden .drag-item:hover {
+  opacity: 0.7;
+}
+
+.drag-over-indicator {
+  height: 4px;
+  background: #608200;
+  border-radius: 2px;
+  margin: 2px 0;
+  transition: opacity 0.1s;
+}
+
+.save-hint.saved {
+  color: #27ae60;
+  font-weight: 600;
+  font-style: normal;
 }

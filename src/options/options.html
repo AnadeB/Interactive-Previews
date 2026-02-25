@@ -2,21 +2,35 @@
 <html>
 
 <head>
+  <meta charset="UTF-8">
   <title>Options - Interactive Previews</title>
   <link rel="stylesheet" href="options.css">
 </head>
 
 <body>
+  <header id="sticky-header">
+    <div class="header-inner">
+      <div class="header-left">
+        <img src="../../assets/icons/icon_app_256.png" alt="Interactive Previews icon">
+        <h1>Interactive Previews</h1>
+      </div>
+      <div class="header-right">
+        <span id="save-hint" class="save-hint">No changes</span>
+        <button id="save" class="primary-button outline">Save Settings</button>
+      </div>
+    </div>
+  </header>
+
   <div class="container">
-    <header>
-      <img src="../../assets/icons/icon_app_256.png" alt="Interactive Previews icon">
-      <h1>Interactive Previews - Options</h1>
-    </header>
 
     <!-- Filtering -->
     <section class="settings-section">
       <h2>Filtering Mode</h2>
       <div class="radio-group">
+        <label>
+          <input type="radio" name="mode" value="off">
+          Off
+        </label>
         <label>
           <input type="radio" name="mode" value="blacklist" checked>
           Use Blacklist
@@ -33,22 +47,38 @@
           Enter domains or Regular Expressions where the extension should be <strong>disabled</strong>.
           <br>One entry per line. Example: <code>example\.com</code> or <code>^https://secure\.</code>
         </p>
-        <textarea id="blacklist" rows="6" placeholder="example\.com&#10;google\.com"></textarea>
+        <textarea id="blacklist" rows="6" placeholder="nothing here yet"></textarea>
       </div>
 
       <div id="whitelist-container" class="list-container hidden">
         <h3>Whitelist</h3>
         <p class="description">
           Enter domains or Regular Expressions where the extension should be <strong>enabled</strong>.
-          <br>One entry per line. Example: <code>reddit\.com</code>
+          <br>One entry per line. Example: <code>example\.com</code> or <code>^https://secure\.</code>
         </p>
-        <textarea id="whitelist" rows="6" placeholder="reddit\.com&#10;pinterest\.com"></textarea>
+        <textarea id="whitelist" rows="6" placeholder="nothing here yet"></textarea>
       </div>
     </section>
 
-    <!-- Hover Delay -->
+    <!-- Trigger -->
     <section class="settings-section">
-      <h2>Hover Delay</h2>
+      <h2>Trigger</h2>
+
+      <div class="radio-group vertical" style="margin-bottom: 15px;">
+        <label>
+          <input type="radio" name="triggerModifier" value="none" checked>
+          Mouse hover only
+        </label>
+        <label>
+          <input type="radio" name="triggerModifier" value="shift">
+          Mouse hover + <strong>Shift</strong>
+        </label>
+        <label>
+          <input type="radio" name="triggerModifier" value="ctrl">
+          Mouse hover + <strong>Ctrl</strong>
+        </label>
+      </div>
+
       <div class="setting-item">
         <label for="delay">Hover Delay (ms):</label>
         <input type="number" id="delay" min="0" step="100" value="500">
@@ -103,10 +133,61 @@
       </div>
     </section>
 
-    <div class="actions">
-      <div id="status"></div>
-      <button id="save" class="primary-button">Save Settings</button>
-    </div>
+    <!-- Image Info Bar -->
+    <section class="settings-section">
+      <h2>Image Info Bar</h2>
+
+      <div class="option-group">
+        <label>
+          <input type="checkbox" id="infoBarEnabled">
+          <strong>Enable Info Bar</strong>
+        </label>
+      </div>
+
+      <div id="infobar-suboptions">
+        <div class="option-group" style="margin-top: 10px;">
+          <label class="sub-label">Position:</label>
+          <div class="sub-option">
+            <label>
+              <input type="radio" name="infoBarPosition" value="top" checked>
+              Top
+            </label>
+            <label style="margin-left: 15px;">
+              <input type="radio" name="infoBarPosition" value="bottom">
+              Bottom
+            </label>
+          </div>
+        </div>
+
+        <div class="option-group">
+          <label class="sub-label">Items (drag to reorder):</label>
+          <div class="drag-list-wrapper">
+            <div id="infobar-items-active" class="drag-list">
+              <!-- Items will be populated by JS -->
+            </div>
+            <div class="drag-divider">
+              <span>don't show</span>
+            </div>
+            <div id="infobar-items-hidden" class="drag-list drag-list-hidden">
+              <!-- Hidden items go here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Image Detection -->
+    <section class="settings-section">
+      <h2>Image Detection</h2>
+      <div class="option-group">
+        <div class="sub-option-list">
+          <label><input type="checkbox" checked disabled> Search for <code>&lt;img&gt;</code> tags</label>
+          <label><input type="checkbox" id="deepSearchInside" checked> Search inside container elements</label>
+          <label><input type="checkbox" id="deepSearchCssBackgrounds" checked> Support CSS background images</label>
+        </div>
+      </div>
+    </section>
+
   </div>
   <script src="options.js"></script>
 </body>

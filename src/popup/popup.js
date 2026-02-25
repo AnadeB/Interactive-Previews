@@ -14,6 +14,13 @@ const getDomain = (url) => {
     }
 };
 
+/**
+ * Escape special regex characters in a string
+ */
+const escapeRegex = (str) => {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
 const showStatus = (msg) => {
     const statusEl = document.getElementById('status-message');
     statusEl.textContent = msg;
@@ -25,50 +32,124 @@ const showStatus = (msg) => {
 
 let currentMode = 'blacklist';
 let currentDomain = '';
+let currentUrl = '';
 let storedData = { blacklist: [], whitelist: [] };
 
 const updateModeUI = () => {
+    document.getElementById('mode-off').classList.toggle('active', currentMode === 'off');
     document.getElementById('mode-blacklist').classList.toggle('active', currentMode === 'blacklist');
     document.getElementById('mode-whitelist').classList.toggle('active', currentMode === 'whitelist');
-    renderActionButton();
+    renderActionButtons();
 };
 
-const renderActionButton = () => {
+/**
+ * Check if a value exists in the list (exact string match)
+ */
+const isInList = (list, value) => {
+    return list.includes(value);
+};
+
+/**
+ * Build an exact-page regex pattern from a full URL
+ */
+const buildPagePattern = (url) => {
+    return '^' + escapeRegex(url) + '$';
+};
+
+const renderActionButtons = () => {
     const actionsDiv = document.getElementById('actions');
     actionsDiv.innerHTML = '';
 
-    if (!currentDomain) {
-        actionsDiv.innerHTML = '<p style="color:#777; font-size:12px;">Cannot access this page.</p>';
+    // Off mode — no actions
+    if (currentMode === 'off') {
+        actionsDiv.innerHTML = '<p class="actions-disabled-msg">Extension is turned off.</p>';
         return;
     }
 
-    const btn = document.createElement('button');
-    btn.className = 'action-btn';
+    if (!currentDomain) {
+        actionsDiv.innerHTML = '<p class="actions-disabled-msg">Cannot access this page.</p>';
+        return;
+    }
 
-    if (currentMode === 'blacklist') {
-        btn.textContent = `Add to blacklist: ${currentDomain}`;
-        btn.onclick = () => {
-            const newList = [...new Set([...storedData.blacklist, currentDomain])];
-            chrome.storage.sync.set({ blacklist: newList }, () => {
-                storedData.blacklist = newList;
-                showStatus('Added to blacklist!');
+    const listKey = currentMode === 'blacklist' ? 'blacklist' : 'whitelist';
+    const listName = currentMode === 'blacklist' ? 'blacklist' : 'whitelist';
+    const list = storedData[listKey];
+
+    // --- Domain button ---
+    const domainInList = isInList(list, currentDomain);
+    const btnDomain = document.createElement('button');
+    btnDomain.className = 'action-btn' + (domainInList ? ' remove-btn' : '');
+
+    if (domainInList) {
+        btnDomain.textContent = `Remove this domain from ${listName}`;
+        btnDomain.onclick = () => {
+            const newList = list.filter(item => item !== currentDomain);
+            chrome.storage.sync.set({ [listKey]: newList }, () => {
+                storedData[listKey] = newList;
+                showStatus(`Removed from ${listName}!`);
+                renderActionButtons();
             });
         };
     } else {
-        btn.textContent = `Add to whitelist: ${currentDomain}`;
-        btn.onclick = () => {
-            const newList = [...new Set([...storedData.whitelist, currentDomain])];
-            chrome.storage.sync.set({ whitelist: newList }, () => {
-                storedData.whitelist = newList;
-                showStatus('Added to whitelist!');
+        btnDomain.textContent = `Add this domain to ${listName}`;
+        btnDomain.onclick = () => {
+            const newList = [...new Set([...list, currentDomain])];
+            chrome.storage.sync.set({ [listKey]: newList }, () => {
+                storedData[listKey] = newList;
+                showStatus(`Added to ${listName}!`);
+                renderActionButtons();
             });
         };
     }
+    actionsDiv.appendChild(btnDomain);
 
-    actionsDiv.appendChild(btn);
+    // --- Exact page button ---
+    if (currentUrl) {
+        const pagePattern = buildPagePattern(currentUrl);
+        const pageInList = isInList(list, pagePattern);
+        const btnPage = document.createElement('button');
+        btnPage.className = 'action-btn' + (pageInList ? ' remove-btn' : '');
+
+        // Truncate display URL
+        let displayUrl = currentUrl;
+        if (displayUrl.length > 40) {
+            displayUrl = displayUrl.substring(0, 37) + '...';
+        }
+
+        if (pageInList) {
+            btnPage.textContent = `Remove full URL from ${listName}`;
+            btnPage.title = `Remove exact page pattern from ${listName}:\n${pagePattern}`;
+            btnPage.onclick = () => {
+                const newList = list.filter(item => item !== pagePattern);
+                chrome.storage.sync.set({ [listKey]: newList }, () => {
+                    storedData[listKey] = newList;
+                    showStatus(`Page removed from ${listName}!`);
+                    renderActionButtons();
+                });
+            };
+        } else {
+            btnPage.textContent = `Add full URL to ${listName}`;
+            btnPage.title = `Add exact page pattern to ${listName}:\n${pagePattern}`;
+            btnPage.onclick = () => {
+                const newList = [...new Set([...list, pagePattern])];
+                chrome.storage.sync.set({ [listKey]: newList }, () => {
+                    storedData[listKey] = newList;
+                    showStatus(`Page added to ${listName}!`);
+                    renderActionButtons();
+                });
+            };
+        }
+        actionsDiv.appendChild(btnPage);
+    }
 };
 
 // Mode toggle buttons
+document.getElementById('mode-off').addEventListener('click', () => {
+    currentMode = 'off';
+    chrome.storage.sync.set({ mode: currentMode });
+    updateModeUI();
+});
+
 document.getElementById('mode-blacklist').addEventListener('click', () => {
     currentMode = 'blacklist';
     chrome.storage.sync.set({ mode: currentMode });
@@ -86,6 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         const currentTab = tabs[0];
         currentDomain = getDomain(currentTab.url);
+        currentUrl = currentTab.url || '';
 
         chrome.storage.sync.get({ mode: 'blacklist', blacklist: [], whitelist: [] }, (items) => {
             currentMode = items.mode;
