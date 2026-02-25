@@ -1,51 +1,43 @@
 :root {
     --lime: #B8F500;
     --dark-green: #4A6600;
-    --bg: #F5F5F5;
-    --radius-tab: 12px;
+    --black-green: #212e00;
+    --radius: 12px;
 }
 
-/* ===== Chrome-style Tab Bar ===== */
-
-/*
-  HOW IT WORKS:
-  - tab-bar bg = lime  (visible behind rounded corners of inactive tabs)
-  - inactive tabs bg = dark-green  (solid, no rounding by default)
-  - active tab bg = lime  (merges with tab-bar bg, looks "raised")
-  - neighbor of active tab gets a bottom corner rounded,
-    revealing the lime tab-bar background = inverted corner effect
-  - first/last tabs get top corner rounding to match the tab-bar shape
+/* ===== Chrome-style Tab Bar =====
+   tab-bar bg = dark-green (shows through rounded corners)
+   inactive tabs = lime
+   active tab = dark-green (merges with tab-bar bg → "raised")
+   neighbor of active gets bottom corner rounded → dark-green peeks through
 */
-
 .tab-bar {
     display: flex;
-    background-color: var(--lime);
-    border-radius: var(--radius-tab) var(--radius-tab) 0 0;
+    background-color: var(--dark-green);
+    border-radius: var(--radius) var(--radius) 0 0;
 }
 
 .mode-tab {
     flex: 1;
     display: flex;
-    background-color: var(--dark-green);
+    background-color: var(--lime);
     transition: background-color 0.2s ease, border-radius 0.2s ease;
 }
 
-/* Match rounded corners of tab-bar on the edges */
 .mode-tab:first-child {
-    border-top-left-radius: var(--radius-tab);
+    border-top-left-radius: var(--radius);
 }
 
 .mode-tab:last-child {
-    border-top-right-radius: var(--radius-tab);
+    border-top-right-radius: var(--radius);
 }
 
-/* Button inside tab */
 .mode-tab .btn {
     width: 100%;
     padding: 10px 4px;
     border: none;
     background: transparent;
-    color: var(--lime);
+    color: var(--dark-green);
     font-size: 11px;
     font-weight: 700;
     cursor: pointer;
@@ -53,39 +45,185 @@
     white-space: nowrap;
 }
 
-/* ---- Active tab ---- */
+/* Active tab */
 .mode-tab.active {
-    background-color: var(--dark-green);
+    background-color: var(--lime);
 }
 
 .mode-tab.active .btn {
-    color: var(--dark-green);
-    background-color: var(--lime);
-    border-radius: var(--radius-tab) var(--radius-tab) 0 0;
+    color: var(--lime);
+    border-radius: var(--radius) var(--radius) 0 0;
+    background-color: var(--dark-green);
 }
 
-/* ---- Inverted corners ---- */
-
-/* Tab right after active → round its bottom-LEFT corner */
+/* Inverted corners */
 .mode-tab.active+.mode-tab {
-    border-bottom-left-radius: var(--radius-tab);
+    border-bottom-left-radius: var(--radius);
 }
 
-/* Tab right before active → round its bottom-RIGHT corner */
 .mode-tab:has(+ .mode-tab.active) {
-    border-bottom-right-radius: var(--radius-tab);
+    border-bottom-right-radius: var(--radius);
 }
 
-/* ---- Hover on inactive tabs ---- */
+/* Hover on inactive */
 .mode-tab:not(.active):hover {
-    background-color: #5a7d00;
+    background-color: #d4ff4d;
 }
 
 /* ===== Action Area (below tabs) ===== */
 .actions-area {
-    background: var(--lime);
+    background: var(--dark-green);
     padding: 15px;
-    border-radius: 0 0 var(--radius-tab) var(--radius-tab);
+    border-radius: 0 0 var(--radius) var(--radius);
+}
+
+/* Inputs inside actions-area share same style as dark-section */
+.actions-area textarea,
+.actions-area input[type="number"] {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(184, 245, 0, 0.25);
+    color: var(--lime);
+    border-radius: 6px;
+    padding: 8px 10px;
+    outline: none;
+    font-size: 13px;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.actions-area textarea {
+    font-family: 'Consolas', 'Monaco', monospace;
+    width: 100%;
+    resize: vertical;
+}
+
+.actions-area textarea::placeholder {
+    color: rgba(184, 245, 0, 0.5);
+}
+
+.actions-area textarea:focus {
+    border-color: var(--lime);
+    box-shadow: 0 0 0 2px rgba(184, 245, 0, 0.15);
+}
+
+.actions-area h3 {
+    color: var(--lime);
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.actions-area .description {
+    color: rgba(232, 240, 212, 0.7);
+    font-size: 12px;
+    margin-bottom: 12px;
+    line-height: 1.4;
+}
+
+.actions-area strong {
+    color: var(--lime);
+}
+
+.actions-area code {
+    background: rgba(184, 245, 0, 0.15);
+    color: var(--lime);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+/* ===== Dark Section (shared) ===== */
+.dark-section {
+    background-color: var(--dark-green);
+    border-radius: var(--radius);
+    padding: 20px;
+    color: #e8f0d4;
+}
+
+.dark-section h2 {
+    color: var(--lime);
+    border-bottom: 1px solid rgba(184, 245, 0, 0.2);
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+    font-size: 16px;
+}
+
+.dark-section h3 {
+    color: var(--lime);
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.dark-section label {
+    color: #e8f0d4;
+}
+
+.dark-section strong {
+    color: var(--lime);
+}
+
+.dark-section .description,
+.dark-section .description-inline,
+.dark-section .description-text {
+    color: rgba(232, 240, 212, 0.7);
+}
+
+/* Shared input style for dark sections */
+.dark-section input[type="number"],
+.dark-section textarea {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(184, 245, 0, 0.25);
+    color: var(--lime);
+    border-radius: 6px;
+    padding: 8px 10px;
+    outline: none;
+    font-size: 13px;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.dark-section textarea {
+    font-family: 'Consolas', 'Monaco', monospace;
+    width: 100%;
+    resize: vertical;
+}
+
+.dark-section textarea::placeholder {
+    color: rgba(184, 245, 0, 0.5);
+}
+
+.dark-section input[type="number"]:focus,
+.dark-section textarea:focus {
+    border-color: var(--lime);
+    box-shadow: 0 0 0 2px rgba(184, 245, 0, 0.15);
+}
+
+/* Number input spinner arrows — no bg rectangle, lime arrows */
+.dark-section input[type="number"]::-webkit-inner-spin-button,
+.dark-section input[type="number"]::-webkit-outer-spin-button,
+.actions-area input[type="number"]::-webkit-inner-spin-button,
+.actions-area input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
+}
+
+/* Show custom arrows on hover via cursor style + allow scroll */
+.dark-section input[type="number"],
+.actions-area input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+.dark-section input[type="radio"]:checked,
+.dark-section input[type="checkbox"]:checked {
+    accent-color: var(--lime);
+}
+
+.dark-section code {
+    background: rgba(184, 245, 0, 0.15);
+    color: var(--lime);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 12px;
 }
 
 /* ===== Settings Icon ===== */
@@ -106,13 +244,16 @@
 .settings-btn .icon {
     width: 20px;
     height: 20px;
-    background-color: var(--dark-green);
+    background-color: var(--lime);
     mask-image: url(../../assets/icons/icon_settings_24.svg);
     mask-size: 100%;
     mask-repeat: no-repeat;
-    mask-position: center;
     -webkit-mask-image: url(../../assets/icons/icon_settings_24.svg);
     -webkit-mask-size: 100%;
     -webkit-mask-repeat: no-repeat;
-    -webkit-mask-position: center;
+}
+
+/* ===== Utility ===== */
+.hidden {
+    display: none !important;
 }

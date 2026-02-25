@@ -1,11 +1,11 @@
+/* options.css — options-page-specific layout, colors from shared.css */
+
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f4f4f9;
+  background-color: var(--black-green);
   color: #333;
   margin: 0;
-  padding: 0;
-  padding-top: 70px;
-  /* space for sticky header */
+  padding: 70px 0 0;
 }
 
 /* ===== Sticky Header ===== */
@@ -15,9 +15,8 @@ body {
   left: 0;
   right: 0;
   z-index: 1000;
-  background: white;
-  border-bottom: 2px solid var(--dark-green);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  background: var(--black-green);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
 }
 
 .header-inner {
@@ -40,22 +39,61 @@ body {
   height: 36px;
 }
 
+h1 {
+  margin: 0;
+  font-size: 20px;
+  color: var(--lime);
+}
+
 .header-right {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
+/* Save button — lime on dark header */
+.primary-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  background-color: var(--lime);
+  color: var(--dark-green);
+  transition: all 0.2s;
+}
+
+.primary-button:hover {
+  background-color: #d4ff4d;
+}
+
+.primary-button.outline {
+  background-color: transparent;
+  color: var(--lime);
+  border: 2px solid var(--lime);
+}
+
+.primary-button.outline:hover {
+  background-color: rgba(184, 245, 0, 0.1);
+}
+
 .save-hint {
   font-size: 12px;
-  color: #aaa;
+  color: rgba(184, 245, 0, 0.6);
   font-style: italic;
   white-space: nowrap;
 }
 
 .save-hint.has-changes {
-  color: #c0820a;
+  color: #ffd966;
   font-weight: 500;
+  font-style: normal;
+}
+
+.save-hint.saved {
+  color: #a0e860;
+  font-weight: 600;
   font-style: normal;
 }
 
@@ -66,102 +104,22 @@ body {
   padding: 20px 30px 40px;
 }
 
-h1 {
-  margin: 0;
-  font-size: 20px;
-  color: var(--dark-green);
+/* ===== Settings Sections (all dark) ===== */
+.settings-section {
+  margin-bottom: 20px;
 }
 
-h2 {
-  font-size: 18px;
-  margin-top: 0;
-  color: var(--dark-green);
-  border-bottom: 1px solid #e0e0e0;
-  padding-bottom: 8px;
-  margin-bottom: 15px;
-}
-
+/* Tabs section overrides */
 .tabs-section h2 {
-  border-bottom: none;
-  margin-bottom: 10px;
-}
-
-.tabs-section .tab-bar {
-  border-radius: 12px 12px 0 0;
+  display: none;
+  /* title is obvious from tabs */
 }
 
 .tabs-section .actions-area {
-  border-radius: 0 0 12px 12px;
-  margin-bottom: 25px;
+  margin-bottom: 0;
 }
 
-h3 {
-  font-size: 16px;
-  margin-bottom: 10px;
-  color: #555;
-}
-
-.settings-section {
-  margin-bottom: 25px;
-  padding: 15px;
-  background-color: #fafafa;
-  border-radius: 6px;
-  border: 1px solid #eee;
-}
-
-.description,
-.description-inline {
-  color: #7f8c8d;
-  font-size: 13px;
-  line-height: 1.4;
-  margin-bottom: 10px;
-}
-
-.description-inline {
-  display: inline-block;
-  margin-left: 10px;
-}
-
-.list-container h3 {
-  font-size: 14px;
-  margin-bottom: 8px;
-  color: var(--dark-green);
-}
-
-.list-container .description {
-  font-size: 12px;
-  color: var(--dark-green);
-  opacity: 0.8;
-  margin-bottom: 12px;
-}
-
-.list-container textarea {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid rgba(74, 102, 0, 0.2);
-  border-radius: 8px;
-  font-family: 'Consolas', 'Monaco', monospace;
-  font-size: 13px;
-  resize: vertical;
-  outline: none;
-  transition: border-color 0.2s;
-  background: white;
-}
-
-textarea:focus,
-input[type="number"]:focus {
-  outline: none;
-  border-color: var(--dark-green);
-  box-shadow: 0 0 0 2px rgba(74, 102, 0, 0.2);
-}
-
-input[type="number"] {
-  padding: 5px 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  width: 80px;
-}
-
+/* ===== Form Elements inside dark sections ===== */
 .radio-group {
   margin-bottom: 15px;
 }
@@ -203,70 +161,6 @@ input[type="number"] {
 .sub-option.disabled {
   opacity: 0.4;
   pointer-events: none;
-  user-select: none;
-}
-
-.description-text {
-  color: #7f8c8d;
-  font-size: 13px;
-  font-style: italic;
-}
-
-.hidden {
-  display: none !important;
-}
-
-/* ===== Buttons ===== */
-button {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.2s;
-}
-
-.primary-button {
-  background-color: var(--dark-green);
-  color: white;
-}
-
-.primary-button:hover {
-  background-color: #4a6600;
-}
-
-.primary-button.outline {
-  background-color: transparent;
-  color: var(--dark-green);
-  border: 2px solid var(--dark-green);
-}
-
-.primary-button.outline:hover {
-  background-color: #f0f4e8;
-}
-
-/* ===== Status ===== */
-#status {
-  margin-right: 15px;
-  color: #608200;
-  opacity: 0;
-  transition: opacity 0.3s;
-  font-weight: 500;
-  font-size: 13px;
-}
-
-#status.show {
-  opacity: 1;
-}
-
-/* Accent radio/checkbox when checked */
-input[type="radio"]:checked {
-  accent-color: #608200;
-}
-
-input[type="checkbox"]:checked {
-  accent-color: #608200;
 }
 
 .setting-item {
@@ -301,7 +195,6 @@ input[type="checkbox"]:checked {
 #infobar-suboptions.disabled {
   opacity: 0.4;
   pointer-events: none;
-  user-select: none;
 }
 
 /* ===== Drag-and-drop list ===== */
@@ -312,7 +205,7 @@ input[type="checkbox"]:checked {
 
 .drag-list {
   min-height: 10px;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
 .drag-item {
@@ -321,22 +214,24 @@ input[type="checkbox"]:checked {
   gap: 8px;
   padding: 10px 12px;
   margin-bottom: 4px;
-  background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(184, 245, 0, 0.15);
+  border-radius: 6px;
   cursor: default;
   user-select: none;
-  transition: box-shadow 0.15s, border-color 0.15s;
+  transition: all 0.15s;
+  color: #e8f0d4;
 }
 
 .drag-item:hover {
-  border-color: #c0c0c0;
+  border-color: rgba(184, 245, 0, 0.3);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .drag-item.dragging {
   opacity: 0.5;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  border-color: #608200;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border-color: var(--lime);
 }
 
 .drag-item .drag-handle {
@@ -346,11 +241,11 @@ input[type="checkbox"]:checked {
   width: 18px;
   height: 18px;
   transition: opacity 0.15s;
-  filter: brightness(0);
+  filter: brightness(0) invert(1);
 }
 
 .drag-item:hover .drag-handle {
-  opacity: 0.7;
+  opacity: 0.8;
 }
 
 .drag-item .drag-handle:active {
@@ -364,7 +259,7 @@ input[type="checkbox"]:checked {
 }
 
 .drag-item .drag-example {
-  color: #aaa;
+  color: rgba(184, 245, 0, 0.5);
   font-size: 12px;
   font-style: italic;
   margin-left: auto;
@@ -376,12 +271,12 @@ input[type="checkbox"]:checked {
   align-items: center;
   justify-content: center;
   padding: 8px 0;
-  color: #555;
+  color: rgba(184, 245, 0, 0.5);
   font-size: 12px;
   font-weight: 600;
   user-select: none;
-  border-top: 1px dashed #ccc;
-  border-bottom: 1px dashed #ccc;
+  border-top: 1px dashed rgba(184, 245, 0, 0.2);
+  border-bottom: 1px dashed rgba(184, 245, 0, 0.2);
   margin: 4px 0;
 }
 
@@ -390,24 +285,31 @@ input[type="checkbox"]:checked {
 }
 
 .drag-list-hidden .drag-item {
-  opacity: 0.5;
+  opacity: 0.4;
   border-style: dashed;
 }
 
 .drag-list-hidden .drag-item:hover {
-  opacity: 0.7;
+  opacity: 0.6;
 }
 
 .drag-over-indicator {
   height: 4px;
-  background: #608200;
+  background: var(--lime);
   border-radius: 2px;
   margin: 2px 0;
-  transition: opacity 0.1s;
 }
 
-.save-hint.saved {
-  color: #27ae60;
-  font-weight: 600;
-  font-style: normal;
+/* ===== List containers inside tabs ===== */
+.list-container h3 {
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: var(--lime);
+}
+
+.list-container .description {
+  font-size: 12px;
+  color: rgba(232, 240, 212, 0.7);
+  margin-bottom: 12px;
+  line-height: 1.4;
 }

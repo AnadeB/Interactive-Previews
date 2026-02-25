@@ -1,5 +1,4 @@
-/* Colors and base variables are in src/common/shared.css */
-
+/* popup.css — only popup-specific layout, colors from shared.css */
 
 * {
     margin: 0;
@@ -13,44 +12,28 @@ body {
     background: transparent;
 }
 
-/* ===== Container ===== */
 .popup-container {
-    background: var(--bg);
-    border-radius: 15px;
+    background: var(--black-green);
+    /* border-radius: 15px; */
     overflow: hidden;
     padding: 10px;
 }
 
-/* ===== Header ===== */
+/* Header */
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 15px;
+    padding: 5px 10px 10px;
 }
 
 .title {
     font-size: 14px;
     font-weight: 600;
-    color: var(--dark-green);
-    letter-spacing: -0.2px;
+    color: var(--lime);
 }
 
-/* settings-btn styles are inherited from shared.css */
-.settings-btn {
-    cursor: pointer;
-    transition: opacity 0.2s;
-}
-
-.settings-btn:hover {
-    opacity: 0.7;
-}
-
-
-
-
-
-/* ===== Action Buttons ===== */
+/* Action Buttons (inside dark actions-area) */
 button.action-btn {
     width: 100%;
     padding: 10px 15px;
@@ -61,10 +44,9 @@ button.action-btn {
     cursor: pointer;
     transition: all 0.15s;
     margin-bottom: 5px;
-    background: var(--dark-green);
-    color: white;
+    background: var(--lime);
+    color: var(--dark-green);
     text-align: center;
-    letter-spacing: -0.1px;
 }
 
 button.action-btn:last-child {
@@ -72,37 +54,30 @@ button.action-btn:last-child {
 }
 
 button.action-btn:hover {
-    background: #3a5200;
+    background: #d4ff4d;
 }
 
 button.action-btn.remove-btn {
     background: #a33;
     color: #fff;
-    border: 1px solid #a33;
 }
 
 button.action-btn.remove-btn:hover {
     background: #922;
 }
 
-/* ===== Status text ===== */
+/* Status & disabled */
 .status-text {
     text-align: center;
     font-size: 12px;
-    color: var(--dark-green);
+    color: var(--lime);
     padding-top: 10px;
     font-weight: 500;
 }
 
-/* ===== Disabled message ===== */
 .actions-disabled-msg {
-    color: var(--dark-green);
+    color: rgba(184, 245, 0, 0.7);
     font-size: 13px;
     text-align: center;
     padding: 5px 0;
-    opacity: 0.7;
-}
-
-.hidden {
-    display: none;
 }
