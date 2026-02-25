@@ -16,7 +16,7 @@ body {
   right: 0;
   z-index: 1000;
   background: white;
-  border-bottom: 2px solid #608200;
+  border-bottom: 2px solid var(--dark-green);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
@@ -69,16 +69,30 @@ body {
 h1 {
   margin: 0;
   font-size: 20px;
-  color: #608200;
+  color: var(--dark-green);
 }
 
 h2 {
   font-size: 18px;
   margin-top: 0;
-  color: #608200;
+  color: var(--dark-green);
   border-bottom: 1px solid #e0e0e0;
   padding-bottom: 8px;
   margin-bottom: 15px;
+}
+
+.tabs-section h2 {
+  border-bottom: none;
+  margin-bottom: 10px;
+}
+
+.tabs-section .tab-bar {
+  border-radius: 12px 12px 0 0;
+}
+
+.tabs-section .actions-area {
+  border-radius: 0 0 12px 12px;
+  margin-bottom: 25px;
 }
 
 h3 {
@@ -108,21 +122,37 @@ h3 {
   margin-left: 10px;
 }
 
-textarea {
+.list-container h3 {
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: var(--dark-green);
+}
+
+.list-container .description {
+  font-size: 12px;
+  color: var(--dark-green);
+  opacity: 0.8;
+  margin-bottom: 12px;
+}
+
+.list-container textarea {
   width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-family: monospace;
-  box-sizing: border-box;
+  padding: 12px;
+  border: 1px solid rgba(74, 102, 0, 0.2);
+  border-radius: 8px;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 13px;
   resize: vertical;
+  outline: none;
+  transition: border-color 0.2s;
+  background: white;
 }
 
 textarea:focus,
 input[type="number"]:focus {
   outline: none;
-  border-color: #608200;
-  box-shadow: 0 0 0 2px rgba(96, 130, 0, 0.2);
+  border-color: var(--dark-green);
+  box-shadow: 0 0 0 2px rgba(74, 102, 0, 0.2);
 }
 
 input[type="number"] {
@@ -198,7 +228,7 @@ button {
 }
 
 .primary-button {
-  background-color: #608200;
+  background-color: var(--dark-green);
   color: white;
 }
 
@@ -208,8 +238,8 @@ button {
 
 .primary-button.outline {
   background-color: transparent;
-  color: #608200;
-  border: 2px solid #608200;
+  color: var(--dark-green);
+  border: 2px solid var(--dark-green);
 }
 
 .primary-button.outline:hover {

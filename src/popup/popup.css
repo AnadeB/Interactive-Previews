@@ -1,134 +1,106 @@
-:root {
-    --electric-green: #b8f500;
-    --dark-green: #4a6600;
+/* Colors and base variables are in src/common/shared.css */
+
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 body {
-    width: 280px;
-    font-family: 'Segoe UI', sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #fff;
+    width: 330px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: transparent;
 }
 
+/* ===== Container ===== */
+.popup-container {
+    background: var(--bg);
+    border-radius: 15px;
+    overflow: hidden;
+    padding: 10px;
+}
+
+/* ===== Header ===== */
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 10px 15px;
-    background-color: var(--dark-green);
 }
 
 .title {
-    font-weight: 600;
-    color: #fff;
     font-size: 14px;
-}
-
-.settings-icon {
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-    opacity: 0.7;
-    transition: opacity 0.2s;
-    filter: brightness(0) invert(1);
-}
-
-.settings-icon:hover {
-    opacity: 1;
-}
-
-.content {
-    padding: 12px;
-}
-
-/* Mode Toggle */
-.mode-toggle {
-    display: flex;
-    gap: 0;
-    margin-bottom: 12px;
-    border-radius: 4px;
-    overflow: hidden;
-    border: 1px solid var(--electric-green);
-}
-
-.mode-btn {
-    flex: 1;
-    padding: 8px;
-    border: none;
-    background-color: #f5f5f5;
-    color: var(--dark-green);
-    font-size: 12px;
     font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    margin: 0;
-    border-radius: 0;
-    width: auto;
-}
-
-.mode-btn.active {
-    background-color: var(--electric-green);
     color: var(--dark-green);
+    letter-spacing: -0.2px;
 }
 
-.mode-btn#mode-off.active {
-    background-color: #999;
-    color: #fff;
-    border-color: #999;
+/* settings-btn styles are inherited from shared.css */
+.settings-btn {
+    cursor: pointer;
+    transition: opacity 0.2s;
 }
 
-.mode-btn:hover:not(.active) {
-    background-color: #e8f0d4;
+.settings-btn:hover {
+    opacity: 0.7;
 }
 
-/* Action Buttons */
+
+
+
+
+/* ===== Action Buttons ===== */
 button.action-btn {
     width: 100%;
-    padding: 10px;
+    padding: 10px 15px;
     border: none;
-    border-radius: 4px;
-    font-size: 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.2s;
-    margin-bottom: 6px;
-    background-color: var(--electric-green);
-    color: var(--dark-green);
-    font-weight: 500;
-    text-align: left;
+    transition: all 0.15s;
+    margin-bottom: 5px;
+    background: var(--dark-green);
+    color: white;
+    text-align: center;
+    letter-spacing: -0.1px;
+}
+
+button.action-btn:last-child {
+    margin-bottom: 0;
 }
 
 button.action-btn:hover {
-    background-color: var(--dark-green);
-    color: #fff;
+    background: #3a5200;
 }
 
 button.action-btn.remove-btn {
-    background-color: #ffdddd;
-    color: #a33;
+    background: #a33;
+    color: #fff;
+    border: 1px solid #a33;
 }
 
 button.action-btn.remove-btn:hover {
-    background-color: #c44;
-    color: #fff;
+    background: #922;
 }
 
-.actions-disabled-msg {
-    color: #999;
-    font-size: 12px;
+/* ===== Status text ===== */
+.status-text {
     text-align: center;
-    padding: 8px 0;
-    font-style: italic;
-}
-
-#status-message {
-    margin-bottom: 10px;
-    padding: 8px;
-    border-radius: 4px;
     font-size: 12px;
-    background-color: #e8f5cc;
     color: var(--dark-green);
+    padding-top: 10px;
+    font-weight: 500;
+}
+
+/* ===== Disabled message ===== */
+.actions-disabled-msg {
+    color: var(--dark-green);
+    font-size: 13px;
     text-align: center;
+    padding: 5px 0;
+    opacity: 0.7;
 }
 
 .hidden {

@@ -2,28 +2,41 @@
 <html>
 
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../common/shared.css">
     <link rel="stylesheet" href="popup.css">
 </head>
 
 <body>
-    <div class="header">
-        <div class="title">Interactive Previews</div>
-        <img src="../../assets/icons/icon_settings_24.svg" id="open-settings" class="settings-icon"
-            title="Open full options page">
-    </div>
-
-    <div class="content">
-        <!-- Mode Toggle -->
-        <div class="mode-toggle">
-            <button id="mode-off" class="mode-btn">Off</button>
-            <button id="mode-blacklist" class="mode-btn active">Blacklist</button>
-            <button id="mode-whitelist" class="mode-btn">Whitelist</button>
+    <div class="popup-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="title">Interactive Previews</div>
+            <div id="open-settings" class="settings-btn" title="Open full options page">
+                <span class="icon"></span>
+            </div>
         </div>
 
-        <div id="actions">
-            <!-- Buttons will be injected here based on mode -->
+        <!-- Tab bar -->
+        <div class="tab-bar">
+            <div id="mode-off" class="mode-tab">
+                <button class="btn">Off</button>
+            </div>
+            <div id="mode-blacklist" class="mode-tab active">
+                <button class="btn">Blacklist mode</button>
+            </div>
+            <div id="mode-whitelist" class="mode-tab">
+                <button class="btn">Whitelist mode</button>
+            </div>
         </div>
-        <div id="status-message" class="hidden"></div>
+
+        <!-- Action area -->
+        <div class="actions-area">
+            <div id="actions">
+                <!-- Buttons will be injected here based on mode -->
+            </div>
+            <div id="status-message" class="status-text hidden"></div>
+        </div>
     </div>
 
     <script src="popup.js"></script>

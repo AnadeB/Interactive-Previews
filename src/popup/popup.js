@@ -144,23 +144,19 @@ const renderActionButtons = () => {
 };
 
 // Mode toggle buttons
-document.getElementById('mode-off').addEventListener('click', () => {
-    currentMode = 'off';
-    chrome.storage.sync.set({ mode: currentMode });
-    updateModeUI();
-});
+const setupModeBtn = (id, mode) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('click', () => {
+        currentMode = mode;
+        chrome.storage.sync.set({ mode: currentMode });
+        updateModeUI();
+    });
+};
 
-document.getElementById('mode-blacklist').addEventListener('click', () => {
-    currentMode = 'blacklist';
-    chrome.storage.sync.set({ mode: currentMode });
-    updateModeUI();
-});
-
-document.getElementById('mode-whitelist').addEventListener('click', () => {
-    currentMode = 'whitelist';
-    chrome.storage.sync.set({ mode: currentMode });
-    updateModeUI();
-});
+setupModeBtn('mode-off', 'off');
+setupModeBtn('mode-blacklist', 'blacklist');
+setupModeBtn('mode-whitelist', 'whitelist');
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {

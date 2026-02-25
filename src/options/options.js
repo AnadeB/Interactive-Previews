@@ -39,9 +39,13 @@ let savedSnapshot = '';
 
 // ===== UI Elements =====
 const els = {
-  modeRadios: document.getElementsByName('mode'),
+  tabOff: document.getElementById('mode-off'),
+  tabBlacklist: document.getElementById('mode-blacklist'),
+  tabWhitelist: document.getElementById('mode-whitelist'),
+  tabBar: document.querySelector('.tab-bar'),
   blacklistContainer: document.getElementById('blacklist-container'),
   whitelistContainer: document.getElementById('whitelist-container'),
+  offContainer: document.getElementById('off-container'),
   blacklist: document.getElementById('blacklist'),
   whitelist: document.getElementById('whitelist'),
   delay: document.getElementById('delay'),
@@ -213,10 +217,15 @@ function getDragAfterElement(container, y) {
   }, { offset: Number.NEGATIVE_INFINITY }).element;
 }
 
-// ===== Change detection =====
+function getCurrentMode() {
+  if (els.tabOff.classList.contains('active')) return 'off';
+  if (els.tabWhitelist.classList.contains('active')) return 'whitelist';
+  return 'blacklist';
+}
+
 function getCurrentSnapshot() {
   const settings = {
-    mode: Array.from(els.modeRadios).find(r => r.checked)?.value || 'blacklist',
+    mode: getCurrentMode(),
     blacklist: getListFromTextarea(els.blacklist),
     whitelist: getListFromTextarea(els.whitelist),
     settings: {
@@ -260,18 +269,16 @@ function checkForChanges() {
 
 // ===== Toggle visibility based on interactions =====
 const updateUIState = () => {
-  // Mode Toggle
-  const selectedMode = Array.from(els.modeRadios).find(r => r.checked)?.value;
-  if (selectedMode === 'off') {
-    els.blacklistContainer.classList.add('hidden');
-    els.whitelistContainer.classList.add('hidden');
-  } else if (selectedMode === 'blacklist') {
-    els.blacklistContainer.classList.remove('hidden');
-    els.whitelistContainer.classList.add('hidden');
-  } else {
-    els.blacklistContainer.classList.add('hidden');
-    els.whitelistContainer.classList.remove('hidden');
-  }
+  // Mode Tabs
+  const selectedMode = getCurrentMode();
+
+  els.blacklistContainer.classList.toggle('hidden', selectedMode !== 'blacklist');
+  els.whitelistContainer.classList.toggle('hidden', selectedMode !== 'whitelist');
+  els.offContainer.classList.toggle('hidden', selectedMode !== 'off');
+
+  els.tabOff.classList.toggle('active', selectedMode === 'off');
+  els.tabBlacklist.classList.toggle('active', selectedMode === 'blacklist');
+  els.tabWhitelist.classList.toggle('active', selectedMode === 'whitelist');
 
   // Size Mode Toggle
   const selectedSizeMode = Array.from(els.sizeModeRadios).find(r => r.checked)?.value;
@@ -310,10 +317,10 @@ const updateUIState = () => {
   checkForChanges();
 };
 
-// ===== Save Options =====
 const saveOptions = () => {
+  const currentMode = getCurrentMode();
   const settings = {
-    mode: Array.from(els.modeRadios).find(r => r.checked)?.value || 'blacklist',
+    mode: currentMode,
     blacklist: getListFromTextarea(els.blacklist),
     whitelist: getListFromTextarea(els.whitelist),
     settings: {
@@ -366,10 +373,10 @@ const restoreOptions = () => {
       return;
     }
 
-    // Mode
-    Array.from(els.modeRadios).forEach(r => {
-      r.checked = r.value === items.mode;
-    });
+    // Mode Tabs
+    els.tabOff.classList.toggle('active', items.mode === 'off');
+    els.tabBlacklist.classList.toggle('active', items.mode === 'blacklist');
+    els.tabWhitelist.classList.toggle('active', items.mode === 'whitelist');
 
     // Lists
     setListToTextarea(els.blacklist, items.blacklist);
@@ -437,6 +444,20 @@ document.addEventListener('DOMContentLoaded', () => {
   setupDropZone(els.hiddenList);
 
   restoreOptions();
+
+  // Tab click listeners
+  const setupTab = (el, mode) => {
+    el.addEventListener('click', () => {
+      // Clear active from all
+      [els.tabOff, els.tabBlacklist, els.tabWhitelist].forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+      updateUIState();
+    });
+  };
+
+  setupTab(els.tabOff, 'off');
+  setupTab(els.tabBlacklist, 'blacklist');
+  setupTab(els.tabWhitelist, 'whitelist');
 });
 
 els.saveBtn.addEventListener('click', saveOptions);

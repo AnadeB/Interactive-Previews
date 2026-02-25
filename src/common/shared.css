@@ -1,0 +1,118 @@
+:root {
+    --lime: #B8F500;
+    --dark-green: #4A6600;
+    --bg: #F5F5F5;
+    --radius-tab: 12px;
+}
+
+/* ===== Chrome-style Tab Bar ===== */
+
+/*
+  HOW IT WORKS:
+  - tab-bar bg = lime  (visible behind rounded corners of inactive tabs)
+  - inactive tabs bg = dark-green  (solid, no rounding by default)
+  - active tab bg = lime  (merges with tab-bar bg, looks "raised")
+  - neighbor of active tab gets a bottom corner rounded,
+    revealing the lime tab-bar background = inverted corner effect
+  - first/last tabs get top corner rounding to match the tab-bar shape
+*/
+
+.tab-bar {
+    display: flex;
+    background-color: var(--lime);
+    border-radius: var(--radius-tab) var(--radius-tab) 0 0;
+}
+
+.mode-tab {
+    flex: 1;
+    display: flex;
+    background-color: var(--dark-green);
+    transition: background-color 0.2s ease, border-radius 0.2s ease;
+}
+
+/* Match rounded corners of tab-bar on the edges */
+.mode-tab:first-child {
+    border-top-left-radius: var(--radius-tab);
+}
+
+.mode-tab:last-child {
+    border-top-right-radius: var(--radius-tab);
+}
+
+/* Button inside tab */
+.mode-tab .btn {
+    width: 100%;
+    padding: 10px 4px;
+    border: none;
+    background: transparent;
+    color: var(--lime);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    white-space: nowrap;
+}
+
+/* ---- Active tab ---- */
+.mode-tab.active {
+    background-color: var(--dark-green);
+}
+
+.mode-tab.active .btn {
+    color: var(--dark-green);
+    background-color: var(--lime);
+    border-radius: var(--radius-tab) var(--radius-tab) 0 0;
+}
+
+/* ---- Inverted corners ---- */
+
+/* Tab right after active → round its bottom-LEFT corner */
+.mode-tab.active+.mode-tab {
+    border-bottom-left-radius: var(--radius-tab);
+}
+
+/* Tab right before active → round its bottom-RIGHT corner */
+.mode-tab:has(+ .mode-tab.active) {
+    border-bottom-right-radius: var(--radius-tab);
+}
+
+/* ---- Hover on inactive tabs ---- */
+.mode-tab:not(.active):hover {
+    background-color: #5a7d00;
+}
+
+/* ===== Action Area (below tabs) ===== */
+.actions-area {
+    background: var(--lime);
+    padding: 15px;
+    border-radius: 0 0 var(--radius-tab) var(--radius-tab);
+}
+
+/* ===== Settings Icon ===== */
+.settings-btn {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.settings-btn:hover {
+    opacity: 0.7;
+}
+
+.settings-btn .icon {
+    width: 20px;
+    height: 20px;
+    background-color: var(--dark-green);
+    mask-image: url(../../assets/icons/icon_settings_24.svg);
+    mask-size: 100%;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    -webkit-mask-image: url(../../assets/icons/icon_settings_24.svg);
+    -webkit-mask-size: 100%;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+}
