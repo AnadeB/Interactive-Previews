@@ -46,7 +46,7 @@ const updateModeUI = () => {
  * Check if a value exists in the list (exact string match)
  */
 const isInList = (list, value) => {
-    return list.includes(value);
+    return (list || []).includes(value);
 };
 
 /**
@@ -73,7 +73,7 @@ const renderActionButtons = () => {
 
     const listKey = currentMode === 'blacklist' ? 'blacklist' : 'whitelist';
     const listName = currentMode === 'blacklist' ? 'blacklist' : 'whitelist';
-    const list = storedData[listKey];
+    const list = storedData[listKey] || [];
 
     // --- Domain button ---
     const domainInList = isInList(list, currentDomain);
@@ -81,7 +81,7 @@ const renderActionButtons = () => {
     btnDomain.className = 'action-btn' + (domainInList ? ' remove-btn' : '');
 
     if (domainInList) {
-        btnDomain.textContent = `Remove this domain from ${listName}`;
+        btnDomain.textContent = `Remove domain from ${listName}`;
         btnDomain.onclick = () => {
             const newList = list.filter(item => item !== currentDomain);
             chrome.storage.sync.set({ [listKey]: newList }, () => {
@@ -91,7 +91,7 @@ const renderActionButtons = () => {
             });
         };
     } else {
-        btnDomain.textContent = `Add this domain to ${listName}`;
+        btnDomain.textContent = `Add domain to ${listName}`;
         btnDomain.onclick = () => {
             const newList = [...new Set([...list, currentDomain])];
             chrome.storage.sync.set({ [listKey]: newList }, () => {
@@ -110,31 +110,23 @@ const renderActionButtons = () => {
         const btnPage = document.createElement('button');
         btnPage.className = 'action-btn' + (pageInList ? ' remove-btn' : '');
 
-        // Truncate display URL
-        let displayUrl = currentUrl;
-        if (displayUrl.length > 40) {
-            displayUrl = displayUrl.substring(0, 37) + '...';
-        }
-
         if (pageInList) {
             btnPage.textContent = `Remove full URL from ${listName}`;
-            btnPage.title = `Remove exact page pattern from ${listName}:\n${pagePattern}`;
             btnPage.onclick = () => {
                 const newList = list.filter(item => item !== pagePattern);
                 chrome.storage.sync.set({ [listKey]: newList }, () => {
                     storedData[listKey] = newList;
-                    showStatus(`Page removed from ${listName}!`);
+                    showStatus(`Page removed!`);
                     renderActionButtons();
                 });
             };
         } else {
             btnPage.textContent = `Add full URL to ${listName}`;
-            btnPage.title = `Add exact page pattern to ${listName}:\n${pagePattern}`;
             btnPage.onclick = () => {
                 const newList = [...new Set([...list, pagePattern])];
                 chrome.storage.sync.set({ [listKey]: newList }, () => {
                     storedData[listKey] = newList;
-                    showStatus(`Page added to ${listName}!`);
+                    showStatus(`Page added!`);
                     renderActionButtons();
                 });
             };
@@ -162,13 +154,24 @@ setupModeBtn('mode-whitelist', 'whitelist');
 document.addEventListener('DOMContentLoaded', () => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         const currentTab = tabs[0];
+        if (!currentTab) return;
+
         currentDomain = getDomain(currentTab.url);
         currentUrl = currentTab.url || '';
 
-        chrome.storage.sync.get({ mode: 'blacklist', blacklist: [], whitelist: [] }, (items) => {
+        chrome.storage.sync.get({
+            mode: 'blacklist',
+            blacklist: [],
+            whitelist: [],
+            theme: 'green'
+        }, (items) => {
             currentMode = items.mode;
             storedData.blacklist = items.blacklist;
             storedData.whitelist = items.whitelist;
+
+            // Apply theme
+            document.documentElement.setAttribute('data-theme', items.theme || 'green');
+
             updateModeUI();
         });
     });

@@ -7,12 +7,15 @@
     border: 1px solid #ccc;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     border-radius: 6px;
+    /* inline-block — width matches the image, not the info bar */
     display: none;
     overflow: hidden;
+    /* fit to image width */
+    width: fit-content;
 }
 
 #interactive-preview-container.visible {
-    display: block;
+    display: inline-block;
 }
 
 #interactive-preview-container img {
@@ -31,6 +34,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100%;
+    /* constrained to the container (= image) width */
+    width: 100%;
     box-sizing: border-box;
 }

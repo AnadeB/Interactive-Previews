@@ -1,315 +1,347 @@
-/* options.css — options-page-specific layout, colors from shared.css */
+/* options.css — options-page-specific layout, colors via shared.css vars */
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: var(--black-green);
-  color: #333;
-  margin: 0;
-  padding: 70px 0 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-deep);
+    color: var(--text);
+    margin: 0;
+    padding: 70px 0 0;
 }
 
 /* ===== Sticky Header ===== */
 #sticky-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-  background: var(--black-green);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: var(--bg-deep);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
 }
 
 .header-inner {
-  max-width: 650px;
-  margin: 0 auto;
-  padding: 10px 30px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+    max-width: 650px;
+    margin: 0 auto;
+    padding: 10px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .header-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .header-left img {
-  width: 36px;
-  height: 36px;
+    width: 36px;
+    height: 36px;
 }
 
 h1 {
-  margin: 0;
-  font-size: 20px;
-  color: var(--lime);
+    margin: 0;
+    font-size: 20px;
+    color: var(--accent);
 }
 
 .header-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
-/* Save button — lime on dark header */
-.primary-button {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  background-color: var(--lime);
-  color: var(--dark-green);
-  transition: all 0.2s;
-}
-
-.primary-button:hover {
-  background-color: #d4ff4d;
-}
-
-.primary-button.outline {
-  background-color: transparent;
-  color: var(--lime);
-  border: 2px solid var(--lime);
-}
-
-.primary-button.outline:hover {
-  background-color: rgba(184, 245, 0, 0.1);
-}
-
+/* ===== Save hint ===== */
 .save-hint {
-  font-size: 12px;
-  color: rgba(184, 245, 0, 0.6);
-  font-style: italic;
-  white-space: nowrap;
-}
-
-.save-hint.has-changes {
-  color: #ffd966;
-  font-weight: 500;
-  font-style: normal;
+    font-size: 12px;
+    color: var(--accent-muted);
+    font-style: italic;
+    white-space: nowrap;
+    transition: color 0.3s, opacity 0.3s;
 }
 
 .save-hint.saved {
-  color: #a0e860;
-  font-weight: 600;
-  font-style: normal;
+    color: var(--accent);
+    font-weight: 600;
+    font-style: normal;
 }
 
 /* ===== Container ===== */
 .container {
-  max-width: 650px;
-  margin: 0 auto;
-  padding: 20px 30px 40px;
+    max-width: 650px;
+    margin: 0 auto;
+    padding: 20px 30px 40px;
 }
 
 /* ===== Settings Sections (all dark) ===== */
 .settings-section {
-  margin-bottom: 20px;
+    margin-bottom: 20px;
 }
 
 /* Tabs section overrides */
 .tabs-section h2 {
-  display: none;
-  /* title is obvious from tabs */
+    display: none;
 }
 
 .tabs-section .actions-area {
-  margin-bottom: 0;
+    margin-bottom: 0;
 }
 
 /* ===== Form Elements inside dark sections ===== */
 .radio-group {
-  margin-bottom: 15px;
+    margin-bottom: 15px;
 }
 
 .radio-group label {
-  margin-right: 20px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+    margin-right: 20px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .radio-group.vertical {
-  display: flex;
-  flex-direction: column;
+    display: flex;
+    flex-direction: column;
 }
 
 .option-group {
-  margin-bottom: 15px;
+    margin-bottom: 15px;
 }
 
 .option-group>label {
-  display: flex;
-  align-items: center;
-  font-weight: 500;
-  margin-bottom: 5px;
-  gap: 6px;
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+    margin-bottom: 5px;
+    gap: 6px;
 }
 
 .sub-option {
-  margin-left: 28px;
-  margin-top: 5px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: opacity 0.2s;
+    margin-left: 28px;
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: opacity 0.2s;
 }
 
 .sub-option.disabled {
-  opacity: 0.4;
-  pointer-events: none;
+    opacity: 0.4;
+    pointer-events: none;
 }
 
 .setting-item {
-  margin-bottom: 10px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .sub-option-list {
-  margin-left: 28px;
-  margin-top: 5px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+    margin-left: 28px;
+    margin-top: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
 .sub-option-list label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 14px;
 }
 
 .sub-label {
-  font-weight: 500;
-  font-size: 14px;
-  margin-left: 4px;
+    font-weight: 500;
+    font-size: 14px;
+    margin-left: 4px;
 }
 
 #infobar-suboptions.disabled {
-  opacity: 0.4;
-  pointer-events: none;
+    opacity: 0.4;
+    pointer-events: none;
 }
 
 /* ===== Drag-and-drop list ===== */
 .drag-list-wrapper {
-  margin-left: 28px;
-  margin-top: 8px;
+    margin-left: 28px;
+    margin-top: 8px;
 }
 
 .drag-list {
-  min-height: 10px;
-  border-radius: 6px;
+    min-height: 10px;
+    border-radius: 6px;
 }
 
 .drag-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  margin-bottom: 4px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(184, 245, 0, 0.15);
-  border-radius: 6px;
-  cursor: default;
-  user-select: none;
-  transition: all 0.15s;
-  color: #e8f0d4;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    margin-bottom: 4px;
+    background: var(--input-bg);
+    border: 1px solid color-mix(in srgb, var(--accent) 15%, transparent);
+    border-radius: 6px;
+    cursor: default;
+    user-select: none;
+    transition: all 0.15s;
+    color: var(--text);
 }
 
 .drag-item:hover {
-  border-color: rgba(184, 245, 0, 0.3);
-  background: rgba(255, 255, 255, 0.12);
+    border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+    background: color-mix(in srgb, var(--text) 12%, transparent);
 }
 
 .drag-item.dragging {
-  opacity: 0.5;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  border-color: var(--lime);
+    opacity: 0.5;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    border-color: var(--accent);
 }
 
 .drag-item .drag-handle {
-  cursor: grab;
-  opacity: 0.5;
-  flex-shrink: 0;
-  width: 18px;
-  height: 18px;
-  transition: opacity 0.15s;
-  filter: brightness(0) invert(1);
+    cursor: grab;
+    opacity: 0.5;
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    transition: opacity 0.15s;
+    filter: brightness(0) invert(1);
 }
 
 .drag-item:hover .drag-handle {
-  opacity: 0.8;
+    opacity: 0.8;
 }
 
 .drag-item .drag-handle:active {
-  cursor: grabbing;
+    cursor: grabbing;
 }
 
 .drag-item .drag-label {
-  font-size: 14px;
-  font-weight: 500;
-  flex-shrink: 0;
+    font-size: 14px;
+    font-weight: 500;
+    flex-shrink: 0;
 }
 
 .drag-item .drag-example {
-  color: rgba(184, 245, 0, 0.5);
-  font-size: 12px;
-  font-style: italic;
-  margin-left: auto;
-  white-space: nowrap;
+    color: var(--accent-muted);
+    font-size: 12px;
+    font-style: italic;
+    margin-left: auto;
+    white-space: nowrap;
 }
 
 .drag-divider {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 0;
-  color: rgba(184, 245, 0, 0.5);
-  font-size: 12px;
-  font-weight: 600;
-  user-select: none;
-  border-top: 1px dashed rgba(184, 245, 0, 0.2);
-  border-bottom: 1px dashed rgba(184, 245, 0, 0.2);
-  margin: 4px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 0;
+    color: var(--accent-muted);
+    font-size: 12px;
+    font-weight: 600;
+    user-select: none;
+    border-top: 1px dashed color-mix(in srgb, var(--accent) 20%, transparent);
+    border-bottom: 1px dashed color-mix(in srgb, var(--accent) 20%, transparent);
+    margin: 4px 0;
 }
 
 .drag-divider span {
-  padding: 0 10px;
+    padding: 0 10px;
 }
 
 .drag-list-hidden .drag-item {
-  opacity: 0.4;
-  border-style: dashed;
+    opacity: 0.4;
+    border-style: dashed;
 }
 
 .drag-list-hidden .drag-item:hover {
-  opacity: 0.6;
+    opacity: 0.6;
 }
 
 .drag-over-indicator {
-  height: 4px;
-  background: var(--lime);
-  border-radius: 2px;
-  margin: 2px 0;
+    height: 4px;
+    background: var(--accent);
+    border-radius: 2px;
+    margin: 2px 0;
 }
 
 /* ===== List containers inside tabs ===== */
 .list-container h3 {
-  font-size: 14px;
-  margin-bottom: 8px;
-  color: var(--lime);
+    font-size: 14px;
+    margin-bottom: 8px;
+    color: var(--accent);
 }
 
 .list-container .description {
-  font-size: 12px;
-  color: rgba(232, 240, 212, 0.7);
-  margin-bottom: 12px;
-  line-height: 1.4;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    line-height: 1.4;
+}
+
+/* ===== Theme Switcher ===== */
+.theme-picker {
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.theme-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: border-color 0.2s, transform 0.1s;
+}
+
+.theme-btn:hover {
+    transform: translateY(-1px);
+}
+
+.theme-btn.active {
+    border-color: var(--accent);
+}
+
+/* Theme-specific previews */
+.theme-btn[data-theme="green"] {
+    background: #4A6600;
+    color: #B8F500;
+}
+
+.theme-btn[data-theme="black"] {
+    background: #1a1a1a;
+    color: #9e9e9e;
+}
+
+.theme-btn[data-theme="white"] {
+    background: #f1f1f1;
+    color: #4674d1;
+}
+
+.theme-swatch {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.theme-btn[data-theme="green"] .theme-swatch {
+    background: #B8F500;
+}
+
+.theme-btn[data-theme="black"] .theme-swatch {
+    background: #9e9e9e;
+}
+
+.theme-btn[data-theme="white"] .theme-swatch {
+    background: #4674d1;
 }

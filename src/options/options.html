@@ -13,11 +13,10 @@
     <div class="header-inner">
       <div class="header-left">
         <img src="../../assets/icons/icon_app_256.png" alt="Interactive Previews icon">
-        <h1>Interactive Previews</h1>
+        <h1>Interactive Previews - Options</h1>
       </div>
       <div class="header-right">
-        <span id="save-hint" class="save-hint">No changes</span>
-        <button id="save" class="primary-button outline">Save Settings</button>
+        <span id="save-hint" class="save-hint"></span>
       </div>
     </div>
   </header>
@@ -192,6 +191,28 @@
           <label><input type="checkbox" checked disabled> Search for <code>&lt;img&gt;</code> tags</label>
           <label><input type="checkbox" id="deepSearchInside" checked> Search inside container elements</label>
           <label><input type="checkbox" id="deepSearchCssBackgrounds" checked> Support CSS background images</label>
+        </div>
+      </div>
+    </section>
+
+    <!-- Appearance -->
+    <section class="settings-section dark-section">
+      <h2>Appearance</h2>
+      <div class="option-group">
+        <label class="sub-label">Theme:</label>
+        <div class="theme-picker">
+          <button type="button" class="theme-btn active" data-theme="green">
+            <div class="theme-swatch"></div>
+            Green Lime
+          </button>
+          <button type="button" class="theme-btn" data-theme="black">
+            <div class="theme-swatch"></div>
+            Black Graphite
+          </button>
+          <button type="button" class="theme-btn" data-theme="white">
+            <div class="theme-swatch"></div>
+            White Snow
+          </button>
         </div>
       </div>
     </section>

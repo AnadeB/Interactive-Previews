@@ -27,6 +27,8 @@ let previewContainer = null;
 let previewImg = null;
 let infoBar = null;
 let hoverTimeout = null;
+let lastMouseX = 0;
+let lastMouseY = 0;
 
 // Initialize — always attach listeners, check permission dynamically
 chrome.storage.sync.get(defaultSettings, (items) => {
@@ -95,6 +97,8 @@ function init() {
     document.addEventListener('mouseover', handleMouseOver);
     document.addEventListener('mouseout', handleMouseOut);
     document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
 }
 
 function createPreviewContainer() {
@@ -202,6 +206,9 @@ function handleMouseOut(e) {
 }
 
 function handleMouseMove(e) {
+    lastMouseX = e.clientX;
+    lastMouseY = e.clientY;
+
     if (previewContainer && previewContainer.classList.contains('visible')) {
         // Re-check modifier key if required
         const modifier = currentSettings.settings.triggerModifier || 'none';
@@ -209,6 +216,36 @@ function handleMouseMove(e) {
         if (modifier === 'ctrl' && !e.ctrlKey) { hidePreview(); return; }
 
         updatePosition(e.clientX, e.clientY);
+    }
+}
+
+function handleKeyDown(e) {
+    if (!isAllowedOnThisPage()) return;
+    const modifier = currentSettings.settings.triggerModifier || 'none';
+    const isShiftTrigger = modifier === 'shift' && e.key === 'Shift';
+    const isCtrlTrigger = modifier === 'ctrl' && (e.key === 'Control' || e.key === 'Meta');
+    if (!isShiftTrigger && !isCtrlTrigger) return;
+
+    // Preview already visible — nothing to do
+    if (previewContainer && previewContainer.classList.contains('visible')) return;
+
+    // Check if there is an image element under the current cursor position
+    const el = document.elementFromPoint(lastMouseX, lastMouseY);
+    if (!el) return;
+    const src = findImageSrc(el);
+    if (src) {
+        if (hoverTimeout) clearTimeout(hoverTimeout);
+        hoverTimeout = setTimeout(() => showPreview(src, lastMouseX, lastMouseY), currentSettings.settings.delay);
+    }
+}
+
+function handleKeyUp(e) {
+    const modifier = currentSettings.settings.triggerModifier || 'none';
+    const isShiftRelease = modifier === 'shift' && e.key === 'Shift';
+    const isCtrlRelease = modifier === 'ctrl' && (e.key === 'Control' || e.key === 'Meta');
+    if (isShiftRelease || isCtrlRelease) {
+        if (hoverTimeout) clearTimeout(hoverTimeout);
+        hidePreview();
     }
 }
 
