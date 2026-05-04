@@ -1,11 +1,12 @@
 // ===== Info Bar Item Definitions =====
 const INFO_ITEMS = [
-    { id: 'dimensions', label: 'Original Dimensions', example: 'ex: 1920×1080' },
+    { id: 'dimensions', label: 'Dimensions <span class="description-text" style="font-size:0.85em; opacity:0.7;">(images only)</span>', example: 'ex: 1920×1080' },
     { id: 'name', label: 'File Name', example: 'ex: photo.jpg' },
     { id: 'extension', label: 'Extension', example: 'ex: PNG' },
     { id: 'fileSize', label: 'File Size', example: 'ex: 245 KB' },
     { id: 'mimeType', label: 'MIME Type', example: 'ex: image/webp' },
-    { id: 'aspectRatio', label: 'Aspect Ratio', example: 'ex: 16:9' }
+    { id: 'aspectRatio', label: 'Aspect Ratio <span class="description-text" style="font-size:0.85em; opacity:0.7;">(images only)</span>', example: 'ex: 16:9' },
+    { id: 'pageCount', label: 'Pages Count <span class="description-text" style="font-size:0.85em; opacity:0.7;">(PDF only)</span>', example: 'ex: Page 1 of 5' }
 ];
 
 const DEFAULT_INFOBAR_ORDER = INFO_ITEMS.map(i => i.id);
@@ -106,7 +107,7 @@ function createDragItem(itemId) {
 
     const label = document.createElement('span');
     label.className = 'drag-label';
-    label.textContent = def.label;
+    label.innerHTML = def.label;
 
     const example = document.createElement('span');
     example.className = 'drag-example';

@@ -13,7 +13,7 @@ const defaultSettings = {
         infoBar: {
             enabled: false,
             position: 'top',
-            shownItems: ['dimensions', 'name', 'extension', 'fileSize', 'mimeType', 'aspectRatio'],
+            shownItems: ['dimensions', 'name', 'extension', 'fileSize', 'mimeType', 'aspectRatio', 'pageCount'],
             hiddenItems: []
         },
         deepSearch: {
@@ -34,6 +34,7 @@ let hoverTimeout      = null;
 let hideTimer         = null;  // deferred hide for PDF mode
 let lastMouseX        = 0;
 let lastMouseY        = 0;
+let isMouseDown       = false; // track selection drag state
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 chrome.storage.sync.get(defaultSettings, (items) => {
@@ -52,6 +53,17 @@ chrome.storage.sync.get(defaultSettings, (items) => {
         ...defaultSettings.settings.deepSearch,
         ...(items.settings.deepSearch || {})
     };
+
+    // Migrate missing Info Bar items (e.g. pageCount for existing users)
+    const ib = currentSettings.settings.infoBar;
+    const allKnown = defaultSettings.settings.infoBar.shownItems;
+    const allPresent = [...(ib.shownItems || []), ...(ib.hiddenItems || [])];
+    allKnown.forEach(id => {
+        if (!allPresent.includes(id)) {
+            if (!ib.shownItems) ib.shownItems = [];
+            ib.shownItems.push(id);
+        }
+    });
 
     console.log('[Interactive-Previews] Loaded settings:', currentSettings);
 
@@ -90,11 +102,28 @@ function isAllowedOnThisPage() {
     });
 }
 
+// ─── Document event listeners ───────────────────────────────────────────────────
+document.addEventListener('mouseover', handleMouseOver, { passive: true });
+document.addEventListener('mouseout', handleMouseOut, { passive: true });
+document.addEventListener('mousemove', handleMouseMove, { passive: true });
+
+document.addEventListener('mousedown', () => { isMouseDown = true; }, { passive: true });
+document.addEventListener('mouseup', () => { 
+    isMouseDown = false; 
+    // If cursor ended up outside preview and trigger after selection, hide it
+    if (isPdfMode && previewContainer && previewContainer.classList.contains('visible')) {
+        const r = previewContainer.getBoundingClientRect();
+        const overPreview = lastMouseX >= r.left && lastMouseX <= r.right &&
+                            lastMouseY >= r.top  && lastMouseY <= r.bottom;
+        if (!overPreview) {
+            const el = document.elementFromPoint(lastMouseX, lastMouseY);
+            if (!el || !isPreviewTrigger(el)) hidePreview();
+        }
+    }
+}, { passive: true });
+
 // ─── Init ─────────────────────────────────────────────────────────────────────
 function init() {
-    document.addEventListener('mouseover',  handleMouseOver);
-    document.addEventListener('mouseout',   handleMouseOut);
-    document.addEventListener('mousemove',  handleMouseMove);
     document.addEventListener('keydown',    handleKeyDown);
     document.addEventListener('keyup',      handleKeyUp);
 }
@@ -140,6 +169,7 @@ function hidePreview() {
     if (previewContainer) {
         previewContainer.classList.remove('visible', 'pdf-loading', 'pdf-error');
         previewContainer.style.width = '';
+        previewContainer.style.pointerEvents = '';
     }
     if (previewImg) {
         previewImg.onload = null;
@@ -212,7 +242,8 @@ function handleMouseOut(e) {
         if (hoverTimeout) clearTimeout(hoverTimeout);
         if (isPdfMode) {
             // PDF: deferred hide — give cursor time to reach the preview container
-            scheduleHide();
+            // Don't hide if user is actively dragging to select text
+            if (!isMouseDown) scheduleHide();
         } else {
             hidePreview();
         }
@@ -243,7 +274,8 @@ function handleMouseMove(e) {
             // elementFromPoint ignores pointer-events:none, so it sees what's "behind" preview
             const el = document.elementFromPoint(e.clientX, e.clientY);
             if (!el || !isPreviewTrigger(el)) {
-                hidePreview();
+                // Don't hide if user is actively dragging to select text
+                if (!isMouseDown) hidePreview();
             }
         }
         // Do NOT call updatePosition — preview stays put

@@ -98,12 +98,65 @@ async function renderPdfPage(pageNum) {
         const scale    = getPdfRenderScale(rawVP.width, rawVP.height);
         const viewport = page.getViewport({ scale });
 
-        previewCanvas.width  = viewport.width;
-        previewCanvas.height = viewport.height;
+        // Create page wrapper
+        let pageWrapper = document.getElementById('interactive-preview-pdf-page');
+        if (!pageWrapper) {
+            pageWrapper = document.createElement('div');
+            pageWrapper.id = 'interactive-preview-pdf-page';
+            pageWrapper.className = 'pdf-page-container';
+            // Insert before infoBar if it exists, else append
+            if (infoBar && infoBar.parentNode === previewContainer) {
+                previewContainer.insertBefore(pageWrapper, infoBar);
+            } else {
+                previewContainer.appendChild(pageWrapper);
+            }
+        }
+        pageWrapper.innerHTML = '';
+        pageWrapper.style.width  = `${viewport.width}px`;
+        pageWrapper.style.height = `${viewport.height}px`;
 
-        await page.render({ canvasContext: previewCanvas.getContext('2d'), viewport }).promise;
+        // We use a local canvas instead of the global previewCanvas for layered structure
+        const canvas = document.createElement('canvas');
+        canvas.width  = viewport.width;
+        canvas.height = viewport.height;
+        pageWrapper.appendChild(canvas);
+
+        const renderContext = { canvasContext: canvas.getContext('2d'), viewport };
+        await page.render(renderContext).promise;
+
+        // Render Text Layer
+        const textLayerDiv = document.createElement('div');
+        textLayerDiv.className = 'textLayer';
+        textLayerDiv.style.setProperty('--scale-factor', viewport.scale);
+        pageWrapper.appendChild(textLayerDiv);
+        try {
+            const textContent = await page.getTextContent();
+            await pdfjsLib.renderTextLayer({
+                textContentSource: textContent,
+                container: textLayerDiv,
+                viewport: viewport,
+                textDivs: []
+            }).promise;
+        } catch(e) { console.warn('Text layer render failed', e); }
+
+        // Render Annotation Layer (Links)
+        const annotationLayerDiv = document.createElement('div');
+        annotationLayerDiv.className = 'annotationLayer';
+        pageWrapper.appendChild(annotationLayerDiv);
+        try {
+            const annotations = await page.getAnnotations();
+            pdfjsLib.AnnotationLayer.render({
+                viewport: viewport.clone({ dontFlip: true }),
+                div: annotationLayerDiv,
+                annotations: annotations,
+                page: page,
+                linkService: { getDestinationHash: (dest) => dest, getAnchorUrl: (url) => url || '' } // Dummy service for simple external links
+            });
+        } catch(e) { console.warn('Annotation layer render failed', e); }
 
         previewContainer.classList.remove('pdf-loading');
+        // Make the main container pointer-events:auto so we can interact with text/links
+        previewContainer.style.pointerEvents = 'auto';
         previewContainer.style.width = viewport.width + 'px';
 
         updatePdfInfoBar(currentPdfUrl, pageNum, totalPdfPages);
@@ -168,15 +221,53 @@ async function renderScrollablePdf(url, pdf, direction) {
         if (!previewContainer.classList.contains('visible')) return; // aborted
         const page     = await pdf.getPage(i);
         const viewport = page.getViewport({ scale });
+
+        const pageWrapper = document.createElement('div');
+        pageWrapper.className = 'pdf-page-container';
+        pageWrapper.style.width  = `${viewport.width}px`;
+        pageWrapper.style.height = `${viewport.height}px`;
+        pageWrapper.style.flexShrink = '0';
+        scrollDiv.appendChild(pageWrapper);
+
         const canvas   = document.createElement('canvas');
         canvas.width   = viewport.width;
         canvas.height  = viewport.height;
-        canvas.style.flexShrink = '0';
-        scrollDiv.appendChild(canvas);
+        pageWrapper.appendChild(canvas);
         await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+
+        // Render Text Layer
+        const textLayerDiv = document.createElement('div');
+        textLayerDiv.className = 'textLayer';
+        textLayerDiv.style.setProperty('--scale-factor', viewport.scale);
+        pageWrapper.appendChild(textLayerDiv);
+        try {
+            const textContent = await page.getTextContent();
+            await pdfjsLib.renderTextLayer({
+                textContentSource: textContent,
+                container: textLayerDiv,
+                viewport: viewport,
+                textDivs: []
+            }).promise;
+        } catch(e) {}
+
+        // Render Annotation Layer
+        const annotationLayerDiv = document.createElement('div');
+        annotationLayerDiv.className = 'annotationLayer';
+        pageWrapper.appendChild(annotationLayerDiv);
+        try {
+            const annotations = await page.getAnnotations();
+            pdfjsLib.AnnotationLayer.render({
+                viewport: viewport.clone({ dontFlip: true }),
+                div: annotationLayerDiv,
+                annotations: annotations,
+                page: page,
+                linkService: { getDestinationHash: (dest) => dest, getAnchorUrl: (url) => url || '' }
+            });
+        } catch(e) {}
     }
 
     previewContainer.classList.remove('pdf-loading');
+    previewContainer.style.pointerEvents = 'auto';
 
     // Fix: Show the info bar for scrollable mode
     updatePdfInfoBar(url, 1, totalPdfPages);

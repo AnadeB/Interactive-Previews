@@ -1,11 +1,12 @@
 // ─── Info bar (shared for images and PDFs) ────────────────────────────────────
 
-function getInfoValue(itemId, nw, nh, fileName, fileExt) {
+function getInfoValue(itemId, nw, nh, fileName, fileExt, pageNum, numPages) {
     switch (itemId) {
         case 'dimensions':  return (nw && nh) ? `${nw}×${nh}` : null;
         case 'aspectRatio': if (nw && nh) { const g = gcd(nw, nh); return `${nw/g}:${nh/g}`; } return null;
         case 'name':        return fileName || null;
         case 'extension':   return fileExt  || null;
+        case 'pageCount':   return (numPages && numPages >= 1) ? `Page ${pageNum} of ${numPages}` : null;
         default:            return null; // fileSize, mimeType — async
     }
 }
@@ -39,8 +40,8 @@ function updateInfoBar(src) {
 
     const syncParts = [];
     shownItems.forEach(id => {
-        if (id === 'fileSize' || id === 'mimeType') return;
-        const val = getInfoValue(id, nw, nh, fileName, fileExt);
+        if (id === 'fileSize' || id === 'mimeType' || id === 'pageCount') return;
+        const val = getInfoValue(id, nw, nh, fileName, fileExt, null, null);
         if (val) syncParts.push(val);
     });
 
@@ -59,7 +60,8 @@ function fetchImageMeta(src, shownItems, nw, nh, fileName, fileExt) {
             shownItems.forEach(id => {
                 if (id === 'mimeType' && mime)   { parts.push(mime.split(';')[0].trim()); return; }
                 if (id === 'fileSize' && sizeHd) { parts.push(formatFileSize(parseInt(sizeHd, 10))); return; }
-                const val = getInfoValue(id, nw, nh, fileName, fileExt);
+                if (id === 'pageCount') return;
+                const val = getInfoValue(id, nw, nh, fileName, fileExt, null, null);
                 if (val) parts.push(val);
             });
             if (infoBar) {
@@ -82,13 +84,21 @@ function updatePdfInfoBar(url, pageNum, numPages) {
 
     positionInfoBar(previewCanvas);
 
-    const { fileName } = extractFileInfo(url);
+    const { fileName, fileExt } = extractFileInfo(url);
     const shownItems   = ib.shownItems || [];
     const parts        = [];
 
-    if (shownItems.includes('name') && fileName) parts.push(fileName);
-    parts.push('PDF');
-    if (numPages >= 1) parts.push(`Page ${pageNum} of ${numPages}`);
+    shownItems.forEach(id => {
+        if (id === 'dimensions' || id === 'aspectRatio' || id === 'fileSize' || id === 'mimeType') return;
+        
+        if (id === 'extension') {
+            parts.push('PDF'); // Always show PDF rather than raw extension for consistency
+            return;
+        }
+
+        const val = getInfoValue(id, null, null, fileName, fileExt, pageNum, numPages);
+        if (val) parts.push(val);
+    });
 
     infoBar.textContent = parts.join(' · ');
     infoBar.style.display = parts.length > 0 ? 'block' : 'none';
