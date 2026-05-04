@@ -55,6 +55,7 @@ const els = {
     customSize: document.getElementById('customSize'),
 
     triggerModifierRadios: document.getElementsByName('triggerModifier'),
+    subDelay: document.getElementById('sub-delay'),
 
     infoBarEnabled: document.getElementById('infoBarEnabled'),
     infoBarPositionRadios: document.getElementsByName('infoBarPosition'),
@@ -251,6 +252,14 @@ const updateUIState = () => {
         els.customSize.disabled = true;
     }
 
+    // Trigger Modifier Delay Toggle
+    const selectedTriggerModifier = Array.from(els.triggerModifierRadios).find(r => r.checked)?.value;
+    if (selectedTriggerModifier === 'none') {
+        els.subDelay.classList.remove('hidden');
+    } else {
+        els.subDelay.classList.add('hidden');
+    }
+
     // Info Bar — disable sub-options when master is off
     const infoEnabled = els.infoBarEnabled.checked;
     if (infoEnabled) {
@@ -436,5 +445,5 @@ autoSaveInputs.forEach(el => {
     el.addEventListener('change', () => scheduleSave());
 });
 
-Array.from(els.triggerModifierRadios).forEach(r => r.addEventListener('change', () => scheduleSave()));
+Array.from(els.triggerModifierRadios).forEach(r => r.addEventListener('change', () => { updateUIState(); scheduleSave(); }));
 Array.from(els.infoBarPositionRadios).forEach(r => r.addEventListener('change', () => scheduleSave()));

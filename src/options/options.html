@@ -71,25 +71,33 @@
     <section class="settings-section dark-section">
       <h2>Trigger</h2>
 
-      <div class="radio-group vertical" style="margin-bottom: 15px;">
-        <label>
-          <input type="radio" name="triggerModifier" value="none" checked>
-          Mouse hover only
-        </label>
-        <label>
-          <input type="radio" name="triggerModifier" value="shift">
-          Mouse hover + <strong>Shift</strong>
-        </label>
-        <label>
-          <input type="radio" name="triggerModifier" value="ctrl">
-          Mouse hover + <strong>Ctrl</strong>
-        </label>
-      </div>
+      <div class="radio-group vertical">
+        <div class="option-group">
+          <label>
+            <input type="radio" name="triggerModifier" value="none" checked>
+            Mouse hover only
+          </label>
+          <div class="sub-option" id="sub-delay">
+            <label for="delay">Hover Delay (ms):</label>
+            <input type="number" id="delay" min="0" step="100" value="500">
+            <br>
+            <span class="description-text">Time to wait before showing the preview.</span>
+          </div>
+        </div>
 
-      <div class="setting-item">
-        <label for="delay">Hover Delay (ms):</label>
-        <input type="number" id="delay" min="0" step="100" value="500">
-        <span class="description-inline">Time to wait before showing the preview.</span>
+        <div class="option-group">
+          <label>
+            <input type="radio" name="triggerModifier" value="shift">
+            Mouse hover + <strong>Shift</strong>
+          </label>
+        </div>
+
+        <div class="option-group">
+          <label>
+            <input type="radio" name="triggerModifier" value="ctrl">
+            Mouse hover + <strong>Ctrl</strong>
+          </label>
+        </div>
       </div>
     </section>
 

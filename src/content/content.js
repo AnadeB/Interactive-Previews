@@ -188,13 +188,17 @@ function handleMouseOver(e) {
 
     const src = findImageSrc(target);
     if (src) {
-        console.log(`[Interactive-Previews] Hover: ${src}. Delay: ${currentSettings.settings.delay}ms`);
+        console.log(`[Interactive-Previews] Hover: ${src}. Modifier: ${modifier}`);
         if (hoverTimeout) clearTimeout(hoverTimeout);
         const x = e.clientX;
         const y = e.clientY;
+
+        // If modifier is used, show instantly. Otherwise use configured delay.
+        const delay = (modifier === 'none') ? currentSettings.settings.delay : 0;
+
         hoverTimeout = setTimeout(() => {
             showPreview(src, x, y);
-        }, currentSettings.settings.delay);
+        }, delay);
     }
 }
 
@@ -235,7 +239,8 @@ function handleKeyDown(e) {
     const src = findImageSrc(el);
     if (src) {
         if (hoverTimeout) clearTimeout(hoverTimeout);
-        hoverTimeout = setTimeout(() => showPreview(src, lastMouseX, lastMouseY), currentSettings.settings.delay);
+        // Instant trigger when pressing the key
+        showPreview(src, lastMouseX, lastMouseY);
     }
 }
 
@@ -258,6 +263,7 @@ function showPreview(src, x, y) {
     previewImg.onerror = null;
 
     // Reset inline styles so CSS doesn't conflict
+    previewContainer.style.width = '';
     previewImg.style.width = '';
     previewImg.style.height = '';
     previewImg.style.maxWidth = '';
@@ -271,7 +277,16 @@ function showPreview(src, x, y) {
         console.log(`[Interactive-Previews] Loaded. Natural: ${previewImg.naturalWidth}x${previewImg.naturalHeight}`);
         applySizeSettings();
         updateInfoBar(src);
+
         previewContainer.classList.add('visible');
+
+        // Sync container width with image width to prevent info bar from stretching it
+        const imgWidth = previewImg.offsetWidth;
+        if (imgWidth > 0) {
+            // Include border/padding if any (image is display: block)
+            previewContainer.style.width = imgWidth + 'px';
+        }
+
         updatePosition(x, y);
     };
 
