@@ -7,9 +7,7 @@
     border: 1px solid #ccc;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     border-radius: 6px;
-    /* block — width will be set via JS to match the image */
     display: none;
-    /* Allow info bar to stick out if wider than image */
     overflow: visible;
 }
 
@@ -17,11 +15,34 @@
     display: inline-block;
 }
 
+/* ── Image preview ── */
 #interactive-preview-container img {
     display: block;
     object-fit: contain;
 }
 
+/* ── PDF canvas preview ── */
+#interactive-preview-canvas {
+    display: block;
+}
+
+/* ── PDF loading state ── */
+#interactive-preview-container.pdf-loading::after {
+    content: 'Loading PDF…';
+    display: block;
+    padding: 16px 20px;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 13px;
+    color: #555;
+}
+
+/* ── PDF error state ── */
+#interactive-preview-container.pdf-error {
+    background: #fff5f5;
+    border-color: #f5c6cb;
+}
+
+/* ── Info bar ── */
 #interactive-preview-info {
     display: none;
     padding: 4px 8px;
@@ -31,7 +52,6 @@
     font-size: 11px;
     line-height: 1.3;
     white-space: nowrap;
-    /* No clipping — let it be as wide as needed */
     width: max-content;
     min-width: 100%;
     box-sizing: border-box;

@@ -22,6 +22,7 @@ const defaultSettings = {
         sizeMode: 'original',
         originalFitToScreen: true,
         customSize: 512,
+        pdfScrollMode: 'pages',
         infoBar: {
             enabled: false,
             position: 'top',
@@ -30,7 +31,9 @@ const defaultSettings = {
         },
         deepSearch: {
             searchInside: true,
-            cssBackgrounds: true
+            cssBackgrounds: true,
+            imageLinkHrefs: true,
+            pdfEnabled: true
         }
     }
 };
@@ -65,6 +68,9 @@ const els = {
 
     deepSearchInside: document.getElementById('deepSearchInside'),
     deepSearchCssBackgrounds: document.getElementById('deepSearchCssBackgrounds'),
+    deepSearchImageLinks: document.getElementById('deepSearchImageLinks'),
+    deepSearchPdfEnabled: document.getElementById('deepSearchPdfEnabled'),
+    pdfScrollModeRadios: document.querySelectorAll('input[name="pdfScrollMode"]'),
 
     saveHint: document.getElementById('save-hint'),
     themeBtns: document.querySelectorAll('.theme-btn')
@@ -302,6 +308,7 @@ function saveOptions() {
             sizeMode: Array.from(els.sizeModeRadios).find(r => r.checked)?.value || 'original',
             originalFitToScreen: els.originalFitToScreen.checked,
             customSize: parseInt(els.customSize.value, 10) || 512,
+            pdfScrollMode: document.querySelector('input[name="pdfScrollMode"]:checked').value,
             infoBar: {
                 enabled: els.infoBarEnabled.checked,
                 position: Array.from(els.infoBarPositionRadios).find(r => r.checked)?.value || 'top',
@@ -310,7 +317,9 @@ function saveOptions() {
             },
             deepSearch: {
                 searchInside: els.deepSearchInside.checked,
-                cssBackgrounds: els.deepSearchCssBackgrounds.checked
+                cssBackgrounds: els.deepSearchCssBackgrounds.checked,
+                imageLinkHrefs: els.deepSearchImageLinks.checked,
+                pdfEnabled: els.deepSearchPdfEnabled.checked
             }
         }
     };
@@ -370,6 +379,11 @@ const restoreOptions = () => {
         els.originalFitToScreen.checked = s.originalFitToScreen;
         els.customSize.value = s.customSize;
 
+        // PDF Scroll Mode
+        els.pdfScrollModeRadios.forEach(r => {
+            r.checked = (r.value === (s.pdfScrollMode || 'pages'));
+        });
+
         // Info Bar
         els.infoBarEnabled.checked = ib.enabled;
         Array.from(els.infoBarPositionRadios).forEach(r => {
@@ -393,6 +407,8 @@ const restoreOptions = () => {
         // Deep Search
         els.deepSearchInside.checked = ds.searchInside;
         els.deepSearchCssBackgrounds.checked = ds.cssBackgrounds;
+        els.deepSearchImageLinks.checked = ds.imageLinkHrefs !== false;
+        els.deepSearchPdfEnabled.checked = ds.pdfEnabled !== false;
 
         // Theme
         applyTheme(items.theme || 'green');
@@ -438,10 +454,14 @@ els.infoBarEnabled.addEventListener('change', () => { updateUIState(); scheduleS
 const autoSaveInputs = [
     els.blacklist, els.whitelist, els.delay, els.customSize,
     els.originalFitToScreen, els.infoBarEnabled,
-    els.deepSearchInside, els.deepSearchCssBackgrounds
+    els.deepSearchInside, els.deepSearchCssBackgrounds,
+    els.deepSearchImageLinks, els.deepSearchPdfEnabled
 ];
 autoSaveInputs.forEach(el => {
     el.addEventListener('input', () => scheduleSave());
+    el.addEventListener('change', () => scheduleSave());
+});
+els.pdfScrollModeRadios.forEach(el => {
     el.addEventListener('change', () => scheduleSave());
 });
 

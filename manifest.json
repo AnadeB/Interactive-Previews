@@ -10,6 +10,12 @@
     "storage",
     "activeTab"
   ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "src/background/background.js"
+  },
   "action": {
     "default_popup": "src/popup/popup.html",
     "default_icon": {
@@ -26,11 +32,22 @@
         "<all_urls>"
       ],
       "js": [
+        "src/pdfjs/pdf.min.js",
+        "src/content/utils.js",
+        "src/content/info-bar.js",
+        "src/content/preview-image.js",
+        "src/content/preview-pdf.js",
         "src/content/content.js"
       ],
       "css": [
         "src/content/content.css"
       ]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["src/pdfjs/pdf.worker.min.js"],
+      "matches": ["<all_urls>"]
     }
   ]
 }

@@ -101,9 +101,9 @@
       </div>
     </section>
 
-    <!-- Image Sizing -->
+    <!-- Preview Sizing -->
     <section class="settings-section dark-section">
-      <h2>Image Sizing</h2>
+      <h2>Preview Sizing</h2>
       <div class="radio-group vertical">
 
         <!-- Original Size -->
@@ -148,9 +148,9 @@
       </div>
     </section>
 
-    <!-- Image Info Bar -->
+    <!-- Info Bar -->
     <section class="settings-section dark-section">
-      <h2>Image Info Bar</h2>
+      <h2>Info Bar</h2>
 
       <div class="option-group">
         <label>
@@ -191,14 +191,21 @@
       </div>
     </section>
 
-    <!-- Image Detection -->
+    <!-- Content Detection -->
     <section class="settings-section dark-section">
-      <h2>Image Detection</h2>
+      <h2>Content Detection</h2>
       <div class="option-group">
         <div class="sub-option-list">
-          <label><input type="checkbox" checked disabled> Search for <code>&lt;img&gt;</code> tags</label>
+          <label><input type="checkbox" checked disabled> Detect <code>&lt;img&gt;</code> tags</label>
           <label><input type="checkbox" id="deepSearchInside" checked> Search inside container elements</label>
-          <label><input type="checkbox" id="deepSearchCssBackgrounds" checked> Support CSS background images</label>
+          <label><input type="checkbox" id="deepSearchCssBackgrounds" checked> CSS background images</label>
+          <label><input type="checkbox" id="deepSearchImageLinks" checked> Links (<code>&lt;a href&gt;</code>) to images</label>
+          <label><input type="checkbox" id="deepSearchPdfEnabled" checked> Links to <strong>PDF</strong> documents</label>
+          <div class="sub-option" id="sub-pdfMode">
+            <label class="sub-label" style="display:block; margin-bottom:5px;">PDF Navigation Mode:</label>
+            <label><input type="radio" name="pdfScrollMode" value="pages" checked> Single page (scroll to flip)</label><br>
+            <label><input type="radio" name="pdfScrollMode" value="vertical"> Continuous vertical scroll</label>
+          </div>
         </div>
       </div>
     </section>
