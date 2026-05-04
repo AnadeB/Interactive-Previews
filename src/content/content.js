@@ -1,11 +1,11 @@
 // ─── Shared globals (used by all content scripts) ─────────────────────────────
 const defaultSettings = {
-    mode: 'blacklist',
-    blacklist: [],
-    whitelist: [],
+    mode: 'blocklist',
+    blocklist: [],
+    allowlist: [],
     settings: {
         delay: 500,
-        triggerModifier: 'none',
+        triggerModifiers: { shift: false, ctrl: false, alt: false },
         sizeMode: 'original',
         originalFitToScreen: true,
         customSize: 512,
@@ -15,6 +15,10 @@ const defaultSettings = {
             position: 'top',
             shownItems: ['dimensions', 'name', 'extension', 'fileSize', 'mimeType', 'aspectRatio', 'pageCount'],
             hiddenItems: []
+        },
+        allowedFileTypes: {
+            jpg: true, png: true, gif: true, webp: true, svg: true,
+            avif: true, bmp: true, ico: true, tiff: true, pdf: true
         },
         deepSearch: {
             searchInside: true,
@@ -43,15 +47,44 @@ chrome.storage.sync.get(defaultSettings, (items) => {
         return;
     }
 
+    // Migration from old settings
+    let loadedMode = items.mode;
+    let loadedBlocklist = items.blocklist || [];
+    let loadedAllowlist = items.allowlist || [];
+    if (items.mode === 'blacklist') {
+        loadedMode = 'blocklist';
+        loadedBlocklist = items.blacklist || items.blocklist || [];
+    } else if (items.mode === 'whitelist') {
+        loadedMode = 'allowlist';
+        loadedAllowlist = items.whitelist || items.allowlist || [];
+    }
+
     currentSettings = items;
+    currentSettings.mode = loadedMode;
+    currentSettings.blocklist = loadedBlocklist;
+    currentSettings.allowlist = loadedAllowlist;
+    
     currentSettings.settings = { ...defaultSettings.settings, ...items.settings };
+    
+    // Migrate triggerModifier
+    if (currentSettings.settings.triggerModifier && typeof currentSettings.settings.triggerModifier === 'string') {
+        currentSettings.settings.triggerModifiers = { shift: false, ctrl: false, alt: false };
+        if (currentSettings.settings.triggerModifier === 'shift') currentSettings.settings.triggerModifiers.shift = true;
+        if (currentSettings.settings.triggerModifier === 'ctrl') currentSettings.settings.triggerModifiers.ctrl = true;
+        delete currentSettings.settings.triggerModifier;
+    }
+
     currentSettings.settings.infoBar = {
         ...defaultSettings.settings.infoBar,
-        ...(items.settings.infoBar || {})
+        ...(items.settings?.infoBar || {})
+    };
+    currentSettings.settings.allowedFileTypes = {
+        ...defaultSettings.settings.allowedFileTypes,
+        ...(items.settings?.allowedFileTypes || {})
     };
     currentSettings.settings.deepSearch = {
         ...defaultSettings.settings.deepSearch,
-        ...(items.settings.deepSearch || {})
+        ...(items.settings?.deepSearch || {})
     };
 
     // Migrate missing Info Bar items (e.g. pageCount for existing users)
@@ -90,15 +123,15 @@ function isAllowedOnThisPage() {
     let domain = '';
     try { domain = new URL(currentUrl).hostname; } catch (e) {}
 
-    if (currentSettings.mode === 'blacklist') {
-        return !(currentSettings.blacklist || []).some(p => {
-            try { return new RegExp(p).test(domain) || new RegExp(p).test(currentUrl); }
-            catch (e) { return false; }
+    if (currentSettings.mode === 'blocklist') {
+        return !(currentSettings.blocklist || []).some(p => {
+            if (!p) return false;
+            return domain.includes(p) || currentUrl.includes(p);
         });
     }
-    return (currentSettings.whitelist || []).some(p => {
-        try { return new RegExp(p).test(domain) || new RegExp(p).test(currentUrl); }
-        catch (e) { return false; }
+    return (currentSettings.allowlist || []).some(p => {
+        if (!p) return false;
+        return domain.includes(p) || currentUrl.includes(p);
     });
 }
 
@@ -224,14 +257,18 @@ function updatePosition(x, y) {
 // ─── Event handlers ───────────────────────────────────────────────────────────
 function handleMouseOver(e) {
     if (!isAllowedOnThisPage()) return;
-    const modifier = currentSettings.settings.triggerModifier || 'none';
-    if (modifier === 'shift' && !e.shiftKey) return;
-    if (modifier === 'ctrl'  && !e.ctrlKey)  return;
+    const mods = currentSettings.settings.triggerModifiers || { shift: false, ctrl: false, alt: false };
+    
+    if (mods.shift && !e.shiftKey) return;
+    if (mods.ctrl && !e.ctrlKey && !e.metaKey) return;
+    if (mods.alt && !e.altKey) return;
 
     const src = findImageSrc(e.target);
     if (src) {
         if (hoverTimeout) clearTimeout(hoverTimeout);
-        const delay = modifier === 'none' ? currentSettings.settings.delay : 0;
+        // If NO modifiers are required, use delay. If any modifier is required, delay is 0.
+        const noModsRequired = !mods.shift && !mods.ctrl && !mods.alt;
+        const delay = noModsRequired ? currentSettings.settings.delay : 0;
         const x = e.clientX, y = e.clientY;
         hoverTimeout = setTimeout(() => showPreview(src, x, y), delay);
     }
@@ -256,9 +293,10 @@ function handleMouseMove(e) {
 
     if (!previewContainer || !previewContainer.classList.contains('visible')) return;
 
-    const modifier = currentSettings.settings.triggerModifier || 'none';
-    if (modifier === 'shift' && !e.shiftKey) { hidePreview(); return; }
-    if (modifier === 'ctrl'  && !e.ctrlKey)  { hidePreview(); return; }
+    const mods = currentSettings.settings.triggerModifiers || { shift: false, ctrl: false, alt: false };
+    if (mods.shift && !e.shiftKey) { hidePreview(); return; }
+    if (mods.ctrl && !e.ctrlKey && !e.metaKey) { hidePreview(); return; }
+    if (mods.alt && !e.altKey) { hidePreview(); return; }
 
     if (isPdfMode) {
         // PDF preview is LOCKED — does not follow cursor
@@ -286,10 +324,21 @@ function handleMouseMove(e) {
 
 function handleKeyDown(e) {
     if (!isAllowedOnThisPage()) return;
-    const modifier      = currentSettings.settings.triggerModifier || 'none';
-    const isShiftTrigger = modifier === 'shift' && e.key === 'Shift';
-    const isCtrlTrigger  = modifier === 'ctrl'  && (e.key === 'Control' || e.key === 'Meta');
-    if (!isShiftTrigger && !isCtrlTrigger) return;
+    const mods = currentSettings.settings.triggerModifiers || { shift: false, ctrl: false, alt: false };
+    
+    // Check if ALL required modifiers are currently pressed (or about to be pressed by this event)
+    const shiftPressed = e.key === 'Shift' || e.shiftKey;
+    const ctrlPressed = e.key === 'Control' || e.key === 'Meta' || e.ctrlKey || e.metaKey;
+    const altPressed = e.key === 'Alt' || e.altKey;
+    
+    if (mods.shift && !shiftPressed) return;
+    if (mods.ctrl && !ctrlPressed) return;
+    if (mods.alt && !altPressed) return;
+    
+    // Only trigger if at least one modifier was required and was just pressed
+    const noModsRequired = !mods.shift && !mods.ctrl && !mods.alt;
+    if (noModsRequired) return; 
+
     if (previewContainer && previewContainer.classList.contains('visible')) return;
 
     const el  = document.elementFromPoint(lastMouseX, lastMouseY);
@@ -302,10 +351,12 @@ function handleKeyDown(e) {
 }
 
 function handleKeyUp(e) {
-    const modifier      = currentSettings.settings.triggerModifier || 'none';
-    const isShiftRelease = modifier === 'shift' && e.key === 'Shift';
-    const isCtrlRelease  = modifier === 'ctrl'  && (e.key === 'Control' || e.key === 'Meta');
-    if (isShiftRelease || isCtrlRelease) {
+    const mods = currentSettings.settings.triggerModifiers || { shift: false, ctrl: false, alt: false };
+    const isShiftRelease = mods.shift && e.key === 'Shift';
+    const isCtrlRelease  = mods.ctrl && (e.key === 'Control' || e.key === 'Meta');
+    const isAltRelease   = mods.alt && e.key === 'Alt';
+    
+    if (isShiftRelease || isCtrlRelease || isAltRelease) {
         if (hoverTimeout) clearTimeout(hoverTimeout);
         hidePreview();
     }

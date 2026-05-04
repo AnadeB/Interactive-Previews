@@ -30,15 +30,15 @@ const showStatus = (msg) => {
     }, 2000);
 };
 
-let currentMode = 'blacklist';
+let currentMode = 'blocklist';
 let currentDomain = '';
 let currentUrl = '';
-let storedData = { blacklist: [], whitelist: [] };
+let storedData = { blocklist: [], allowlist: [] };
 
 const updateModeUI = () => {
     document.getElementById('mode-off').classList.toggle('active', currentMode === 'off');
-    document.getElementById('mode-blacklist').classList.toggle('active', currentMode === 'blacklist');
-    document.getElementById('mode-whitelist').classList.toggle('active', currentMode === 'whitelist');
+    document.getElementById('mode-blacklist').classList.toggle('active', currentMode === 'blocklist');
+    document.getElementById('mode-whitelist').classList.toggle('active', currentMode === 'allowlist');
     renderActionButtons();
 };
 
@@ -71,8 +71,8 @@ const renderActionButtons = () => {
         return;
     }
 
-    const listKey = currentMode === 'blacklist' ? 'blacklist' : 'whitelist';
-    const listName = currentMode === 'blacklist' ? 'blacklist' : 'whitelist';
+    const listKey = currentMode === 'blocklist' ? 'blocklist' : 'allowlist';
+    const listName = currentMode === 'blocklist' ? 'Disable on' : 'Enable on';
     const list = storedData[listKey] || [];
 
     // --- Domain button ---
@@ -81,22 +81,22 @@ const renderActionButtons = () => {
     btnDomain.className = 'action-btn' + (domainInList ? ' remove-btn' : '');
 
     if (domainInList) {
-        btnDomain.textContent = `Remove domain from ${listName}`;
+        btnDomain.textContent = `Remove domain from list`;
         btnDomain.onclick = () => {
             const newList = list.filter(item => item !== currentDomain);
             chrome.storage.sync.set({ [listKey]: newList }, () => {
                 storedData[listKey] = newList;
-                showStatus(`Removed from ${listName}!`);
+                showStatus(`Removed from list!`);
                 renderActionButtons();
             });
         };
     } else {
-        btnDomain.textContent = `Add domain to ${listName}`;
+        btnDomain.textContent = `Add domain to list`;
         btnDomain.onclick = () => {
             const newList = [...new Set([...list, currentDomain])];
             chrome.storage.sync.set({ [listKey]: newList }, () => {
                 storedData[listKey] = newList;
-                showStatus(`Added to ${listName}!`);
+                showStatus(`Added to list!`);
                 renderActionButtons();
             });
         };
@@ -111,7 +111,7 @@ const renderActionButtons = () => {
         btnPage.className = 'action-btn' + (pageInList ? ' remove-btn' : '');
 
         if (pageInList) {
-            btnPage.textContent = `Remove full URL from ${listName}`;
+            btnPage.textContent = `Remove full URL from list`;
             btnPage.onclick = () => {
                 const newList = list.filter(item => item !== pagePattern);
                 chrome.storage.sync.set({ [listKey]: newList }, () => {
@@ -121,7 +121,7 @@ const renderActionButtons = () => {
                 });
             };
         } else {
-            btnPage.textContent = `Add full URL to ${listName}`;
+            btnPage.textContent = `Add full URL to list`;
             btnPage.onclick = () => {
                 const newList = [...new Set([...list, pagePattern])];
                 chrome.storage.sync.set({ [listKey]: newList }, () => {
@@ -147,8 +147,8 @@ const setupModeBtn = (id, mode) => {
 };
 
 setupModeBtn('mode-off', 'off');
-setupModeBtn('mode-blacklist', 'blacklist');
-setupModeBtn('mode-whitelist', 'whitelist');
+setupModeBtn('mode-blacklist', 'blocklist');
+setupModeBtn('mode-whitelist', 'allowlist');
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
@@ -160,14 +160,19 @@ document.addEventListener('DOMContentLoaded', () => {
         currentUrl = currentTab.url || '';
 
         chrome.storage.sync.get({
-            mode: 'blacklist',
+            mode: 'blocklist',
+            blocklist: [],
+            allowlist: [],
             blacklist: [],
             whitelist: [],
             theme: 'green'
         }, (items) => {
             currentMode = items.mode;
-            storedData.blacklist = items.blacklist;
-            storedData.whitelist = items.whitelist;
+            if (currentMode === 'blacklist') currentMode = 'blocklist';
+            if (currentMode === 'whitelist') currentMode = 'allowlist';
+            
+            storedData.blocklist = items.blocklist.length ? items.blocklist : items.blacklist;
+            storedData.allowlist = items.allowlist.length ? items.allowlist : items.whitelist;
 
             // Apply theme
             document.documentElement.setAttribute('data-theme', items.theme || 'green');

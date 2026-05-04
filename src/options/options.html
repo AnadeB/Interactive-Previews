@@ -32,28 +32,28 @@
           <button type="button" class="btn">Off</button>
         </div>
         <div id="mode-blacklist" class="mode-tab active">
-          <button type="button" class="btn">Blacklist mode</button>
+          <button type="button" class="btn">Disable on</button>
         </div>
         <div id="mode-whitelist" class="mode-tab">
-          <button type="button" class="btn">Whitelist mode</button>
+          <button type="button" class="btn">Enable on</button>
         </div>
       </div>
 
       <div class="actions-area">
         <div id="blacklist-container" class="list-container">
-          <h3>Blacklist</h3>
+          <h3>Disable on</h3>
           <p class="description">
-            Enter domains or Regular Expressions where the extension should be <strong>disabled</strong>.
-            <br>One entry per line. Example: <code>example\.com</code> or <code>^https://secure\.</code>
+            Enter domains where the extension should be <strong>disabled</strong>.
+            <br>One entry per line. Example: <code>google.com</code>
           </p>
           <textarea id="blacklist" rows="6" placeholder="nothing here yet"></textarea>
         </div>
 
         <div id="whitelist-container" class="list-container hidden">
-          <h3>Whitelist</h3>
+          <h3>Enable on</h3>
           <p class="description">
-            Enter domains or Regular Expressions where the extension should be <strong>enabled</strong>.
-            <br>One entry per line. Example: <code>example\.com</code> or <code>^https://secure\.</code>
+            Enter domains where the extension should be <strong>enabled</strong>.
+            <br>One entry per line. Example: <code>github.com</code>
           </p>
           <textarea id="whitelist" rows="6" placeholder="nothing here yet"></textarea>
         </div>
@@ -72,31 +72,33 @@
       <h2>Trigger</h2>
 
       <div class="radio-group vertical">
+        <p class="description-text" style="margin-bottom: 10px;">Select which keys must be held down to trigger the preview. If none are selected, it will trigger just on mouse hover.</p>
+        
         <div class="option-group">
           <label>
-            <input type="radio" name="triggerModifier" value="none" checked>
-            Mouse hover only
+            <input type="checkbox" id="triggerShift"> Require <strong>Shift</strong>
           </label>
+        </div>
+
+        <div class="option-group">
+          <label>
+            <input type="checkbox" id="triggerCtrl"> Require <strong>Ctrl</strong> (or Cmd on Mac)
+          </label>
+        </div>
+
+        <div class="option-group">
+          <label>
+            <input type="checkbox" id="triggerAlt"> Require <strong>Alt</strong> (or Option on Mac)
+          </label>
+        </div>
+
+        <div class="option-group" style="margin-top: 15px;">
           <div class="sub-option" id="sub-delay">
             <label for="delay">Hover Delay (ms):</label>
             <input type="number" id="delay" min="0" step="100" value="500">
             <br>
             <span class="description-text">Time to wait before showing the preview.</span>
           </div>
-        </div>
-
-        <div class="option-group">
-          <label>
-            <input type="radio" name="triggerModifier" value="shift">
-            Mouse hover + <strong>Shift</strong>
-          </label>
-        </div>
-
-        <div class="option-group">
-          <label>
-            <input type="radio" name="triggerModifier" value="ctrl">
-            Mouse hover + <strong>Ctrl</strong>
-          </label>
         </div>
       </div>
     </section>
@@ -187,6 +189,26 @@
               <!-- Hidden items go here -->
             </div>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Supported File Types -->
+    <section class="settings-section dark-section">
+      <h2>Supported File Types</h2>
+      <div class="option-group">
+        <p class="description-text" style="margin-bottom: 10px;">Select which file types should trigger a preview.</p>
+        <div class="sub-option-list file-types-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px;">
+          <label><input type="checkbox" id="typeJpg" checked> JPG / JPEG</label>
+          <label><input type="checkbox" id="typePng" checked> PNG</label>
+          <label><input type="checkbox" id="typeGif" checked> GIF</label>
+          <label><input type="checkbox" id="typeWebp" checked> WEBP</label>
+          <label><input type="checkbox" id="typeSvg" checked> SVG</label>
+          <label><input type="checkbox" id="typeAvif" checked> AVIF</label>
+          <label><input type="checkbox" id="typeBmp" checked> BMP</label>
+          <label><input type="checkbox" id="typeIco" checked> ICO</label>
+          <label><input type="checkbox" id="typeTiff" checked> TIFF</label>
+          <label><input type="checkbox" id="typePdf" checked> PDF</label>
         </div>
       </div>
     </section>

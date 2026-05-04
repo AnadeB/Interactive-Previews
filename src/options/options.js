@@ -13,13 +13,17 @@ const DEFAULT_INFOBAR_ORDER = INFO_ITEMS.map(i => i.id);
 
 // Default settings
 const defaultSettings = {
-    mode: 'blacklist',
-    blacklist: [],
-    whitelist: [],
+    mode: 'blocklist',
+    blocklist: [],
+    allowlist: [],
     theme: 'green',
     settings: {
         delay: 500,
-        triggerModifier: 'none',
+        triggerModifiers: {
+            shift: false,
+            ctrl: false,
+            alt: false
+        },
         sizeMode: 'original',
         originalFitToScreen: true,
         customSize: 512,
@@ -29,6 +33,10 @@ const defaultSettings = {
             position: 'top',
             shownItems: [...DEFAULT_INFOBAR_ORDER],
             hiddenItems: []
+        },
+        allowedFileTypes: {
+            jpg: true, png: true, gif: true, webp: true, svg: true,
+            avif: true, bmp: true, ico: true, tiff: true, pdf: true
         },
         deepSearch: {
             searchInside: true,
@@ -42,30 +50,43 @@ const defaultSettings = {
 // ===== UI Elements =====
 const els = {
     tabOff: document.getElementById('mode-off'),
-    tabBlacklist: document.getElementById('mode-blacklist'),
-    tabWhitelist: document.getElementById('mode-whitelist'),
+    tabBlocklist: document.getElementById('mode-blacklist'),
+    tabAllowlist: document.getElementById('mode-whitelist'),
     tabBar: document.querySelector('.tab-bar'),
-    blacklistContainer: document.getElementById('blacklist-container'),
-    whitelistContainer: document.getElementById('whitelist-container'),
+    blocklistContainer: document.getElementById('blacklist-container'),
+    allowlistContainer: document.getElementById('whitelist-container'),
     offContainer: document.getElementById('off-container'),
-    blacklist: document.getElementById('blacklist'),
-    whitelist: document.getElementById('whitelist'),
-    delay: document.getElementById('delay'),
-    sizeModeRadios: document.getElementsByName('sizeMode'),
+    blocklist: document.getElementById('blacklist'),
+    allowlist: document.getElementById('whitelist'),
 
+    delay: document.getElementById('delay'),
+    triggerShift: document.getElementById('triggerShift'),
+    triggerCtrl: document.getElementById('triggerCtrl'),
+    triggerAlt: document.getElementById('triggerAlt'),
+    subDelay: document.getElementById('sub-delay'),
+
+    sizeModeRadios: document.getElementsByName('sizeMode'),
     subOriginal: document.getElementById('sub-original'),
     subCustom: document.getElementById('sub-custom'),
     originalFitToScreen: document.getElementById('originalFitToScreen'),
     customSize: document.getElementById('customSize'),
-
-    triggerModifierRadios: document.getElementsByName('triggerModifier'),
-    subDelay: document.getElementById('sub-delay'),
 
     infoBarEnabled: document.getElementById('infoBarEnabled'),
     infoBarPositionRadios: document.getElementsByName('infoBarPosition'),
     infoBarSuboptions: document.getElementById('infobar-suboptions'),
     activeList: document.getElementById('infobar-items-active'),
     hiddenList: document.getElementById('infobar-items-hidden'),
+
+    typeJpg: document.getElementById('typeJpg'),
+    typePng: document.getElementById('typePng'),
+    typeGif: document.getElementById('typeGif'),
+    typeWebp: document.getElementById('typeWebp'),
+    typeSvg: document.getElementById('typeSvg'),
+    typeAvif: document.getElementById('typeAvif'),
+    typeBmp: document.getElementById('typeBmp'),
+    typeIco: document.getElementById('typeIco'),
+    typeTiff: document.getElementById('typeTiff'),
+    typePdf: document.getElementById('typePdf'),
 
     deepSearchInside: document.getElementById('deepSearchInside'),
     deepSearchCssBackgrounds: document.getElementById('deepSearchCssBackgrounds'),
@@ -222,21 +243,21 @@ function getDragAfterElement(container, y) {
 
 function getCurrentMode() {
     if (els.tabOff.classList.contains('active')) return 'off';
-    if (els.tabWhitelist.classList.contains('active')) return 'whitelist';
-    return 'blacklist';
+    if (els.tabAllowlist.classList.contains('active')) return 'allowlist';
+    return 'blocklist';
 }
 
 // ===== Toggle visibility based on interactions =====
 const updateUIState = () => {
     const selectedMode = getCurrentMode();
 
-    els.blacklistContainer.classList.toggle('hidden', selectedMode !== 'blacklist');
-    els.whitelistContainer.classList.toggle('hidden', selectedMode !== 'whitelist');
+    els.blocklistContainer.classList.toggle('hidden', selectedMode !== 'blocklist');
+    els.allowlistContainer.classList.toggle('hidden', selectedMode !== 'allowlist');
     els.offContainer.classList.toggle('hidden', selectedMode !== 'off');
 
     els.tabOff.classList.toggle('active', selectedMode === 'off');
-    els.tabBlacklist.classList.toggle('active', selectedMode === 'blacklist');
-    els.tabWhitelist.classList.toggle('active', selectedMode === 'whitelist');
+    els.tabBlocklist.classList.toggle('active', selectedMode === 'blocklist');
+    els.tabAllowlist.classList.toggle('active', selectedMode === 'allowlist');
 
     // Size Mode Toggle
     const selectedSizeMode = Array.from(els.sizeModeRadios).find(r => r.checked)?.value;
@@ -257,14 +278,6 @@ const updateUIState = () => {
         els.originalFitToScreen.disabled = true;
         els.subCustom.classList.add('disabled');
         els.customSize.disabled = true;
-    }
-
-    // Trigger Modifier Delay Toggle
-    const selectedTriggerModifier = Array.from(els.triggerModifierRadios).find(r => r.checked)?.value;
-    if (selectedTriggerModifier === 'none') {
-        els.subDelay.classList.remove('hidden');
-    } else {
-        els.subDelay.classList.add('hidden');
     }
 
     // Info Bar — disable sub-options when master is off
@@ -300,12 +313,16 @@ function saveOptions() {
     const currentMode = getCurrentMode();
     const settings = {
         mode: currentMode,
-        blacklist: getListFromTextarea(els.blacklist),
-        whitelist: getListFromTextarea(els.whitelist),
+        blocklist: getListFromTextarea(els.blocklist),
+        allowlist: getListFromTextarea(els.allowlist),
         theme: document.documentElement.getAttribute('data-theme') || 'green',
         settings: {
             delay: parseInt(els.delay.value, 10) || 0,
-            triggerModifier: Array.from(els.triggerModifierRadios).find(r => r.checked)?.value || 'none',
+            triggerModifiers: {
+                shift: els.triggerShift.checked,
+                ctrl: els.triggerCtrl.checked,
+                alt: els.triggerAlt.checked
+            },
             sizeMode: Array.from(els.sizeModeRadios).find(r => r.checked)?.value || 'original',
             originalFitToScreen: els.originalFitToScreen.checked,
             customSize: parseInt(els.customSize.value, 10) || 512,
@@ -315,6 +332,18 @@ function saveOptions() {
                 position: Array.from(els.infoBarPositionRadios).find(r => r.checked)?.value || 'top',
                 shownItems: getShownItemIds(),
                 hiddenItems: getHiddenItemIds()
+            },
+            allowedFileTypes: {
+                jpg: els.typeJpg.checked,
+                png: els.typePng.checked,
+                gif: els.typeGif.checked,
+                webp: els.typeWebp.checked,
+                svg: els.typeSvg.checked,
+                avif: els.typeAvif.checked,
+                bmp: els.typeBmp.checked,
+                ico: els.typeIco.checked,
+                tiff: els.typeTiff.checked,
+                pdf: els.typePdf.checked
             },
             deepSearch: {
                 searchInside: els.deepSearchInside.checked,
@@ -352,31 +381,54 @@ const restoreOptions = () => {
             return;
         }
 
+        // Handle backward compatibility / migration
+        let loadedMode = items.mode;
+        let loadedBlocklist = items.blocklist || [];
+        let loadedAllowlist = items.allowlist || [];
+        
+        if (items.mode === 'blacklist') {
+            loadedMode = 'blocklist';
+            loadedBlocklist = items.blacklist || items.blocklist || [];
+        } else if (items.mode === 'whitelist') {
+            loadedMode = 'allowlist';
+            loadedAllowlist = items.whitelist || items.allowlist || [];
+        }
+
         // Mode Tabs
-        els.tabOff.classList.toggle('active', items.mode === 'off');
-        els.tabBlacklist.classList.toggle('active', items.mode === 'blacklist');
-        els.tabWhitelist.classList.toggle('active', items.mode === 'whitelist');
+        els.tabOff.classList.toggle('active', loadedMode === 'off');
+        els.tabBlocklist.classList.toggle('active', loadedMode === 'blocklist');
+        els.tabAllowlist.classList.toggle('active', loadedMode === 'allowlist');
 
         // Lists
-        setListToTextarea(els.blacklist, items.blacklist);
-        setListToTextarea(els.whitelist, items.whitelist);
+        setListToTextarea(els.blocklist, loadedBlocklist);
+        setListToTextarea(els.allowlist, loadedAllowlist);
 
         // Merge settings
         const s = { ...defaultSettings.settings, ...items.settings };
         const ib = { ...defaultSettings.settings.infoBar, ...(items.settings.infoBar || {}) };
         const ds = { ...defaultSettings.settings.deepSearch, ...(items.settings.deepSearch || {}) };
+        const af = { ...defaultSettings.settings.allowedFileTypes, ...(items.settings.allowedFileTypes || {}) };
 
-        // Trigger
-        Array.from(els.triggerModifierRadios).forEach(r => {
-            r.checked = r.value === s.triggerModifier;
-        });
-
+        // Triggers
+        let tMods = s.triggerModifiers;
+        // Migration from old triggerModifier
+        if (s.triggerModifier && typeof s.triggerModifier === 'string') {
+            tMods = { shift: false, ctrl: false, alt: false };
+            if (s.triggerModifier === 'shift') tMods.shift = true;
+            if (s.triggerModifier === 'ctrl') tMods.ctrl = true;
+        } else if (!tMods) {
+            tMods = { shift: false, ctrl: false, alt: false };
+        }
+        
+        els.triggerShift.checked = !!tMods.shift;
+        els.triggerCtrl.checked = !!tMods.ctrl;
+        els.triggerAlt.checked = !!tMods.alt;
         els.delay.value = s.delay;
 
+        // Size
         Array.from(els.sizeModeRadios).forEach(r => {
             r.checked = r.value === s.sizeMode;
         });
-
         els.originalFitToScreen.checked = s.originalFitToScreen;
         els.customSize.value = s.customSize;
 
@@ -405,6 +457,18 @@ const restoreOptions = () => {
 
         populateDragLists(shownItems, hiddenItems);
 
+        // File Types
+        els.typeJpg.checked = !!af.jpg;
+        els.typePng.checked = !!af.png;
+        els.typeGif.checked = !!af.gif;
+        els.typeWebp.checked = !!af.webp;
+        els.typeSvg.checked = !!af.svg;
+        els.typeAvif.checked = !!af.avif;
+        els.typeBmp.checked = !!af.bmp;
+        els.typeIco.checked = !!af.ico;
+        els.typeTiff.checked = !!af.tiff;
+        els.typePdf.checked = !!af.pdf;
+
         // Deep Search
         els.deepSearchInside.checked = ds.searchInside;
         els.deepSearchCssBackgrounds.checked = ds.cssBackgrounds;
@@ -428,7 +492,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Tab click listeners
     const setupTab = (el) => {
         el.addEventListener('click', () => {
-            [els.tabOff, els.tabBlacklist, els.tabWhitelist].forEach(t => t.classList.remove('active'));
+            [els.tabOff, els.tabBlocklist, els.tabAllowlist].forEach(t => t.classList.remove('active'));
             el.classList.add('active');
             updateUIState();
             scheduleSave();
@@ -436,8 +500,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     setupTab(els.tabOff);
-    setupTab(els.tabBlacklist);
-    setupTab(els.tabWhitelist);
+    setupTab(els.tabBlocklist);
+    setupTab(els.tabAllowlist);
 
     // Theme buttons
     els.themeBtns.forEach(btn => {
@@ -453,18 +517,22 @@ Array.from(els.sizeModeRadios).forEach(r => r.addEventListener('change', () => {
 els.infoBarEnabled.addEventListener('change', () => { updateUIState(); scheduleSave(); });
 
 const autoSaveInputs = [
-    els.blacklist, els.whitelist, els.delay, els.customSize,
-    els.originalFitToScreen, els.infoBarEnabled,
+    els.blocklist, els.allowlist,
+    els.triggerShift, els.triggerCtrl, els.triggerAlt, els.delay,
+    els.customSize, els.originalFitToScreen, els.infoBarEnabled,
+    els.typeJpg, els.typePng, els.typeGif, els.typeWebp, els.typeSvg,
+    els.typeAvif, els.typeBmp, els.typeIco, els.typeTiff, els.typePdf,
     els.deepSearchInside, els.deepSearchCssBackgrounds,
     els.deepSearchImageLinks, els.deepSearchPdfEnabled
 ];
 autoSaveInputs.forEach(el => {
-    el.addEventListener('input', () => scheduleSave());
-    el.addEventListener('change', () => scheduleSave());
+    if(el) {
+        el.addEventListener('input', () => scheduleSave());
+        el.addEventListener('change', () => scheduleSave());
+    }
 });
 els.pdfScrollModeRadios.forEach(el => {
     el.addEventListener('change', () => scheduleSave());
 });
 
-Array.from(els.triggerModifierRadios).forEach(r => r.addEventListener('change', () => { updateUIState(); scheduleSave(); }));
 Array.from(els.infoBarPositionRadios).forEach(r => r.addEventListener('change', () => scheduleSave()));

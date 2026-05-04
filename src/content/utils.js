@@ -3,7 +3,7 @@ const IMAGE_EXT_RE = /\.(jpe?g|png|gif|webp|svg|bmp|avif|ico|tiff?)(\?|#|$)/i;
 const PDF_EXT_RE   = /\.pdf(\?|#|$)/i;
 
 function isPdfUrl(url) {
-    return typeof url === 'string' && PDF_EXT_RE.test(url);
+    return typeof url === 'string' && PDF_EXT_RE.test(url) && isFileTypeAllowed(url);
 }
 
 // ─── File info ────────────────────────────────────────────────────────────────
@@ -34,6 +34,35 @@ function formatFileSize(bytes) {
     return (bytes / 1048576).toFixed(1) + ' MB';
 }
 
+function isFileTypeAllowed(url) {
+    if (typeof url !== 'string') return false;
+    
+    // For data URLs or blob URLs, allow if basic image types are enabled
+    if (url.startsWith('data:image/') || url.startsWith('blob:')) {
+        const allowed = currentSettings.settings?.allowedFileTypes || {};
+        return allowed.jpg !== false || allowed.png !== false || allowed.webp !== false;
+    }
+
+    const { fileExt } = extractFileInfo(url);
+    if (!fileExt) return true; // If we can't determine, allow by default so we don't break dynamic images
+    
+    const ext = fileExt.toLowerCase();
+    const allowed = currentSettings.settings?.allowedFileTypes || {};
+    
+    if (ext === 'jpg' || ext === 'jpeg') return allowed.jpg !== false;
+    if (ext === 'png') return allowed.png !== false;
+    if (ext === 'gif') return allowed.gif !== false;
+    if (ext === 'webp') return allowed.webp !== false;
+    if (ext === 'svg') return allowed.svg !== false;
+    if (ext === 'avif') return allowed.avif !== false;
+    if (ext === 'bmp') return allowed.bmp !== false;
+    if (ext === 'ico') return allowed.ico !== false;
+    if (ext === 'tiff' || ext === 'tif') return allowed.tiff !== false;
+    if (ext === 'pdf') return allowed.pdf !== false;
+    
+    return true; // Unknown extension, let it through
+}
+
 function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
 
 // ─── Element detection ────────────────────────────────────────────────────────
@@ -47,14 +76,15 @@ function findImageSrc(target) {
 
     // 1. Direct <img>
     if (target.tagName === 'IMG') {
-        return target.src || target.dataset.src || null;
+        const src = target.src || target.dataset.src;
+        if (src && isFileTypeAllowed(src)) return src;
     }
 
     // 2. <a href> pointing to image or PDF
     if (target.tagName === 'A' && target.href) {
         const href = target.href;
-        if (ds.imageLinkHrefs !== false && IMAGE_EXT_RE.test(href)) return href;
-        if (ds.pdfEnabled     !== false && PDF_EXT_RE.test(href))   return href;
+        if (ds.imageLinkHrefs !== false && IMAGE_EXT_RE.test(href) && isFileTypeAllowed(href)) return href;
+        if (ds.pdfEnabled     !== false && PDF_EXT_RE.test(href) && isFileTypeAllowed(href))   return href;
     }
 
     // 3. Search inside container elements
@@ -62,13 +92,13 @@ function findImageSrc(target) {
         const childImg = target.querySelector('img');
         if (childImg) {
             const src = childImg.src || childImg.dataset.src;
-            if (src) return src;
+            if (src && isFileTypeAllowed(src)) return src;
         }
         const childA = target.querySelector('a[href]');
         if (childA && childA.href) {
             const href = childA.href;
-            if (ds.imageLinkHrefs !== false && IMAGE_EXT_RE.test(href)) return href;
-            if (ds.pdfEnabled     !== false && PDF_EXT_RE.test(href))   return href;
+            if (ds.imageLinkHrefs !== false && IMAGE_EXT_RE.test(href) && isFileTypeAllowed(href)) return href;
+            if (ds.pdfEnabled     !== false && PDF_EXT_RE.test(href) && isFileTypeAllowed(href))   return href;
         }
     }
 
@@ -77,7 +107,7 @@ function findImageSrc(target) {
         const bg = getComputedStyle(target).backgroundImage;
         if (bg && bg !== 'none') {
             const m = bg.match(/url\(["']?(.*?)["']?\)/);
-            if (m && m[1]) return m[1];
+            if (m && m[1] && isFileTypeAllowed(m[1])) return m[1];
         }
     }
 
@@ -90,25 +120,35 @@ function findImageSrc(target) {
 function isPreviewTrigger(target) {
     const ds = currentSettings.settings.deepSearch || {};
 
-    if (target.tagName === 'IMG') return true;
+    if (target.tagName === 'IMG') {
+        const src = target.src || target.dataset.src;
+        if (src && isFileTypeAllowed(src)) return true;
+    }
 
     if (target.tagName === 'A' && target.href) {
-        if (ds.imageLinkHrefs !== false && IMAGE_EXT_RE.test(target.href)) return true;
-        if (ds.pdfEnabled     !== false && PDF_EXT_RE.test(target.href))   return true;
+        if (ds.imageLinkHrefs !== false && IMAGE_EXT_RE.test(target.href) && isFileTypeAllowed(target.href)) return true;
+        if (ds.pdfEnabled     !== false && PDF_EXT_RE.test(target.href) && isFileTypeAllowed(target.href))   return true;
     }
 
     if (ds.searchInside !== false) {
-        if (target.querySelector('img')) return true;
+        const childImg = target.querySelector('img');
+        if (childImg) {
+            const src = childImg.src || childImg.dataset.src;
+            if (src && isFileTypeAllowed(src)) return true;
+        }
         const childA = target.querySelector('a[href]');
         if (childA && childA.href) {
-            if (ds.imageLinkHrefs !== false && IMAGE_EXT_RE.test(childA.href)) return true;
-            if (ds.pdfEnabled     !== false && PDF_EXT_RE.test(childA.href))   return true;
+            if (ds.imageLinkHrefs !== false && IMAGE_EXT_RE.test(childA.href) && isFileTypeAllowed(childA.href)) return true;
+            if (ds.pdfEnabled     !== false && PDF_EXT_RE.test(childA.href) && isFileTypeAllowed(childA.href))   return true;
         }
     }
 
     if (ds.cssBackgrounds !== false) {
         const bg = getComputedStyle(target).backgroundImage;
-        if (bg && bg !== 'none' && bg.includes('url(')) return true;
+        if (bg && bg !== 'none') {
+            const m = bg.match(/url\(["']?(.*?)["']?\)/);
+            if (m && m[1] && isFileTypeAllowed(m[1])) return true;
+        }
     }
 
     return false;
