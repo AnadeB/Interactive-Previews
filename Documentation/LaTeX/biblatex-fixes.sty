@@ -1,0 +1,548 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% BIBLIOGRAFIE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% stylový soubor pro LaTeX
+% opravná nastavení pro češtinu a biblatex pro ČSN ISO 690
+% kódování zdroje: UTF-8
+% (c) 2017–2020 Tomáš Hudec
+
+% pomocí \usepackage[harvard]{biblatex-fixes}
+% načte biblatex, volba harvard přepne styl odkazů na zdroje:
+% výchozí je číslované odkazy, harvard zapne odkzy (jméno, rok)
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{biblatex-fixes}
+	[2020/10/24 v1.0 BibLaTeX fixes by Tom Hudec]
+
+% options
+\RequirePackage{kvoptions}
+
+\SetupKeyvalOptions{
+	family=blxfix,
+	prefix=blxf@,
+	setkeys=\kvsetkeys,
+}
+
+\DeclareStringOption[iso-numeric]{style}%[iso-numeric]
+
+\DeclareVoidOption{harvard}{\kvsetkeys{blxfix}{style=iso-authoryear}}
+
+\DeclareLocalOptions{style,harvard}
+
+\ProcessLocalKeyvalOptions*
+
+\protected\def\blxf@info#1{\PackageInfo{biblatex-fixes}{#1\@gobble}}
+
+\blxf@info{Setting default style for biblatex to \blxf@style}
+\PassOptionsToPackage{
+	style=\blxf@style,				% styl odkazů z volby balíku
+}{biblatex}
+
+\AtEndOfPackage{
+	\DisableKeyvalOption[action=error,package=biblatex-fixes]{blxfix}{style}
+	\DisableKeyvalOption[action=error,package=biblatex-fixes]{blxfix}{harvard}
+}
+
+% zohledněné verze BibLaTeXu:
+% TeXlive 2020:		biblatex	2019/12/01 v3.14
+%					czech.lbx	2019/12/01 v3.14
+%	biblatex-iso690	iso.bbx		2020/03/25 0.4.0
+%
+% TeXlive 2019:		biblatex	2019/08/31 v3.13a
+%					czech.lbx	2019/08/31 v3.13a
+%	biblatex-iso690	iso.bbx		2017/04/25 v0.3.2
+%
+% TeXlive 2018:		biblatex	2018/11/02 v3.12
+%					czech.lbx	2018/11/02 v3.12
+%
+%					biblatex	2017/12/19 3.10
+% TeXlive 2017:		biblatex	2016/12/05 3.7
+% TeXlive 2016?:	biblatex	2016/09/10 3.5
+
+% oprava datezeros=false:
+% BibLaTeX pro formát data iso vyžaduje datezeros=true, přestože je
+% datum iso formátováno s nulami nezávisle na datezeros.
+
+% Uložíme hodnotu datezeros nastavenou uživatelem
+% a po kontrole a přenastavení biblatexem ji obnovíme na uživatelskou.
+\newtoggle{user@blx@datezeros}
+\AtEndPreamble{%
+	\blxf@info{Saving value of biblatex's option datezeros
+		(\iftoggle{blx@datezeros}{true}{false})}
+	\iftoggle{blx@datezeros}% uložení uživatelova nastavení pro datezeros
+		{\toggletrue{user@blx@datezeros}}
+		{\togglefalse{user@blx@datezeros}}%
+	\def\do#1{% kontrola, zda nějaký formát data je iso nebo edtf
+		\ifcsstring{blx@dateformat@#1}{iso}
+			{\nottoggle{blx@datezeros}% dočasně true, aby biblatex negeneroval varování
+				{\setkeys{blx@opt@pre}{datezeros=true}}{}}{}%
+		\ifcsstring{blx@dateformat@#1}{edtf}
+			{\nottoggle{blx@datezeros}% dočasně true, aby biblatex negeneroval varování
+				{\setkeys{blx@opt@pre}{datezeros=true}}{}}{}%
+	}%
+	\abx@dodates \do{labeldate}}
+
+\usepackage[
+	backend=biber,
+	%style=iso-authoryear,				% Harvardský styl odkazů dle ISO 690
+	%style=iso-numeric,					% číselný styl odkazů dle ISO 690
+]{biblatex}
+
+% pro zobrazování nastavení do logu, definováno v czechtypo
+\def\blxf@saveShowKey{%
+	\let\blxf@prevKeyType\showKeyType
+	\let\blxf@prevShowInfo\showInfo
+	\let\blxf@prevShowValuePre\showValuePre
+	\let\blxf@prevShowValuePost\showValuePost
+}
+\def\blxf@restoreShowKey{%
+	\let\showKeyType\blxf@prevKeyType
+	\let\showInfo\blxf@prevShowInfo
+	\let\showValuePre\blxf@prevShowValuePre
+	\let\showValuePost\blxf@prevShowValuePost
+}
+\blxf@saveShowKey
+\AtEndOfPackage{\blxf@restoreShowKey}
+
+\ifx\showKeysAndExecute\undefined
+	\let\showKeysAndExecute\relax
+	\let\showKeysAndExecuteII\relax
+\else
+	\def\showKeyType{biblatex option}
+	\let\showValuePre\@empty
+	\let\showValuePost\@empty
+	\let\showInfo\blxf@info
+\fi
+
+\blxf@info{Setting biblatex options}
+
+\showKeysAndExecute
+\ExecuteBibliographyOptions{
+	%sorting=none,						% none → podle pořadí odkazů na zdroje
+	%sortlocale=cs_CZ,					% řazení dle abecedy v tomto jazyce
+	%bibencoding=auto,					% auto = (jako .tex), UTF8
+	autolang=none,						% none|other – other = nastaví jazyk pro sazbu zdroje dle zdroje (podle langid)
+	maxnames=9,							% maximální počet jmen
+	minnames=3,							% je-li autorů více než maxnames, použije se jen minnames
+	maxcitenames=1,						% maximální počet jmen v citaci (harvardský styl)
+	mincitenames=1,
+	datezeros=false,					% nuly (pouze formáty short a terse)
+	date=short,
+	%date=comp,							% iso = yyyy-mm-dd, comp: plné (dle jazyka)
+	%alldates=comp,						% date, origdate, eventdate, urldate
+	%urldate=edtf,						% (BibLaTeX ≥ 3.10: iso) formát pro datum citace
+	dateabbrev=false,					% zkrácený formát měsíce (pouze formáty long a comp)
+	datecirca=true,				    	% \datecircaprint před hrubým datem?
+	dateuncertain=true,					% \(end)dateuncertainprint za nejistým datem?
+	% pokud je v souboru bib např.: date = 1790?, date = 1700~ %(cca)
+	shortnumeration=true,				% pro časopisy: true → svazek/ročník sázet tučně, číslo do závorky, false → slovně
+	thesisinfoinnotes=false,			% false → typ VŠKP práce, instituce a vedoucí PŘED dostupnost (odkaz), true → jako poznámku v citaci (na konec)
+	block=ragged,						% \raggedright pro bibliografii
+	%giveninits=true,					% pouze iniciály jmen
+	%abbreviate=false,			    	% zkratky / kratší verze: citováno
+	abbreviate=true,			    	% zkratky / kratší verze: cit.
+	pagetotal=true,				    	% zobrazovat celkový rozsah knihy (počet stran)
+}
+\AtEndPreamble{%
+	\iftoggle{blx@datezeros}% je-li (po kontrole biblatexem) datezeros true
+		{\nottoggle{user@blx@datezeros}% a bylo false, obnovíme false
+			{\setkeys{blx@opt@pre}{datezeros=false}%
+			\blxf@info{Restored value of biblatex's option datezeros
+				(\iftoggle{blx@datezeros}{true}{false})}}{}}{}}%
+
+\@ifpackagelater{biblatex}{2017/12/19}{% biblatex ≥ 3.10
+	\showKeysAndExecute
+	\ExecuteBibliographyOptions{
+		urldate=iso,					% (BibLaTeX ≥ 3.10: iso) formát pro datum citace
+		%seconds=false,			    	% uvádět sekundy v časech?
+	}
+}{% biblatex < 3.10
+\@ifpackagelater{biblatex}{2016/09/10}{% biblatex ≥ 3.5
+	\showKeysAndExecute
+	\ExecuteBibliographyOptions{
+		urldate=edtf,					% (BibLaTeX ≥ 3.10: iso) formát pro datum citace
+		seconds=true,			    	% uvádět sekundy v časech? EDTF vyžaduje true
+		%datezeros=true,				% EDTF vyžaduje true, nuly (pouze formáty short a terse)
+	}
+}{% biblatex < 3.5
+	\showKeysAndExecute
+	\ExecuteBibliographyOptions{
+		urldate=iso8601,				% (BibLaTeX ≥ 3.10: iso) formát pro datum citace
+	}
+}}
+
+% zmenšit font pro seznam zdrojů
+%\renewcommand*{\bibfont}{\footnotesize}
+
+\blxf@info{Setting/defining additional penalties for biblatex}
+\blxf@info{penalty between abbreviation and number: 10000}
+\blxf@info{penalty in names (high, low): 10000, 9999}
+\blxf@info{penalty between ISBN/ISSN and number: 2000}
+\setcounter{abbrvpenalty}{10000}		% penalta mezi zkratkou a číslem
+\setcounter{highnamepenalty}{10000}		% penalta za zlom ve jméně
+\setcounter{lownamepenalty}{9999}		% penalta za zlom ve jméně
+% nové hodnoty penalt
+\newcounter{isbnpenalty}				% penalta za zlom mezi ISBN/ISSN a číslem
+\setcounter{isbnpenalty}{2000}
+\newcounter{multicitedelimpenalty}		% penalta za zlom mezi více odkazy
+\newcounter{multicitefinaldelimpenalty}	% penalta za zlom mezi předposledním a posledním odkazem
+\setcounter{multicitedelimpenalty}{200}
+\setcounter{multicitefinaldelimpenalty}{10000}
+\ifboolexpr{test {\expandafter\ifstrequal\expandafter{\blx@bbxfile}{iso-authoryear}}}
+	{\setcounter{multicitedelimpenalty}{0}% pro harvardský styl není potřeba
+	 \setcounter{multicitefinaldelimpenalty}{0}%
+	 \blxf@info{penalty between multiple author-year citations: 0}%
+	 \blxf@info{penalty before the last author-year citation: 0}%
+	}{\blxf@info{penalty between multiple number citations: 200}%
+	  \blxf@info{penalty before the last number citation: 10000}}
+
+% v seznamu místo obyčejného číslování (číslo s tečkou) použít hranaté závorky: 
+%\DeclareFieldFormat{labelnumberwidth}{\mkbibbrackets{#1}}
+
+\blxf@info{Redefining string for DOI: no prefix}
+% vynechání „Dostupné z“ pro DOI
+\renewbibmacro*{from-doi}{%\mainlstring{urlfrom}\addspace
+	\printfield{doi}}
+	
+\blxf@info{Adding nonbreak penalties to various places}
+% nezalamovat rozsah stran, nezlomitelné mezery
+\@ifl@ter{bbx}{iso}{2020/03/25}{% biblatex-iso690 ≥ 0.4.0
+	% nezalamovat rozsah stran, nezlomitelná mezera
+	\blxf@info{nb: page range}
+	\DeclareFieldFormat[article,periodical]{pages}{%
+		\iftoggle{bbx:shortnum}
+			{\mbox{#1}}
+			{\mkmlpageprefix[bookpagination]{\mbox{#1}}}}%
+	% ISBN/ISSN/ISRN: nezlomitelně
+	\blxf@info{nb: ISBN/ISSN/ISAN/ISMN/ISRN/ISWC}
+	\DeclareFieldFormat{isbn}{%
+		\def\do##1{\mkbibacro{ISBN}\penalty\value{isbnpenalty}\space\mbox{##1}%
+			\def\do####1{\stdidentifierspunct\mkbibacro{ISBN}\penalty\value{isbnpenalty}\space\mbox{####1}}}%
+		\docsvfield{isbn}}%
+	\DeclareFieldFormat{issn}{%
+		\def\do##1{\mkbibacro{ISSN}\penalty\value{isbnpenalty}\space\mbox{##1}%
+			\def\do####1{\stdidentifierspunct\mkbibacro{ISSN}\penalty\value{isbnpenalty}\space\mbox{####1}}}%
+		\docsvfield{issn}}%
+	\DeclareFieldFormat{isan}{\mkbibacro{ISAN}\penalty\value{isbnpenalty}\addspace\mbox{#1}}
+	\DeclareFieldFormat{ismn}{\mkbibacro{ISMN}\penalty\value{isbnpenalty}\addspace\mbox{#1}}
+	\DeclareFieldFormat{isrn}{\mkbibacro{ISRN}\penalty\value{isbnpenalty}\addspace\mbox{#1}}
+	\DeclareFieldFormat{iswc}{\mkbibacro{ISWC}\penalty\value{isbnpenalty}\addspace\mbox{#1}}
+	\DeclareFieldFormat*{url}{%
+		\iffieldundef{urlyear}
+			{\mainlangbibstring{urlalso}}
+			{\mainlangbibstring{urlfrom}}%
+		\addcolon\addnbspace\url{#1}}%
+}{% biblatex-iso690 < 0.4.0
+	\blxf@info{nb: page range}
+	\DeclareFieldFormat[article,periodical]{pages}{%
+		\iftoggle{bbx:shortnum}
+			{\mbox{#1}}
+			{\mainsstring{pages}\addnbspace\printtext{\mbox{#1}}}}
+	% ISBN/ISSN/ISRN: nezlomitelně
+	\blxf@info{nb: ISBN/ISSN/ISRN}
+	\DeclareFieldFormat{isbn}{\printtext{ISBN}\penalty\value{isbnpenalty}\space\mbox{#1}}
+	\DeclareFieldFormat{issn}{\printtext{ISSN}\penalty\value{isbnpenalty}\space\mbox{#1}}
+	\DeclareFieldFormat{isrn}{\printtext{ISRN}\penalty\value{isbnpenalty}\space\mbox{#1}}
+}
+
+% rozsahová pomlčka nezlomitelně
+\blxf@info{nb: dash always nonbreakable}
+\protected\def\bibrangedash{\mbox{\textendash}\penalty\@M}
+
+% oprava \bibsstring → \bibstring
+\@ifl@ter{bbx}{iso}{2020/03/25}{% biblatex-iso690 ≥ 0.4.0
+	% ve verzi 0.4.0 již bibstring opraveno (poslal jsem záplatu a akceptovali ji)
+	% nezlomitelná mezera mezi cit. a datum (\addnbspace), datum nedělit na více řádků (\mbox)
+	\blxf@info{nb: between URL-seen-text and URL}
+	% FIXME: nelze to nastavit v souboru lbx, tj. definovat string urlseen:
+	%	urlseen = {{citováno}{cit\adddotspace}}% \adddotspace vkládá penaltu abbrv
+	%
+	\DeclareFieldFormat{urldate}{\mkbibbrackets{\mainlangbibstring{urlseen}\addnbspace#1}}
+}{% biblatex-iso690 < 0.4.0
+	\blxf@info{nb: volume/edition}
+	\blxf@info{nb: between cited-text and date, date hyphens nonbreakable}
+	\blxf@info{Fixes to short/long forms to depend on abbreviate option}
+	\DeclareFieldFormat{volume}{\bibstring{volume}\addnbspace#1}% volume of a book
+	\DeclareFieldFormat[article,periodical]{volume}{%
+		\iftoggle{bbx:shortnum}
+			{\mkbibbold{#1}}
+			{\bibstring{jourvol}\addnbspace#1}}% volume of a journal
+	\DeclareFieldFormat*{edition}{%
+		\ifnumeral{#1}%
+			{\mkbibordedition{#1}\addnbspace\bibstring{edition}}%
+			{\MakeCapital{#1}}}%
+	% nezlomitelná mezera mezi cit. a datum (\addnbspace), datum nedělit na více řádků (\mbox)
+	\DeclareFieldFormat{urldate}{\mkbibbrackets{\mainsstring{urlseen}\addnbspace#1}}
+}
+
+% nezlomitelná mezera mezi zkratku „č.“ (nebo „číslo“) a číslo + oprava \bibsstring → \bibstring; 0.4.0 opravuje jen bibstring
+\DeclareFieldFormat*{number}{\bibstring{number}\addnbspace\printtext{#1}}
+\DeclareFieldFormat[article,periodical]{number}{%
+	\iftoggle{bbx:shortnum}
+		{\mkbibparens{#1}}
+		{\bibstring{number}\addnbspace\printtext{#1}}}
+
+\AtBeginBibliography{%
+	% všechny spojovníky (-) nezlomitelné (EDTF/ISO používá \hyphen místo \nbhyphen)
+	\blxf@info{Setting all biblatex hyphens nonbreakable (for dates)}
+	\let\hyphen\nbhyphen
+}
+
+% odkazy na více zdrojů současně: čárka místo středníku a přidaná penalta mezi jednotlivé odkazy
+\blxf@info{Redefining delimiter for multiple citations: comma + penalty}
+\renewcommand*{\multicitedelim}{\addcomma%\addsemicolon
+	\ifnumequal{\value{citecount}}{\value{citetotal}}%
+		{\penalty\value{multicitefinaldelimpenalty}}%
+		{\penalty\value{multicitedelimpenalty}}%
+	\space}
+
+% oprava: vlastní typy editorů (editorXtype) začínají velkým písmenem
+\blxf@info{Redefining authority (like editor, translator) fields to start with uppercase}
+\renewbibmacro*{bytypestrg}[2]{%
+	\iffieldundef{#1type}
+		{\bibstring{by#2}}
+		{\ifbibxstring{by\thefield{#1type}}
+			{\bibstring{by\thefield{#1type}}}
+			{\printtext{\MakeCapital{\thefield{#1type}}}}}}
+
+% oprava: poznámka začíná velkým písmenem
+\blxf@info{Making first letter of reference note (comment) upper case}
+\DeclareFieldFormat{note}{\MakeCapital{#1}\isdot}
+
+% první jméno FAMILY, Given a další jména Given FAMILY:
+%\DeclareNameAlias{author}{family-given/given-family}
+%\DeclareNameAlias{editor}{family-given/given-family}
+% editoři: Given FAMILY
+%\DeclareNameAlias{editor}{given-family}
+\blxf@info{Defining name format of additional authotities: translator, editor}
+\DeclareNameAlias{translator}{given-family}
+\DeclareNameAlias{byeditor}{given-family}
+\DeclareNameAlias{bytranslator}{given-family}
+
+% Strings, některé závisí na nastavení abbreviate, proto až po preambuli
+\AtEndPreamble{
+	\blxf@saveShowKey
+	\def\showKeyType{biblatex string}
+	\begingroup\escapechar=-1
+	\xdef\showValuePre{\string\{}
+	\xdef\showValuePost{\string\}}
+	\endgroup
+
+	% změna textů pro českou verzi
+	\blxf@info{Setting Czech strings}
+	\showKeysAndExecuteII
+	\DefineBibliographyStrings{czech}{%
+		circa = {cca\addnbspace},
+		references = {Použitá literatura},
+	}
+
+	% změna textů pro anglickou verzi
+	\blxf@info{Setting English strings}
+	\showKeysAndExecuteII
+	\DefineBibliographyStrings{english}{%
+		%phdthesis = {Ph.D\adddotspace thesis},
+		phdthesis = {dissertation thesis (Ph\adddot D\adddot)},
+		%bysupervisor = {supervised by},
+		bysupervisor = {supervisor},
+		pages = {pages}, % shortnumeration=false nefunguje a zobrazuje jen pp.
+	}
+	
+	% změny závisející na abbreviate
+	\ifdefstring\abx@str{abx@sstr}{%					abbreviate=true
+		\showKeysAndExecuteII
+		\DefineBibliographyStrings{english}{%
+			urlseen		= {vis\addabbrvspace},
+		}
+		\showKeysAndExecuteII
+		\DefineBibliographyStrings{czech}{%
+			%urlfrom = {dostupné z},
+			urlfrom = {\mkbibacro{URL}},
+			%director	= {rež\adddot},
+			%bydirector	= {rež\adddot},
+			nodate		= {b\adddot\,r\adddot},
+		}
+	}{%													abbreviate=false
+		\showKeysAndExecuteII
+		\DefineBibliographyStrings{english}{%
+			phdthesis = {dissertation thesis (Ph\adddot D\adddot)},
+		}
+		\showKeysAndExecuteII
+		\DefineBibliographyStrings{czech}{%
+			%nodate		= {bez\addnbspace roku},
+			nodate		= {b\adddot\addnbthinspace r\adddot},
+		}
+	}
+	\blxf@restoreShowKey
+}% \AtEndPreamble
+
+
+% oprava stylu iso-authoryear
+\ifboolexpr{test {\expandafter\ifstrequal\expandafter{\blx@bbxfile}{iso-authoryear}}}
+	{% rok je uvedený ihned za jmény, ale přesné datum biblatex vynecháva
+		% NEVYNECHÁVAT přesné datum, je nutné pro onlinové zdroje a vysílání (TV, rozhlas)
+		\blxf@info{Fix for ISO author-year reference: print full date if specified}%
+		\renewbibmacro*{date}{\iffieldundef{month}
+			{\ifboolexpr{
+				test {\iftoggle{bbx:url}}
+				or test {\ifentrytype{online}}}
+				{\adddot}% bez data, pouze datum citace → oddělit od [online] tečkou
+				{}}
+			{\printdate}}%
+		% TODO/FIXME: přepínač pro toto nastavení + odkaz také jako Anon? + písmenka ke stejným rokům?
+		% Použij Anon. jako autora, pokud není uveden:
+		% Overwrite names:primary to print year right after:
+		% 1) author
+		% 2) editor
+		% 3) NOT label/title BUT Anon.
+		% Need to handle not to print editor twice (primary
+		% and subsidiary names): editor macro includes \clearname{editor}
+		\renewbibmacro*{names:primary}{%
+			% First check if we have author(s) available
+			\ifboolexpr{
+				test \ifuseauthor
+				and
+				not test {\ifnameundef{author}}
+			}
+				{\usebibmacro{author}%
+				 \setunit{\addspace}%
+				 \printfield{nameaddon}%
+				 \setunit{\printdelim{nameyeardelim}}}%
+				{% If no author(s) is available, check for editor(s)
+					\ifboolexpr{
+						test \ifuseeditor
+						and
+						not test {\ifnameundef{editor}}
+					}
+						{\usebibmacro{editor}%
+						 \setunit{\printdelim{nameyeardelim}}}%
+						{% If no editor(s) is available, use Anon.
+						 %\usebibmacro{labeltitle}%
+						 %\setunit{\printdelim{nonameyeardelim}}%
+						 Anon\adddot
+						 }}%
+			% And finally print date
+			\usebibmacro{date+extradate}%
+		}
+		%% změna oddělovače jmen: výchozí je středník (;):
+		%\renewcommand\multinamedelim{\addcomma\space}%	% čárka v citaci
+		%\AtBeginBibliography{%							% středník v seznamu literatury
+		%	\renewcommand\multinamedelim{\addsemicolon\space}%
+		%}%
+	}{}
+	
+% odstranění kurzivy pro název článku při chybějícím autorovi v harvardském stylu (iso-authoryear)
+\renewbibmacro*{labeltitle}{%
+	\iffieldundef{label}
+		{\iffieldundef{shorttitle}
+			{\iffieldundef{journaltitle}
+				{\usebibmacro{titles}{}{emph}%
+				 \clearfield{title}%
+				 \clearfield{subtitle}%
+				 \clearfield{titleaddon}}
+				{\usebibmacro{titles}{}{}%
+				 \clearfield{title}%
+				 \clearfield{subtitle}%
+				 \clearfield{titleaddon}}}
+			{\printfield[title]{shorttitle}}}
+		{\printfield{label}}}
+
+
+% BibLaTeX: změna oddělovače jmen: výchozí je středník (;):
+%	čárka (harvardský styl) v odkazech (cicacích)
+%	v seznamu literatury pak středník (pomlčka)
+
+% globálně (zejména odkazy):
+\blxf@info{Setting global name delimiter to comma, i.e. for citations}
+%\renewcommand\multinamedelim{\addsemicolon\space}			% středník (výchozí)
+\renewcommand\multinamedelim{\addcomma\space}				% čárka
+
+% pouze v seznamu literatury:
+\AtBeginBibliography{%
+	% změna oddělovače jmen: výchozí je středník (;):
+	\blxf@info{Setting name delimiters in references to comma and `a'}
+	\renewcommand\multinamedelim{\addsemicolon\space}		% středník
+	%\renewcommand\multinamedelim{\addcomma\space}%			% čárka
+	%\renewcommand\multinamedelim{\addnbspace--\addspace}%	% pomlčka
+	% FIXME: Czech × English
+	\renewcommand\finalnamedelim{\addspace\bibstring{and}\addnbspace}%	% mezi předposlední a poslední jméno
+}
+
+\@ifl@ter{bbx}{iso}{2020/03/25}{% biblatex-iso690 ≥ 0.4.0
+	\DeclareBibliographyDriver{article}{% oprava: přidání version pro article
+		\usebibmacro{bibindex}%
+		\usebibmacro{begentry}%
+		\usebibmacro{names:primary}%
+		\setunit{\printdelim{nametitledelim}}\newblock
+		\usebibmacro{titles}{}{}%
+		\newunit\newblock
+		\usebibmacro{titles}{journal}{emph}%
+		\setunit{\addspace}%
+		\usebibmacro{medium-type}%
+		\newunit\newblock
+		\printfield{edition}%
+		\newunit\newblock
+		\iftoggle{bbx:articlepubinfo}
+			{\usebibmacro{location+publisher+date}}
+			{\usebibmacro{date}}%
+		\setunit{\numerationpunct}%
+		\usebibmacro{serial:numeration}%
+		\setunit{\bibpagespunct}%
+		\printfield{pages}%
+		\newunit%
+		\printfield{version}%
+		\setunit{\addspace}%
+		\usebibmacro{urldate}%
+		\newunit\newblock
+		\usebibmacro{identifier}%
+		\newunit\newblock
+		\usebibmacro{availability+access}%
+		\newunit\newblock
+		\usebibmacro{location}%
+		\newunit\newblock
+		\printfield{note}%
+		\setunit{\bibpagerefpunct}\newblock
+		\usebibmacro{pageref}%
+		\usebibmacro{finentry}}%
+}{%
+	\DeclareBibliographyDriver{article}{% oprava: přidání version pro article, % za {date}
+		\usebibmacro{bibindex}%
+		\usebibmacro{begentry}%
+		\usebibmacro{names:primary}%
+		\setunit{\labelnamepunct}\newblock
+		\usebibmacro{titles}{}{}%
+		\newunit\newblock
+		\usebibmacro{titles}{journal}{emph}%
+		\setunit{\addspace}%
+		\usebibmacro{medium-type}%
+		\newunit\newblock
+		\printfield{edition}%
+		\newunit\newblock
+		\usebibmacro{date}%
+		\setunit*{\addcomma\addspace}%
+		\usebibmacro{serial:numeration}%
+		\setunit{\bibpagespunct}%
+		\printfield{pages}%
+		\newunit%
+		\printfield{version}%
+		\setunit{\addspace}%
+		\usebibmacro{urldate}%
+		\newunit\newblock
+		\usebibmacro{identifier}%
+		\newunit\newblock
+		\usebibmacro{availability+access}%
+		\newunit\newblock
+		\usebibmacro{location}%
+		\newunit\newblock
+		\printfield{note}%
+		\setunit{\bibpagerefpunct}\newblock
+		\usebibmacro{pageref}%
+		\usebibmacro{finentry}}%
+}
+
+
+% tolerantní sazba na praporek
+\appto\bibsetup{\sloppy}
+
+\endinput
+% vim:ts=4:sw=4
+% EOF

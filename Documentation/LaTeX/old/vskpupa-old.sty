@@ -1,0 +1,480 @@
+% 
+% Vysokoškolská kvalifikační práce
+% Univerzita Pardubice
+% 
+% stylový soubor pro LaTeX
+% kódování zdroje: UTF-8
+% (c) 2017 Tomáš Hudec, Lubomír Lukeš
+% 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% GLOBÁLNÍ NASTAVENÍ
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% KóDOVÁNÍ/JAZYK ZDROJE A PDF
+\usepackage{cmap}						% diakritika v PDF: podpora kopírování a vyhledávání
+\usepackage[utf8]{inputenc}				% vstupní kódování souboru
+\usepackage[T1]{fontenc}				% výstupní kódovaní, T1 je kódování TeXu Cork pro evropské jazyky
+% bez T1 se použije starší a pro evropské jazyky již nedoporučované kódování OT1
+% (v něm se akcentované znaky skládají jako kompozity, tj. znak a diakritické znaménko zvlášť)
+\usepackage[english,czech]{babel}		% nastaveni jazyka (dělení slov, specifická makra pro jazyk jako \uv)
+% výchozí je poslední uvedený jazyk
+%\selectlanguage{czech}					% přepnutí výchozího jazyka
+% Balík babel pro češtinu (a slovenštinu) nastavuje znak - jako aktivní (= definovaný jako příkaz, makro)
+% (podpora automaticky se opakujícího spojovníku při rozdělení slova jako propan-butan ve švu).
+% Bohůmžel aktivní spojovník znemožní používat některá makra, která využívají (neaktivní) spojovník.
+% Jedná se např. o makra \cline{2-3}, \lipsum[1-5] aj.
+% Taková makra se musí přepsat, aby používala aktivní verzi, nebo je třeba spojovníku vypnout aktivní stav.
+\AtBeginDocument{
+	\shorthandoff{-}					% spojovník nebude aktivní, lze znovu aktivovat pomocí \shorthandon{-}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% OKRAJE – ZRCADLO SAZBY
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% A4: shora a zdola: 25mm zleva: 35mm, zprava: 15mm
+\usepackage{geometry}
+\geometry{
+	a4paper,							% rozměry papíru
+	left=35mm,							% okraj zleva
+	right=15mm,							% okraj zprava
+	top=25mm,							% okraj shora
+	includehead=false,					% nepočítat hlavičku do zrcadla
+	bottom=25mm,						% okraj zdola
+	includefoot=false,					% nepočítat patičku do zrcadla – paginace je tedy v okraji
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% NASTAVENÍ HYPERTEXTOVÝCH ODKAZŮ
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% některé balíky je třeba načíst před načtením balíku hyperref (podpory odkazů v PDF):
+\usepackage{longtable}					% vícestránkové tabulky
+\usepackage{float}						% plovoucí objekty lze umisťovat pomocí H
+
+\usepackage[pdfusetitle]{hyperref}		% podpora hypertextu (odkazů) v PDF, použije \title a \author pro PDF-info
+\hypersetup{
+% viz http://ftp.cvut.cz/tex-archive/macros/latex/contrib/hyperref/doc/manual.html#x1-110003.7
+	unicode,							% podpora UTF-8 v PDF (bookmarks, info)
+	%bookmarks=true,					% generovat obsah PDF (bookmarks, výchozí je zapnuto)
+	bookmarksnumbered=true,				% zahrnout čísla sekcí v obsahu PDF
+	bookmarksopen=true,					% rozbalený strom obsahu (při otevření PDF)
+	bookmarksopenlevel=2,				% počet úrovní rozbalení záložek
+}
+
+% přesunuto do hlavního souboru, aby to bylo „na očích“, zde zakomentováno vše
+
+% a) výchozí nastavení: rámečky kolem textu, které se netisknou
+%
+% b) bez rámečků, odkomentovat:
+%\hypersetup{hidelinks}
+%
+% c) bez rámečků, barevně, odkomentovat:
+%\hypersetup{
+%	colorlinks=true,					% zapnout barvy, vypnout rámečky
+%	% nastavit barvy samostatně:
+%	linkcolor=red,						% interní odkazy (křížové reference)
+%	anchorcolor=black,					% text kotvy
+%	citecolor=green,					% text odkazu na citaci
+%	filecolor=cyan,						% URL pro lokální soubory
+%	urlcolor=magenta,					% URL
+%	% nebo nastavit všechny barvy stejně:
+%	allcolors=blue, 					% všechny odkazy (netýká se rámečků)
+%	allcolors=black,
+%	allbordercolors=blue,				% barvy všech rámečků kolem odkazů
+%}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PÍSMO, BARVA, ZNAKY, VYZNAČOVÁNÍ A SYMBOLY
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{lmodern}					% písma Latin Modern
+\def\textb#1{{\fontseries{b}\selectfont #1}}	% (polo)tučné (serifové)
+\def\textbc#1{{\fontseries{sbc}\selectfont #1}}	% tučné zúžené (bezserifové)
+\usepackage{xcolor}						% používat barvy
+
+\usepackage{nicefrac}					% textové zlomky
+\usepackage{wasysym}					% promile
+\usepackage{eurosym}					% euro
+\usepackage{textcomp}					% zobrazení tildy
+
+\usepackage[letterspace=400]{microtype}	% prostrkávání
+\usepackage[normalem]{ulem}				% podpora podtrhávání
+% vyznačování pro \emph se přepíná pomocí \normalem (kurziva) a \ULforem (podtrhávání)
+% podtržení: \uline{text}, přeškrtnutí: \sout{text}
+% změna výchozí barvy (a možnost nastavení vlastní barvy) pro přeškrtnutí:
+\renewcommand\sout[1][red]{\bgroup\markoverwith{\textcolor{#1}{\rule[0.55ex]{2pt}{\ULthickness}}}\ULon}
+% \sout[green]{zeleně přeškrtnuté}
+
+\usepackage{etoolbox}					% podpora změn prostředí (\begin{prostředí} … \end{prostředí})
+\usepackage{caption}					% podpora změn popisků
+
+\usepackage{multicol}					% sloupce
+%\raggedcolumns							% nenatahovat
+%\flushcolumns							% zarovnávat
+\usepackage{graphicx}					% kreslení obrázků
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% TYPOGRAFICKÁ NASTAVENÍ
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\parindent=15pt							% odstavcová zarážka
+
+\def\nohyphenation{\hyphenpenalty\@M\exhyphenpenalty\@M}	% zakáže dělení slov
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% TITULKY (nadpisy)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage[raggedright]{titlesec}
+% \titleformat*\sectioncommand{styling}	% změna stylu (fontů)
+% \titleformat\sectioncommand[shape]{styling}{numbering}{label-sep}{before-code}[after-code]
+% \titlespacing\sectioncommand{left}{before-sep}{after-sep}[right-sep]
+\titleformat\section					% titulek 1. úrovně (kapitola) – \section
+	{\raggedright\nohyphenation\sloppy\phantomsection\LARGE\bfseries}	% styl (písmo)
+	{\thesection}						% číslo
+	{1em}								% odsazení čísla od titulku
+	{\MakeUppercase}					% titulky sekcí verzálkami
+\titleformat*\subsection				% titulek 2. úrovně
+	{\raggedright\nohyphenation\sloppy\phantomsection\Large\rmfamily\bfseries}
+\titleformat*\subsubsection				% titulek 3. úrovně
+	{\raggedright\nohyphenation\sloppy\phantomsection\large\rmfamily\bfseries}
+
+% každá nová sekce začíná na nové straně
+% balík titlesec umožňuje pomocí \sectionbreak nebo pomocí \titleclass
+% nastavit titulek tak, aby automaticky začínal na nové straně
+% – obojí ale generuje nesprávně odkazy (bookmarks) v PDF:
+% ty pak odkazují místo na začátek sekce na konec textu na předchozí straně
+% příklad pro \section:
+%\def\sectionbreak{\clearpage}			% varianta 1
+%\titleclass{\section}{top}				% varianta 2
+% vlastní řešení, které funguje korektně i s PDF bookmarks:
+
+% nečíslované titulky jako \section*{Titulek} nejsou v obsahu
+% aby nebylo třeba používat \phantomsection, \pdfbookmark a \addcontentsline,
+% redefinujeme \section* tak, že se bude titulek automaticky vkládat do obsahu
+% a zároveň \section i \section* zahájí novou stranu
+
+\newif\ifnosectionnumber				% nečíslovaný titulek sekce
+\newif\ifpagesection					% \section zahajuje novou stranu
+\def\handlestarsection{\@ifstar
+	{\nosectionnumbertrue \@dblarg\handlesection}		% \section*
+	{\nosectionnumberfalse\@dblarg\handlesection}}		% \section
+\def\handlesection[#1]#2{%				% ošetřuje nečíslování a novou stránku
+	\ifpagesection\clearpage\fi			% nová stránka
+	\let\restoresecnumdepth\relax
+	\ifnosectionnumber%\ifnum2=\c@secnumdepth
+		\def\restoresecnumdepth{\setcounter{secnumdepth}{3}}
+		\setcounter{secnumdepth}{0}%	% vypne číslování
+		% pokud neexistuje \nameref, definujeme \ref pro nečíslovanou sekci jako název
+		\ifx\nameref\undefined \protected@edef\@currentlabel{#1}\fi
+	\fi%\fi
+	\origsection[#1]{#2}\restoresecnumdepth}	% vloží titulek (a zapne číslování
+\let\origsection\section				% původní \section kvůli redefinici
+\let\section\handlestarsection			% zapnutí redefinované verze \section
+\pagesectiontrue						% zapnutí nové stránky pro \section
+
+% oprava obsahu po redefinici \section, aby nebyl titulek „Obsah“ v obsahu
+\let\origtableofcontents\tableofcontents
+\def\tableofcontents{%
+	\let\origaddtocontents\addtocontents
+	\def\addtocontents##1##2{}			% nezahrne řádek v obsahu, ale ponechá odkaz v záložkách PDF
+	\origtableofcontents				% vloží obsah
+	\let\addtocontents\origaddtocontents
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% STYL STRÁNEK + PAGINACE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% změna polohy čísla pro styl plain:
+\usepackage{fancyhdr}					% možnosti úpravy záhlaví a zápatí (styl stránky)
+\fancypagestyle{plain}{					% redefinice stránkového stylu plain
+	\fancyhf{}							% odstraní všechny elementy
+	\renewcommand{\headrulewidth}{0pt}	% včetně linek
+	\renewcommand{\footrulewidth}{0pt}
+	\cfoot{\thepage}					% uprostřed dole číslo strany
+	%\rfoot{\thepage}					% vpravo dole číslo strany
+}
+\pagestyle{empty}						% strany nečíslovat (až do úvodu)
+
+\raggedbottom							% neroztahovat stránku k dolnímu okraji
+% \raggedbottom nefunguje na plovoucí obrázky a tabulky, oprava:
+\setlength{\@fptop}{0pt}				% odsazení shora pro plovoucí objekty
+\setlength{\@fpsep}{18pt plus 12pt}		% mezera mezi plovoucími objekty
+
+% změna odsazení v seznamu obrázků a tabulek
+\renewcommand*\l@figure{\@dottedtocline{1}{0em}{2.3em}}	% výchozí: 1.5em 2.3em
+\let\l@table\l@figure
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% TABULKY a dlouhé tabulky menším stupněm písma
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\AtBeginEnvironment{tabular}{\footnotesize}
+\AtBeginEnvironment{longtable}{\footnotesize}
+% POPISKY tabulek a obrázků
+\captionsetup{
+	font=footnotesize,					% menším stupněm písma
+	justification=centering,			% centrovaně (na střed)
+	margin=\parindent,					% zúženě o \parindent
+	%margin=2em,
+	%figurewithin=none,					% číslování obrázků průběžně v celém dokumentu
+	%tablewithin=none,					% číslování tabulek průběžně v celém dokumentu
+	figurewithin=section,				% číslování obrázků po sekcích
+	tablewithin=section,				% číslování tabulek po sekcích
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ZMĚNY PROSTŘEDÍ (CENTROVÁNÍ, VÝČTY)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\AtBeginEnvironment{figure}{\bigskip}	% větší mezera nad obrázkem
+\renewenvironment{center}				% zrušení dodatečné mezery kolem prostředí center
+	{\parskip=0pt\par\nopagebreak\centering}
+	{\par}%\noindent\ignorespacesafterend}
+
+\usepackage{enumitem}					% možnost nastavení výčtů
+\setlist{nosep}							% položky za sebou jako řádky, bez místa navíc kolem výčtu
+%\setlist{noitemsep}					% položky za sebou jako řádky, ponechat místo kolem výčtu
+%\setlist{itemsep=.1em,parsep=.1em,topsep=.2em,partopsep=.2em}	% jen malé mezery
+\setlist{
+	beginpenalty=\@M,					% zákaz zalomení nad výčtem
+%}
+%\setlist[itemize,enumerate]{
+%	before=\raggedright,				% \raggedright
+}
+% nastavení odsazení pro výčty:
+%\setlist[itemize]		{leftmargin=2.5em}
+%\setlist[enumerate] 	{leftmargin=2.5em}
+\setlist[itemize]		{leftmargin=2\parindent}
+\setlist[enumerate]		{leftmargin=2\parindent}
+\setlist[enumerate,2]	{label={\theenumii)}}	% jen jedna závorka zprava
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ŘÁDKOVÝ REJSTŘÍK a vertikální mezery
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def\setbaseline#1{%
+	\def\baselinestretch{#1}			% změna řádkování
+	\normalsize
+	\bigskipamount = #1\bigskipamount	% ekvivalentní změna vertikálních mezer
+	\medskipamount = #1\medskipamount
+	\smallskipamount = #1\smallskipamount
+	\intextsep=1.0\bigskipamount		% větší odsazení plovoucích objektů
+}
+\setbaseline{1.5}						% řádkování 1,5
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\clubpenalty=\@M						% zákaz sirotků (první řádek odstavce samostatně)
+\widowpenalty=\@M						% zákaz vdov (poslední řádek odstavce samostatně)
+
+\def\figsp{\hphantom{0}}				% mezera o velikosti cifry
+\def\thinspace{\kern .25em }			% zúžená mezera dle normy ON ČSN 88 2503: 1/4 čtverčíku
+\def\negthinspace{\kern-.25em }			% záporná zúžená mezera
+% redefinice zúžené mezery i pro matematický režim
+%\def\,{\ifmmode\mskip 4.5mu\else\leavevmode\thinspace\fi \relax}
+
+\useshorthands*{"}						% zapne zkrácené zadávání některých symbolů
+% zkratky pro uvozovky: "` "' "> "<		\clqq \crqq \frqq \flqq
+% opakující se rozdělovník: "=			propan"-butan
+%\splithyphens							% aktivuje znak -, aby se automaticky opakoval i bez "-
+\defineshorthand{"-}{\babelhyphen{nobreak}}	% zkratka pro nezlomitelný spojovník
+
+
+\AtBeginDocument{
+	% změna pojmenování titulků
+	\renewcommand{\refname}{Použitá literatura}		% původně: Reference
+	%\renewcommand\contentsname{Obsah}				% výchozí
+	%\renewcommand{\listfigurename}{Seznam obrázků}	% výchozí
+	%\renewcommand{\listtablename}{Seznam tabulek}	% výchozí
+    % info v PDF
+	\hypersetup{
+		%pdftitle={\@title},
+		%pdfauthor={\@author},
+		pdfkeywords={\klicovaSlova},
+	}
+}
+
+% FIXME: použít \usepackage{csquotes}
+% automatické vnořené jednoduché uvozovky
+\newif\ifinnerquotes
+\def\autouv{\bgroup\aftergroup\closequotes
+  \leavevmode \ifinnerquotes \quotesinglbase \else \quotedblbase \innerquotestrue \fi \nobreak \let\next=}
+\def\closequotes{\unskip \nobreak \ifinnerquotes \textquoteleft \else \textquotedblleft \fi \relax}
+%\let\uv\autouv							% odkomentovat pro automatické vnořené jednoduché uvozovky
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% TITUL
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\titulniStrana}{%
+	\phantomsection\label{titlepage}	% pro případný odkaz na titulní stranu
+	\pdfbookmark{\@title}{titlepage}	% záložka do PDF
+	\begin{titlepage}
+	\begin{center}
+	\Large \rmfamily					% velikost a rodina písma pro titulní stranu
+	Univerzita Pardubice
+	\par
+	\jmenoFakulty
+	\par
+	% pružné mezery zajistí usazení titulku a jména do optického středu strany a rok bude u spodního okraje
+	\vspace{0pt plus 3fill}				% pružná mezera
+	\@title
+	\par
+	\bigskip							% vynechat jeden řádek
+	\par
+	\@author
+	\par
+	\vspace{0pt plus 5fill}				% pružná mezera
+	\typPrace
+	\par
+	\rok
+	\end{center}
+	\end{titlepage}
+	\stepcounter{page}					% započítat titulní stranu
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ZADÁNÍ
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcount\strZadani
+\def\zadaniLabel{%
+	\clearpage
+	\phantomsection\label{assignment}	% reference
+	\pdfbookmark[1]{Zadání}{assignment}	% záložka v PDF
+}
+\newcommand{\generujZadani}[1][2]{% volitelný parametr určuje počet stran zadání
+	\zadaniLabel
+	\strZadani=\z@
+	\loop \ifnum\strZadani<#1
+		\advance\strZadani\@ne
+		\begin{center}
+			\phantomsection \label{zadaniprace\the\strZadani}
+			\edef\cestaZadani{\prefixZadani \the\strZadani \suffixZadani}
+			\includegraphics[width=\textwidth]{\cestaZadani}
+		\end{center}
+		\clearpage
+	\repeat
+}
+\newcommand{\vakatZadani}[1][1]{%		% volitelný parametr určuje počet stran
+	\zadaniLabel
+	\strZadani=\z@
+	\loop \ifnum\strZadani<#1
+		\advance\strZadani\@ne
+		\clearpage\null\clearpage
+	\repeat
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PROHLÁŠENÍ
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\generujProhlaseni}{%
+	\clearpage
+	\noindent Prohlašuji:
+	\par
+	Tuto práci jsem vypracoval samostatně. Veškeré literární prameny a informace,
+	které jsem v~práci využil, jsou uvedeny v~seznamu použité literatury.
+	\par
+	Byl jsem seznámen s~tím, že se na moji práci vztahují práva a povinnosti
+	vyplývající ze zákona č.\,121/2000~Sb., autorský zákon, zejména se skutečností,
+	že Univerzita Pardubice má právo na uzavření licenční smlouvy o~užití této práce
+	jako školního díla podle §~60~odst.\,1 autorského zákona, a s~tím,
+	že pokud dojde k~užití této práce mnou nebo bude poskytnuta licence o~užití jinému subjektu,
+	je Univerzita Pardubice oprávněna ode mne požadovat přiměřený příspěvek na úhradu nákladů,
+	které na vytvoření díla vynaložila, a~to podle okolností až do jejich skutečné výše.
+	\par
+	Beru na vědomí, že v~souladu s~§~47b zákona č.\,111/1998~Sb.,
+	o~vysokých školách a o~změně a doplnění dalších zákonů (zákon o~vysokých školách),
+	ve znění pozdějších předpisů, a směrnicí Univerzity Pardubice č.\,9/2012,
+	bude práce zveřejněna v~Univerzitní knihovně
+	a prostřednictvím Digitální knihovny Univerzity Pardubice.
+	\par
+	\bigskip
+	\noindent V~Pardubicích dne \datumOdevzdaniPrace
+	\par
+	\noindent\hfill \@author
+	\unskip\hskip\parindent\null		% na odstavcovou zarážku od pravého okraje
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PODĚKOVÁNÍ
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newif\ifpodekovanidolu
+\def\podekovaniDolu{\podekovanidolutrue}
+\def\podekovaniNahoru{\podekovanidolufalse}
+\newcommand{\generujPodekovani}{%
+	\clearpage
+	\ifpodekovanidolu \null\vfill \fi
+	\subsection*{Poděkování}
+	\textPodekovani
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ANOTACE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\generujAnotaci}{%
+	\clearpage
+	\phantomsection\label{annotation}	% reference
+	\pdfbookmark[1]{Anotace}{annotation}	% záložka v PDF
+	\subsection*{\normalsize \MakeUppercase{Anotace}}
+	\anotace
+	\subsection*{\normalsize \MakeUppercase{Klíčová slova}}
+	\klicovaSlova
+	\bigskip
+}
+\newcommand{\generujAnnotation}{%
+	\begin{otherlanguage*}{english}
+		\subsection*{\normalsize \MakeUppercase{Title}}
+		\titleEN
+		\subsection*{\normalsize \MakeUppercase{Annotation}}
+		\annotation
+		\subsection*{\normalsize \MakeUppercase{Keywords}}
+		\keywords
+	\end{otherlanguage*}
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% OBSAH A SEZNAMY
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\generujObsah}{%
+	%\clearpage
+	%\phantomsection\label{contents}			% reference
+	%\pdfbookmark[1]{\contentsname}{contents}	% záložka v PDF
+	\tableofcontents
+}
+
+\newcommand{\generujSeznamObrazku}{%
+	%\clearpage \phantomsection \addcontentsline{toc}{section}{\listfigurename}
+	\listoffigures
+}
+
+\newcommand{\generujSeznamTabulek}{%
+	%\clearpage \phantomsection \addcontentsline{toc}{section}{\listtablename}
+	\listoftables
+}
+
+\newcommand{\seznamZkratek}{%
+	%\clearpage \phantomsection \addcontentsline{toc}{section}{Seznam zkratek}
+	\section*{Seznam zkratek}
+}
+
+% vim:sw=4:ts=4
+% EOF

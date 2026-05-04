@@ -1,0 +1,471 @@
+% 
+% Vysokoškolská kvalifikační práce
+% Univerzita Pardubice
+% 
+% stylový soubor pro LaTeX
+% kódování zdroje: UTF-8
+% (c) 2018 Tomáš Hudec
+% 
+
+% TODO:
+% • biblatex: příklady
+% • přidat ukázku matematiky včetně číslování rovnic a odkazů na ně
+% Návrh:
+%   – definovat názvy fakult v .sty a zde použít jejich značku (zkratku)
+%     např. \fakulta[FEI] definuje makro \faculty na Fakulta elektrotechniky a informatiky
+% • volba pro twosided
+% • inspirovat se fithesis
+% DONE:
+% • definovat makra \faculty, \university, \thesisType ve stylu \title a \author
+% • umožnit jednoduše (option) harvardský styl citací (BibLaTeX)
+% • v seznamu literatury definovat spojovník jako nerozdělitelný (BibLaTeX): \let\hyphen\nbhyphen a \mbox{} pro IS?N
+% • definovat makro pro vygenerování seznamu příloh: použit balík tocloft
+%	• biblatex iso-authoryear → kulaté závorky, nemazat date, pokud zpřesňuje
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{vskpupa}
+	[2020/10/25 v2.1 VŠKP UPa by Tomáš Hudec]
+
+% options
+\RequirePackage{kvoptions}
+
+\SetupKeyvalOptions{
+	family=vskpUPa,
+	prefix=vskpUPa@,
+	setkeys=\kvsetkeys,
+}
+
+% výstup do PDF/A
+\DeclareBoolOption[false]{pdfa}
+
+% PDF/A vyžaduje metadata v XMP
+% zápis metadat do \jobname.xmpdata podle \author, \title
+\DeclareBoolOption[false]{writexmp}% write XMP metadata
+
+% načíst biblatex s výchozím stylem podle hodnoty parametru
+% \usepackage[biblatex]{vskpupa}			% biblatex, style=iso-numeric
+% \usepackage[biblatex=num]{vskpupa}		% biblatex, style=iso-numeric
+% \usepackage[biblatex=harvard]{vskpupa}	% biblatex, style=iso-authoryear
+% \usepackage[biblatex=hodnota]{vskpupa}	% biblatex, style=hodnota
+\DeclareStringOption{biblatex}[iso-numeric]
+\let\vskpUPa@biblatex\relax					% výchozí hodnota bude \relax
+% bez \relax se nedá rozlišit neuvedení volby a uvedení volby s prázdnou hodnotou
+
+\DeclareVoidOption{harvard}{\kvsetkeys{vskpUPa}{biblatex=harvard}}
+
+% podpora fontů Open Type a načtení Latin Modern ve formátu OTF
+% pouze pro LuaLaTeX a XeLaTeX
+\DeclareBoolOption[false]{otf}
+
+\DeclareLocalOptions{writexmp,biblatex,harvard,otf}
+
+\ProcessKeyvalOptions*
+
+\ifvskpUPa@pdfa
+	\PassOptionsToPackage{pdfa}{czechtypo}
+\fi
+
+\ifvskpUPa@writexmp
+	\PassOptionsToPackage{writexmp}{czechtypo}
+\fi
+
+\ifvskpUPa@otf
+	\PassOptionsToPackage{otf}{czechtypo}
+\fi
+
+\PackageInfo{vskpupa}{}%
+
+\AtEndOfPackage{
+	\DisableKeyvalOption[action=error,package=vskpupa]{vskpUPa}{pdfa}
+	\DisableKeyvalOption[action=error,package=vskpupa]{vskpUPa}{biblatex}
+}
+
+\RequirePackage{etoolbox}				% podpora změn prostředí, testů, …
+
+\AfterEndPreamble{% etoolbox: after \AtBeginDocument
+	\DisableKeyvalOption[action=error,package=vskpupa]{vskpUPa}{writexmp}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% BIBLIOGRAFIE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\let\latexraggedright\raggedright
+\newif\ifVSKPusesBibLaTeX
+\ifx\vskpUPa@biblatex\relax				% nepoužívá se BibLaTeX:
+	% pro jednotné uvádění odkazů (LaTeX i BibLaTeX) pomocí \autocite
+	\let\autocite\cite
+\else
+	\VSKPusesBibLaTeXtrue
+	\PackageInfo{vskpupa}{Setting default style for biblatex to \vskpUPa@biblatex}
+	\PassOptionsToPackage{
+		biblatex=\vskpUPa@biblatex,		% výchozí styl pro biblatex nastaví czechtypo
+	}{czechtypo}
+\fi
+	
+% všechna základní nastavení jsou v samostatném souboru:
+% kódování, jazyk, rozměry papíru a okrajů, odkazy v PDF, titulky,
+% řádkový rejstřík, stupeň písma pro tabulky a popisky, úprava výčtů, uvozovky
+\RequirePackage{czechtypo}
+
+\geometry{
+	a4paper,							% rozměry papíru
+	left=35mm,							% okraj zleva
+	right=15mm,							% okraj zprava
+	top=25mm,							% okraj shora
+	includehead=false,					% nepočítat hlavičku do zrcadla
+	bottom=25mm,						% okraj zdola
+	includefoot=false,					% nepočítat patičku do zrcadla – paginace je tedy v okraji
+}
+
+\parindent=15pt							% odstavcová zarážka
+
+\titleformat\section					% titulek 1. úrovně (kapitola) – \section
+	{\raggedright\nohyphenation\sloppy\phantomsection
+	\setbaseline[\LARGE]{\titleBaselineStretch}\bfseries\boldmath}	% styl
+	{\thesection}						% číslo
+	{1em}								% odsazení čísla od titulku
+	{\MakeUppercase}					% titulky sekcí verzálkami
+
+\pagesectiontrue						% zapnutí nové stránky pro \section
+
+%\setcounter{secnumdepth}{3} 			% číslovat titulky pouze do této úrovně
+\setcounter{tocdepth}{2}				% obsah generovat až do této úrovně
+
+\fancypagestyle{plain}{					% redefinice stránkového stylu plain
+	\fancyhf{}							% odstraní všechny elementy
+	\renewcommand{\headrulewidth}{0pt}	% včetně linek
+	\renewcommand{\footrulewidth}{0pt}
+	\cfoot{\thepage}					% uprostřed dole číslo strany
+	%\rfoot{\thepage}					% vpravo dole číslo strany
+}
+
+\setbaseline{1.5}						% řádkování 1,5
+
+% další plovoucí objekty – FIXME: použít místo newfloat
+% \DeclareFloatingEnvironment (balík newfloat) nebo
+% \DeclareCaptionType (balík caption)
+
+
+%\floatstyle{plain}
+% \newfloat{typ}{umístění}{přípona souboru se seznamem}{}
+
+\DeclareCaptionType[fileext=lop]{algorithm}[Algoritmus][Seznam algoritmů]
+\captionsetup[algorithm]{
+	position=bottom,
+	within=section,				% číslování po sekcích
+}
+%\listofalgorithms
+
+%\newfloat{algoritmus}{htp}{lop}[section]
+%\floatname{algoritmus}{Algoritmus}
+%%\listof{algoritmus}{Seznam algoritmů}
+
+\DeclareCaptionType[fileext=loc]{code}[Zdrojový kód][Seznam zdrojových kódů]
+\captionsetup[code]{
+	position=bottom,
+	within=section,				% číslování po sekcích
+}
+%\listofcodes
+
+%\newfloat{code}{htp}{loc}[section]
+%\floatname{code}{Zdrojový kód}
+%%\listof{code}{Seznam ukázek zdrojových kódů}
+
+
+% změna pojmenování titulků \appto je z etoolbox, LaTeX: \g@addto@macro
+\appto\captionsczech{%
+	\renewcommand\refname{Použitá literatura}%		% původně: Reference
+	%\renewcommand\contentsname{Obsah}%					% výchozí
+	%\renewcommand\listfigurename{Seznam obrázků}%	% výchozí
+	%\renewcommand\listtablename{Seznam tabulek}%		% výchozí
+}
+
+\appto\captionsenglish{%
+	\renewcommand\refname{List of References}%		% původně: References
+	\renewcommand\contentsname{Table of Contents}%		% původně: Contents
+	%\renewcommand\listfigurename{List of Figures}%	% výchozí
+	%\renewcommand\listtablename{List of Tables}%		% výchozí
+}
+
+\AtBeginDocument{
+	\@nameuse{captions\languagename}%	% použití biblatexu způsobuje nespuštění makra?
+	\@nameuse{date\languagename}%		% použití biblatexu způsobuje nespuštění makra?
+	% info v PDF (řeší už hyperref), pro PDF/A je třeba XMP
+	\ifvskpUPa@pdfa \else
+		\hypersetup{%
+			pdfkeywords={\@keywordsCZ},
+		}%
+	\fi
+}
+
+\def\@keywordsCZ{}
+\newcommand\keywordsCZ[1]{\gdef\@keywordsCZ{#1}}
+\def\@keywordsEN{}
+\newcommand\keywordsEN[1]{\gdef\@keywordsEN{#1}}
+\def\@thesisType{}
+\newcommand\thesisType[1]{\gdef\@thesisType{#1}}
+\def\@thesisYear{}
+\newcommand\thesisYear[1]{\gdef\@thesisYear{#1}}
+\def\@university{Univerzita Pardubice}
+\newcommand\university[1]{\gdef\@university{#1}}% univerzita
+\def\@faculty{}
+\newcommand\faculty[1]{\gdef\@faculty{#1}}% fakulta
+
+% zpětná kompatibilita
+\def\klicovaSlova{}
+\def\keywords{}
+\def\typPrace{}
+\def\rok{}
+\def\jmenoFakulty{}
+\AtBeginDocument{
+	\ifx\@keywordsCZ\empty	\let\@keywordsCZ\klicovaSlova\fi
+	\ifx\@keywordsEN\empty	\let\@keywordsEN\keywords\fi
+	\ifx\@thesisType\empty	\let\@thesisType\typPrace\fi
+	\ifx\@thesisYear\empty	\let\@thesisYear\rok\fi
+	\ifx\@faculty\empty		\let\@faculty\jmenoFakulty\fi
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% TITUL
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\titulniStrana}{%
+	\phantomsection\label{titlepage}	% pro případný odkaz na titulní stranu
+	\pdfbookmark{\@title}{titlepage}	% záložka do PDF
+	\begin{titlepage}
+	\begin{center}
+	\Large \rmfamily					% velikost a rodina písma pro titulní stranu
+	\@university\unskip
+	\par
+	\@faculty\unskip
+	\par
+	% pružné mezery zajistí usazení titulku a jména do optického středu strany a rok bude u spodního okraje
+	\vspace{0pt plus 3fill}				% pružná mezera
+	\@title\unskip
+	\par
+	\bigskip							% vynechat jeden řádek
+	\par
+	\@author\unskip
+	\par
+	\vspace{0pt plus 5fill}				% pružná mezera
+	\@thesisType\unskip
+	\par
+	\@thesisYear\unskip
+	\par
+	\end{center}
+	\end{titlepage}
+	% započítat titulní stranu i pro jednostranný tisk
+	% varianta twoside ji započítává
+	\if@twoside\else\stepcounter{page}\fi
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ZADÁNÍ
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcount\strZadani
+\def\zadaniLabel{%
+	\clearpage
+	\phantomsection\label{assignment}	% reference
+	\pdfbookmark[1]{Zadání}{assignment}	% záložka v PDF
+}
+\newcommand{\generujZadani}[1][2]{% volitelný parametr určuje počet stran zadání
+	\zadaniLabel
+	\strZadani=\z@
+	\loop \ifnum\strZadani<#1
+		\advance\strZadani\@ne
+		\begin{center}
+			\phantomsection \label{zadaniprace\the\strZadani}
+			\edef\cestaZadani{\prefixZadani \the\strZadani \suffixZadani}
+			\includegraphics[width=\textwidth]{\cestaZadani}
+		\end{center}
+		\clearpage
+	\repeat
+}
+\newcommand{\vakatZadani}[1][1]{%		% volitelný parametr určuje počet stran
+	\zadaniLabel
+	\strZadani=\z@
+	\loop \ifnum\strZadani<#1
+		\advance\strZadani\@ne
+		\clearpage\null\clearpage
+	\repeat
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PROHLÁŠENÍ
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\generujProhlaseni}[1][]{% volitelný parametr přidává koncovku pro ženský rod
+    \def\@suffix{#1}\ifx\@suffix\empty \else \def\@suffix{a}\fi
+	\clearpage
+	\noindent Prohlašuji:
+	\par
+	Tuto práci jsem vypracoval\@suffix{} samostatně. Veškeré literární prameny a informace,
+	které jsem v~práci využil\@suffix{}, jsou uvedeny v~seznamu použité literatury.
+	\par
+	Byl\@suffix{} jsem seznámen\@suffix{} s~tím, že se na moji práci vztahují práva a povinnosti
+	vyplývající ze zákona č.\,121/2000~Sb., autorský zákon, zejména se skutečností,
+	že Univerzita Pardubice má právo na uzavření licenční smlouvy o~užití této práce
+	jako školního díla podle §~60~odst.\,1 autorského zákona, a s~tím,
+	že pokud dojde k~užití této práce mnou nebo bude poskytnuta licence o~užití jinému subjektu,
+	je Univerzita Pardubice oprávněna ode mne požadovat přiměřený příspěvek na úhradu nákladů,
+	které na vytvoření díla vynaložila, a~to podle okolností až do jejich skutečné výše.
+	\par
+	Beru na vědomí, že v~souladu s~§~47b zákona č.\,111/1998~Sb.,
+	o~vysokých školách a o~změně a doplnění dalších zákonů (zákon o~vysokých školách),
+	ve znění pozdějších předpisů, a směrnicí Univerzity Pardubice č.\,9/2012,
+	bude práce zveřejněna v~Univerzitní knihovně
+	a prostřednictvím Digitální knihovny Univerzity Pardubice.
+	\par
+	\bigskip
+	\noindent V~Pardubicích dne \datumOdevzdaniPrace
+	\par
+	\bgroup
+	\normalparfillskip
+	\noindent\hfill \@author
+	\unskip\hskip\parindent\null		% na odstavcovou zarážku od pravého okraje
+	\par
+	\egroup
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PODĚKOVÁNÍ
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newif\ifpodekovanidolu
+\def\podekovaniDolu{\podekovanidolutrue}
+\def\podekovaniNahoru{\podekovanidolufalse}
+\newcommand{\generujPodekovani}{%
+	\clearpage
+	\ifpodekovanidolu \null\vfill \fi
+	\subsection*{Poděkování}
+	\textPodekovani
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ANOTACE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand\generujAnotaci{%
+	\clearpage
+	\phantomsection\label{annotation}	% reference
+	\pdfbookmark[1]{Anotace}{annotation}	% záložka v PDF
+	\subsection*{\normalsize \MakeUppercase{Anotace}}
+	\noindent \anotace
+	\subsection*{\normalsize \MakeUppercase{Klíčová slova}}
+	\noindent \@keywordsCZ
+	\bigskip
+}
+\newcommand\generujAnnotation{%
+	\begin{otherlanguage}{english}
+		\subsection*{\normalsize \MakeUppercase{Title}}
+		\noindent \titleEN
+		\subsection*{\normalsize \MakeUppercase{Annotation}}
+		\noindent \annotation
+		\subsection*{\normalsize \MakeUppercase{Keywords}}
+		\noindent \@keywordsEN
+	\end{otherlanguage}
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% OBSAH A SEZNAMY
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand\generujObsah{%
+	%\clearpage
+	%\phantomsection\label{contents}			% reference
+	%\pdfbookmark[1]{\contentsname}{contents}	% záložka v PDF
+	\tableofcontents
+}
+
+\newcommand\generujSeznamObrazku{%
+	%\clearpage \phantomsection \addcontentsline{toc}{section}{\listfigurename}
+	\listoffigures
+}
+
+\newcommand\generujSeznamTabulek{%
+	%\clearpage \phantomsection \addcontentsline{toc}{section}{\listtablename}
+	\listoftables
+}
+
+\newcommand\seznamZkratek{%
+	%\clearpage \phantomsection \addcontentsline{toc}{section}{Seznam zkratek}
+	\section*{Seznam zkratek}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PŘÍLOHY
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% zahájení příloh pomocí \backmatter[formátování titulku]
+\newcommand\backmatter[1][]{\clearpage\backmattertrue
+	\setcounter{section}{0}%
+	\renewcommand\thesection{\Alph{section}}%	% písmeno číslování
+	\titleformat\section[block]					% formátování titulku přílohy (\section)
+		{\raggedright\nohyphenation\sloppy\phantomsection
+		 \setbaseline[\LARGE]{\titleBaselineStretch}\bfseries\boldmath}	% styl
+		{Příloha~\thesection:}			% text + číslo (písmeno)
+		{\wordsep}						% odsazení čísla od titulku
+		%{.3333em plus .16667em} 		% odsazení čísla od titulku
+		{#1}% \MakeUppercase
+}
+%\newcommand\toclineappendix[1]{\par \bgroup\normalparfillskip \noindent
+%	\hyperref[#1]{Příloha~\ref*{#1}:~\nameref*{#1}}\dotfill \pageref{#1}\par\egroup}
+
+% generování seznamu příloh
+\newcommand{\listappendicesname}{Seznam příloh}
+\newlistof{appendices}{apc}{\listappendicesname}
+
+% příkaz \appendix pro titulek přílohy
+\def\appendix{\@ifstar{\@dblarg\@appendixstar}{\@dblarg\@appendix}}
+\def\@appendixstar[#1]#2{\section*[#1]{#2}\addcontentsline{apc}{appendices}{#1}}
+\def\@appendix[#1]#2{\section[#1]{#2}\addcontentsline{apc}{appendices}{\protect\numberline{\thesection}#1}}
+
+
+% TODO: opravit na:
+%\newcommand{\cftaddtitleline}[4]{\addtocontents{#1}{%
+%  \protect\contentsline{#2}{#3}{#4}}}
+%\newcommand{\cftaddnumtitleline}[5]{\addtocontents{#1}{%
+%    \protect\contentsline{#2}{\protect\numberline{#3}#4}{#5}}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% XMP data
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ifvskpUPa@writexmp
+
+\AtBeginDocument{
+	%\def\sep{,}
+	%\pdfx@topdfstring\pdfx@Title\xmp@Title
+	%\pdfx@topdfstring\pdfx@Author\xmp@Author
+	%\pdfx@topdfstring\pdfx@Keywords\xmp@Keywords
+	\begingroup
+		\newwrite\xmp@data
+		\immediate\openout\xmp@data=\jobname.xmpdata
+		% \sep should be used for separating keywords or multiple authors
+		\def\sep{\sep}		% default
+		%\def\sep{, }		% nonstandard
+		\writeSep\xmp@data\Title\@title
+		\writeSep\xmp@data\Author\@author
+		\writeSep\xmp@data\Keywords\@keywordsCZ
+		\writeSep\xmp@data\Publisher\@university
+		\writeSep\xmp@data\Subject\@thesisType
+		\writeSep\xmp@data\Language{cs}
+		\immediate\closeout\xmp@data
+		\PackageInfo{vskpupa}{XMP data written}%
+		\let\xmp@data\undefined
+	\endgroup
+	\global\advance\count17\m@ne
+}
+
+\fi
+
+% vim:sw=4:ts=4
+% EOF

@@ -1,0 +1,236 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% UPSHAPE GREEK MATH with LGR cbfonts
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% stylový soubor pro LaTeX
+% kódování zdroje: UTF-8
+% (c) 2017–2020 Tomáš Hudec
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{upgreekcb}
+	[2020/10/23 v2.1 Upshape Greek Letters for Math Mode by Tom Hudec]
+	%[2018/04/16 v2.0 (Tom Hudec)]
+
+\@ifpackageloaded{unicode-math}
+	{\PackageWarning{upgreekcb}{%
+	 There is no need to load this package as upshape math greek %
+	 is already provided by unicode-math.}{}%
+	 \let\upgreekcb@endtest\endinput}
+	{\let\upgreekcb@endtest\relax}
+
+\upgreekcb@endtest
+
+\InputIfFileExists{lgrenc.def}
+	{\PackageInfo{upgreekcb}{Loading the definitions for the Greek font encoding}}%
+	{\PackageError{upgreekcb}{Cannot find the file lgrenc.def}{%
+		lgrenc.def is a file that contains the definitions for the Greek
+		font encoding LGR. Maybe it comes with the babel package.}}
+
+\PackageInfo{upgreekcb}{Using cbfonts for upright greek in math mode}
+
+%\input lgrlmr.fd
+\input lgrcmr.fd
+
+\DeclareSymbolFont{cbfontgr}{LGR}{cmr}{m}{n}
+\SetSymbolFont{cbfontgr}{bold}{LGR}{cmr}{bx}{n}
+
+\DeclareMathSymbol\upalpha		\mathord{cbfontgr}{"61}
+\DeclareMathSymbol\upbeta		\mathord{cbfontgr}{"62}
+\DeclareMathSymbol\upgamma		\mathord{cbfontgr}{"67}
+\DeclareMathSymbol\updelta		\mathord{cbfontgr}{"64}
+\DeclareMathSymbol\upepsilon	\mathord{cbfontgr}{"65}
+\let\upvarepsilon\upepsilon
+\DeclareMathSymbol\upzeta		\mathord{cbfontgr}{"7A}
+\DeclareMathSymbol\upeta		\mathord{cbfontgr}{"68}
+\DeclareMathSymbol\uptheta		\mathord{cbfontgr}{"6A}
+\let\upvartheta\uptheta
+\DeclareMathSymbol\upiota		\mathord{cbfontgr}{"69}
+\DeclareMathSymbol\upkappa		\mathord{cbfontgr}{"6B}
+\DeclareMathSymbol\uplambda		\mathord{cbfontgr}{"6C}
+\DeclareMathSymbol\upmu			\mathord{cbfontgr}{"6D}
+\DeclareMathSymbol\upnu			\mathord{cbfontgr}{"6E}
+\DeclareMathSymbol\upxi			\mathord{cbfontgr}{"78}
+\DeclareMathSymbol\upomicron	\mathord{cbfontgr}{"6F}
+\DeclareMathSymbol\uppi			\mathord{cbfontgr}{"70}
+\let\upvarpi\uppi
+\DeclareMathSymbol\uprho		\mathord{cbfontgr}{"72}
+\let\upvarrho\uprho
+\DeclareMathSymbol\upsigma		\mathord{cbfontgr}{"73}
+\DeclareMathSymbol\upvarsigma	\mathord{cbfontgr}{"63}
+\DeclareMathSymbol\uptau		\mathord{cbfontgr}{"74}
+\DeclareMathSymbol\upupsilon	\mathord{cbfontgr}{"75}
+\DeclareMathSymbol\upphi		\mathord{cbfontgr}{"66}
+\let\upvarphi\upphi
+\DeclareMathSymbol\upchi		\mathord{cbfontgr}{"71}
+\DeclareMathSymbol\uppsi		\mathord{cbfontgr}{"79}
+\DeclareMathSymbol\upomega		\mathord{cbfontgr}{"77}
+
+% save italics greek
+\let\italpha\alpha
+\let\itbeta\beta
+\let\itgamma\gamma
+\let\itdelta\delta
+\let\itepsilon\epsilon
+\let\itvarepsilon\varepsilon
+\let\itzeta\zeta
+\let\iteta\eta
+\let\ittheta\theta
+\let\itvartheta\vartheta
+\let\itiota\iota
+\let\itkappa\kappa
+\let\itlambda\lambda
+\let\itmu\mu
+\let\itnu\nu
+\let\itxi\xi
+\def\itomicron{\mathit{o}}\let\omicron\itomicron
+\let\itpi\pi
+\let\itvarpi\varpi
+\let\itrho\rho
+\let\itvarrho\varrho
+\let\itsigma\sigma
+\let\itvarsigma\varsigma
+\let\ittau\tau
+\let\itupsilon\upsilon
+\let\itphi\phi
+\let\itvarphi\varphi
+\let\itchi\chi
+\let\itpsi\psi
+\let\itomega\omega
+
+\DeclareRobustCommand\upgreek{%
+	\let\alpha\upalpha
+	\let\beta\upbeta
+	\let\gamma\upgamma
+	\let\delta\updelta
+	\let\epsilon\upepsilon
+	\let\varepsilon\upvarepsilon
+	\let\zeta\upzeta
+	\let\eta\upeta
+	\let\theta\uptheta
+	\let\vartheta\upvartheta
+	\let\iota\upiota
+	\let\kappa\upkappa
+	\let\lambda\uplambda
+	\let\mu\upmu
+	\let\nu\upnu
+	\let\xi\upxi
+	\let\omicron\upomicron
+	\let\pi\uppi
+	\let\varpi\upvarpi
+	\let\rho\uprho
+	\let\varrho\upvarrho
+	\let\sigma\upsigma
+	\let\varsigma\upvarsigma
+	\let\tau\uptau
+	\let\upsilon\upupsilon
+	\let\phi\upphi
+	\let\varphi\upvarphi
+	\let\chi\upchi
+	\let\psi\uppsi
+	\let\omega\upomega}
+\DeclareRobustCommand\itgreek{%
+	\let\alpha\italpha
+	\let\beta\itbeta
+	\let\gamma\itgamma
+	\let\delta\itdelta
+	\let\epsilon\itepsilon
+	\let\varepsilon\itvarepsilon
+	\let\zeta\itzeta
+	\let\eta\iteta
+	\let\theta\ittheta
+	\let\vartheta\itvartheta
+	\let\iota\itiota
+	\let\kappa\itkappa
+	\let\lambda\itlambda
+	\let\mu\itmu
+	\let\nu\itnu
+	\let\xi\itxi
+	\let\omicron\itomicron
+	\let\pi\itpi
+	\let\varpi\itvarpi
+	\let\rho\itrho
+	\let\varrho\itvarrho
+	\let\sigma\itsigma
+	\let\varsigma\itvarsigma
+	\let\tau\ittau
+	\let\upsilon\itupsilon
+	\let\phi\itphi
+	\let\varphi\itvarphi
+	\let\chi\itchi
+	\let\psi\itpsi
+	\let\omega\itomega}
+
+\PackageInfo{upgreekcb}{Redefining \string\mathrm\space to set also upshape greek}
+\let\upgreekcb@latex@mathrm\mathrm
+\renewcommand\mathrm[1]{\upgreekcb@latex@mathrm{\upgreek#1}}
+
+% allow greek in the PDF bookmarks (hyperref package with unicode encoding and psdextra option)
+\@ifpackageloaded{hyperref}{%
+\pdfstringdefDisableCommands{%
+	\let\upgreek\empty
+	% itshape
+	\def\italpha{\textalpha}%
+	\def\itbeta{\textbeta}%
+	\def\itgamma{\textgamma}%
+	\def\itdelta{\textdelta}%
+	\def\itepsilon{\textepsilon}%
+	\def\itvarepsilon{\textepsilon}%
+	\def\itzeta{\textzeta}%
+	\def\iteta{\texteta}%
+	\def\ittheta{\texttheta}%
+	\def\itvartheta{\texttheta}%
+	\def\itiota{\textiota}%
+	\def\itkappa{\textkappa}%
+	\def\itlambda{\textlambda}%
+	\def\itmu{\textmu}%
+	\def\itnu{\textnu}%
+	\def\itxi{\textxi}%
+	\def\itomicron{\textomicron}%
+	\def\itpi{\textpi}%
+	\def\itvarpi{\textpi}%
+	\def\itrho{\textrho}%
+	\def\itvarrho{\textrho}%
+	\def\itsigma{\textsigma}%
+	\def\itvarsigma{\textvarsigma}%
+	\def\ittau{\texttau}%
+	\def\itupsilon{\textupsilon}%
+	\def\itphi{\textphi}%
+	\def\itvarphi{\textphi}%
+	\def\itchi{\textchi}%
+	\def\itpsi{\textpsi}%
+	\def\itomega{\textomega}%
+	% upshape
+	\def\upalpha{\textalpha}%
+	\def\upbeta{\textbeta}%
+	\def\upgamma{\textgamma}%
+	\def\updelta{\textdelta}%
+	\def\upepsilon{\textepsilon}%
+	\def\upvarepsilon{\textepsilon}%
+	\def\upzeta{\textzeta}%
+	\def\upeta{\texteta}%
+	\def\uptheta{\texttheta}%
+	\def\upvartheta{\texttheta}%
+	\def\upiota{\textiota}%
+	\def\upkappa{\textkappa}%
+	\def\uplambda{\textlambda}%
+	\def\upmu{\textmu}%
+	\def\upnu{\textnu}%
+	\def\upxi{\textxi}%
+	\def\upomicron{\textomicron}%
+	\def\uppi{\textpi}%
+	\def\upvarpi{\textpi}%
+	\def\uprho{\textrho}%
+	\def\upvarrho{\textrho}%
+	\def\upsigma{\textsigma}%
+	\def\upvarsigma{\textvarsigma}%
+	\def\uptau{\texttau}%
+	\def\upupsilon{\textupsilon}%
+	\def\upphi{\textphi}%
+	\def\upvarphi{\textphi}%
+	\def\upchi{\textchi}%
+	\def\uppsi{\textpsi}%
+	\def\upomega{\textomega}%
+}}{}
+
+\endinput
+% vim:ts=4:sw=4
+% EOF

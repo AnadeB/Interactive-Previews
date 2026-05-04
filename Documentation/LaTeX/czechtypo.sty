@@ -1,0 +1,1613 @@
+% stylový soubor pro LaTeX
+% korektní typografická nastavení pro češtinu
+% kódování zdroje: UTF-8
+% (c) 2017, 2018 Tomáš Hudec
+
+% TeXlive 2020
+% LuaLaTeX
+% pdfTeX
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{czechtypo}
+	[2020/11/02 v2.0 Czech typographic presets by Tom Hudec]
+	%[2018/03/21 v1.0 Czech typographic presets by Tom Hudec]
+
+% Obsahuje následující úpravy:
+% • kódování UTF-8, podpora Unicode v PDF, písma Latin Modern,
+% • čeština pomocí balíku babel + vypnutí aktivního spojovníku,
+% • přidána zkratka pro nezalomitelný spojovník ("-),
+% • nastavení zrcadla sazby pomocí balíku geometry,
+% • podpora znaků: ‰, €, ½, ~, vzpřímené π,
+% • barvy, dlouhé tabulky (přes více stran), sloupce,
+% • úprava odstavcové zarážky a délky východového řádku,
+% • úprava dělení slov (minimální počty znaků),
+% • vylepšeno zalamování URL + přidána možnost snadného nastavení,
+% • úzká mezera nastavena na ¼ čtverčíku (dle ČSN),
+% • odkaz na poznámku pod čarou nemusí být číslo (\footnote*[symbol]{pozn.}),
+% • titulky zarovnávány na levý okraj se zákazem dělení slov,
+% • nečíslované titulky budou v obsahu (i PDF bookmarks),
+% • sekce mohou začínat na nové straně (\pagesectiontrue),
+% • nastaveno menší písmo tabulek a popisků (obrázků, tabulek),
+% • upraveny vzdálenosti mezi plovoucími objekty (obrázky, tabulky),
+% • umožněna snadná změna řádkování včetně odpovídajícího nastavení vertikálních mezer + mezery kolem matematiky (režim display),
+% • odstraněna vertikální mezera kolem prostředí center,
+% • upraveny (odstraněny) vertikální mezery ve výčtech, zákaz zalomení před výčtem,
+% • mezi položkami výčtu lze snadno zakázat stránkový zlom (pomocí \par\nobreak),
+% • nastaveny automatické „‚vnořené‘ uvozovky“,
+% • přidány nové typy sloupců tabulek pro zarovnávání dle řádů.
+
+% TODO
+% • volbu pro \typoparfillskip a \normalparfillskip (výchozí?)
+% • dopsat dokumentaci nastavení
+
+% Změny:
+% 2020-10-03: Změna definice v tabulkách: ! → : (array definuje ! jinak).
+% 2020-10-25: Pro nastavení použit balík kvoptions.
+% 2020-10-29: Přidán balík siunitx pro pokročilou sazbu čísel a jednotek.
+
+% options
+\RequirePackage{kvoptions}
+
+\SetupKeyvalOptions{
+	family=cstypo,
+	prefix=cstyp@,
+	setkeys=\kvsetkeys,
+}
+
+% výstup do PDF/A
+\DeclareBoolOption[false]{pdfa}
+
+% PDF/A vyžaduje metadata v XMP
+% zápis metadat do \jobname.xmpdata podle \author, \title
+\DeclareBoolOption[false]{writexmp}% write XMP metadata
+%
+
+% raná experimentální podpora prezentací třídy beamer:
+% zatím jen vypne některá nekomatibilní nastavení
+\@ifclassloaded{beamer}
+	{\DeclareBoolOption[true]{beamer}}
+	{\DeclareBoolOption[false]{beamer}}
+
+% podpora fontů Open Type a načtení Latin Modern ve formátu OTF
+% pouze pro LuaLaTeX a XeLaTeX
+\DeclareBoolOption[false]{otf}
+
+% načíst biblatex s výchozím stylem podle hodnoty parametru
+% \usepackage[biblatex]{czechtypo}			% biblatex, style=iso-numeric
+% \usepackage[biblatex=num]{czechtypo}		% biblatex, style=iso-numeric
+% \usepackage[biblatex=harvard]{czechtypo}	% biblatex, style=iso-authoryear
+% \usepackage[biblatex=hodnota]{czechtypo}	% biblatex, style=hodnota
+\DeclareStringOption{biblatex}[iso-numeric]
+\let\cstyp@biblatex\relax					% výchozí hodnota bude \relax
+% bez \relax se nedá rozlišit neuvedení volby a uvedení volby s prázdnou hodnotou
+
+%\DeclareVoidOption{harvard}{\kvsetkeys{cstypo}{biblatex=iso-authoryear}}
+
+% set \parfillskip to: typo/typographic, normal, center
+\DeclareStringOption[typographic]{parfillskip}
+
+% změna tabulek: přidání minimálních vertikálních výplňků padding
+\DeclareBoolOption[true]{tabularPadding}
+
+\DeclareLocalOptions{writexmp,beamer,otf,biblatex,parfillskip,tabularPadding}
+
+\ProcessKeyvalOptions*
+
+\protected\def\cstyp@info#1{\PackageInfo{czechtypo}{#1\@gobble}}
+
+% detekce LuaTeXu / XeTeXu
+\newif\ifcstyp@LuaOrXeTeX
+\ifx\directlua\undefined \else \cstyp@LuaOrXeTeXtrue \fi
+\ifx\XeTeXversion\undefined \else \cstyp@LuaOrXeTeXtrue \fi
+
+\ifcstyp@otf \ifcstyp@LuaOrXeTeX\else	% zapnutí otf bez podpory enginu
+	\PackageWarning{czechtypo}{Option otf requires LuaLaTeX or XeTeX, disabling it}
+	\cstyp@otffalse
+\fi\fi
+
+\RequirePackage{etoolbox}				% podpora změn prostředí, testů, …
+
+% biblatex s volbou harvard nastavuje styl na iso-authoryear
+\ifdefstring{\cstyp@biblatex}{num}{\kvsetkeys{cstypo}{biblatex=iso-numeric}}{}
+\ifdefstring{\cstyp@biblatex}{harvard}{\kvsetkeys{cstypo}{biblatex=iso-authoryear}}{}
+\ifx\cstyp@biblatex\relax \else
+	\cstyp@info{Setting default style for biblatex to \cstyp@biblatex}
+	\PassOptionsToPackage{
+		style=\cstyp@biblatex,			% výchozí styl pro biblatex
+	}{biblatex-fixes}\fi
+	
+\AtEndOfPackage{
+	\DisableKeyvalOption[action=error,package=czechtypo]{cstypo}{pdfa}
+	\DisableKeyvalOption[action=error,package=czechtypo]{cstypo}{beamer}
+	\DisableKeyvalOption[action=error,package=czechtypo]{cstypo}{otf}
+	\DisableKeyvalOption[action=error,package=czechtypo]{cstypo}{biblatex}
+}
+
+\AfterEndPreamble{% after \AtBeginDocument
+	\DisableKeyvalOption[action=error,package=czechtypo]{cstypo}{writexmp}
+}
+
+% pro změnu parametrů
+\newcommand\setupCzechTypo[1]{\kvsetkeys{cstypo}{#1}%
+	\ifdefstring{\cstyp@parfillskip}{typo}{\kvsetkeys{cstypo}{parfillskip=typographic}}{}%
+	\ifdefstring{\cstyp@parfillskip}{center}{\kvsetkeys{cstypo}{parfillskip=centered}}{}%
+	\setParfillSkip
+	\setTabularPadding
+}
+
+% zobrazování nastavení parametru pro setkeys/kvsetkeys
+\long\def\showKeysAndExecute#1#2{\let\@tempc\@empty\showKeys{#2}#1{#2}}
+\long\def\showKeysAndExecuteII#1#2#3{\def\@tempc{#2 }\showKeys{#3}#1{#2}{#3}}
+\long\def\showKeys#1{\SK@do#1,\relax,}
+\long\def\SK@do#1,{\ifx\relax#1\@empty\else\SK@split#1==\relax\expandafter\SK@do\fi}
+\long\def\SK@split#1=#2=#3\relax{\KV@@sp@def\@tempa{#1}\ifx\@tempa\@empty\else
+	\ifx\@empty#3\@empty\let\@tempb\@empty\else\KV@@sp@def\@tempb{#2}%
+	\edef\@tempb{\showEqual\showValuePre\expandafter\detokenize\expandafter{\@tempb}\showValuePost}\fi
+	\showInfo{\@tempc\ifx\showKeyType\@empty\else\showKeyType: \fi\@tempa\@tempb}\fi}
+\def\showKeyType{czechtypo option}
+\let\showValuePre\@empty
+\let\showValuePost\@empty
+\let\showInfo\cstyp@info
+\def\showEqual{ = }
+
+\AtEndOfPackage{
+	\def\showKeyType{option}
+	\let\showValuePre\@empty
+	\let\showValuePost\@empty
+	\protected\def\showInfo#1{\GenericInfo{}{Info: #1\@gobble}}%
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% JAZYK, KÓDOVÁNÍ
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ifcstyp@LuaOrXeTeX\else				% LuaTeX/XeTeX jsou nativně UTF-8
+	\usepackage{cmap}					% diakritika v PDF: podpora kopírování a vyhledávání
+	\usepackage[utf8]{inputenc}			% vstupní kódování souboru
+	\DeclareUnicodeCharacter{202F}{\,}	% narrow no-break space
+\fi
+
+% PDF/A (balík pdfx) musí být načten brzy a načítá mj. hyperref
+
+% některé balíky je třeba načíst před načtením balíku hyperref:
+\usepackage{longtable}					% vícestránkové tabulky
+\usepackage{float}						% plovoucí objekty lze umisťovat pomocí H
+
+% hyperref + pdfx
+\PassOptionsToPackage{
+	pdfusetitle,						% použije \title a \author pro PDF-info
+	pdfencoding=unicode,				% podpora znaků Unicode v bookmarks
+	psdextra,							% podpora dalších značek (znaků) v bookmarks
+}{hyperref}
+
+\usepackage[
+	table,								% + barevné linky v tabulkách
+	usenames,dvipsnames					% + definovat barvy, které zná dvips
+]{xcolor}								% používat barvy + barevné linky v tabulkách
+
+\ifcstyp@pdfa
+	\cstyp@info{PDF/A enabled, loading hyperref with pdfa option}%
+	\PassOptionsToPackage{pdfa}{hyperref}
+	%\usepackage{colorprofiles}			% načítáno automaticky pdfx
+	\usepackage[
+		a-1b,							% PDF/A-1b
+		latxmp,							% latinka
+		cyrxmp,							% azbuka
+		grkxmp,							% alfabeta
+		mathxmp,						% matematické symboly
+	]{pdfx}								% načte i hyperref, xcolor-patch aj.
+	% metadata se musí řešit pomocí XMP (řešeno na konci tohoto souboru)
+\else
+	\usepackage{hyperref}				% podpora hypertextu (odkazů) v PDF
+\fi
+
+\ifcstyp@LuaOrXeTeX						% LuaTeX/XeTeX nepoužívají fontenc
+	\usepackage{fontspec}				% pro LuaTeX je fontspec
+\else
+	\usepackage[T1]{fontenc}			% výstupní kódovaní, T1 je kódování TeXu Cork pro evropské jazyky
+% bez T1 se použije starší a pro evropské jazyky již nedoporučované kódování OT1
+% (v něm se akcentované znaky skládají jako kompozity, tj. znak a diakritické znaménko zvlášť)
+\fi
+
+
+\usepackage[english,czech]{babel}		% podpora jazyků (dělení slov, uvozovky aj.)
+% výchozí je poslední uvedený jazyk
+%\selectlanguage{czech}					% přepnutí výchozího jazyka
+% Balík babel pro češtinu (a slovenštinu) nastavuje znak - jako aktivní (= definovaný jako příkaz, makro)
+% (podpora automaticky se opakujícího spojovníku při rozdělení slova jako propan-butan ve švu).
+% Bohůmžel aktivní spojovník znemožní používat některá makra, která využívají (neaktivní) spojovník.
+% Jedná se např. o makra \cline{2-3}, \lipsum[1-5] aj.
+% Taková makra se musí přepsat, aby používala aktivní verzi, nebo je třeba spojovníku vypnout aktivní stav.
+\AtBeginDocument{
+	\shorthandoff{-}					% spojovník nebude aktivní, lze znovu aktivovat pomocí \shorthandon{-}
+}
+\babeltags{en = english}				% česky \texten{English} česky \begin{en} English \end{en}
+\babeltags{cs = czech}					% English \textcs{česky} English \begin{cs} česky \end{cs}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% OKRAJE – ZRCADLO SAZBY
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% A4: shora a zdola: 25mm zleva: 35mm, zprava: 15mm
+\usepackage{geometry}
+\ifcstyp@beamer\else
+\geometry{
+	a4paper,							% rozměry papíru
+	left=25mm,							% okraj zleva
+	right=25mm,							% okraj zprava
+	top=25mm,							% okraj shora
+	includehead=false,					% nepočítat hlavičku do zrcadla
+	bottom=25mm,						% okraj zdola
+	includefoot=false,					% nepočítat patičku do zrcadla – paginace je tedy v okraji
+}
+\fi
+% Vztahy mezi parametry (a další možné parametry):
+%               ↔ paperwidth                        [includehead=true]
+%              ┌──────────────────────────────┐┈┈┈┈┈┬┈┈┈┈┈┬
+% paperheight ↕│                              │     │top  │
+%              │        ┌─────────────┐┈┈┈┈┈┈┈│┈┈┈┈┈┴     │
+%              │        │   hlavička  │↕ headheight       │top [includehead=false]
+%              │        └─────────────┘       │           │
+%              │         ↕ headsep     marginparsep       │
+%              │        ┌─────────────┐↔┌───┐ │┈┈┈┈┈┈┈┈┈┈┈┼
+%              │        │             │ │   │ │           │
+%              │←——————→│             │←—————→│           │ height = textheight +
+%              │ left   │             │ right │           │ (+ headheight + headsep) [if includehead]
+%              │(inner) │             │(outer)│           │ (+ footskip)             [if includefoot]
+%              │        │↕ textheight │ │   │ │           │
+%              │        │             │ │←—→│ │           │ width = textwidth +
+%              │        │             │ │marginparwidth   │ (+ marginparsep
+%              │        │ ↔ textwidth │ │   │ │           │  + marginparwidth)       [if includemp]
+%              │        └─────────────┘ └───┘ │┈┈┈┈┈┈┈┈┈┈┈┼
+%              │footskip↕ ͟ ͟ ͟p͟a͟t͟i͟č͟k͟a͟ ͟ ͟         │ ͟ ͟ ͟        │ bottom [includefoot=false]
+%              │                              │   │bottom │
+%              └──────────────────────────────┘┈┈┈┴┈┈┈┈┈┈┈┴
+%                                                 [includefoot=true]
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% NASTAVENÍ HYPERTEXTOVÝCH ODKAZŮ
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\usepackage{bookmark}
+\hypersetup{
+% viz http://ftp.cvut.cz/tex-archive/macros/latex/contrib/hyperref/doc/manual.html#x1-110003.7
+	unicode,							% podpora UTF-8 v PDF (bookmarks, info)
+	%bookmarks=true,					% generovat obsah PDF (bookmarks, výchozí je zapnuto)
+	bookmarksnumbered=true,				% zahrnout čísla sekcí v obsahu PDF
+	bookmarksopen=true,					% rozbalený strom obsahu (při otevření PDF)
+	bookmarksopenlevel=3,				% počet úrovní rozbalení záložek
+	colorlinks=true,					% zapnout barvy, vypnout rámečky
+	% pozn.: rámečky se zobrazují pouze při prohlížení, netisknou se
+	%hidelinks,							% vypne rámečky i při colorlinks=false
+	% nastavení barev samostatně:
+	% díky xcolors lze barvy „míchat“
+	linkcolor=red!85!black,				% interní odkazy (křížové reference)
+	citecolor=green!50!black,			% text odkazu na citaci
+	filecolor=blue!67!cyan!80!black,	% URL pro lokální soubory
+	urlcolor=blue!80!black,				% URL (orig.: magenta)
+%	anchorcolor=black,					% cílový text
+	% všechny barvy stejně:
+	%allcolors=blue, 					% všechny odkazy (netýká se rámečků)
+	%allbordercolors=blue,				% barvy všech rámečků kolem odkazů
+	%linktocpage=false,					% v seznamech generovat odkaz pouze pro číslo strany
+	linktoc=all,						% generovat odkaz v seznamech pro: text (section) – výchozí, číslo strany (page), obojí (all) nebo nic (none)
+	pdfstartview=,						% výchozí zobrazení dle prohlížeče PDF
+	pdfpagemode=,						% neotevírat záložky bookmarks/outline
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PÍSMO, BARVA, ZNAKY, VYZNAČOVÁNÍ
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newif\ifcstyp@useLMandUpGreekCB
+\ifcstyp@LuaOrXeTeX						% LuaTeX/XeTeX:
+	\ifcstyp@otf						% fonty Open Type
+		\usepackage{amssymb}			% \leqq apod.
+		\usepackage{amsmath}			% matematické symboly, textové indexy $_{\text{čeština}}$
+		\setromanfont[Ligatures=TeX]{Latin Modern Roman}
+		\setsansfont[Ligatures=TeX]{Latin Modern Sans}
+		\setmonofont{Latin Modern Mono}
+		\usepackage{mathtools}% unicode-math breaks \underbrace, mathtools should be loaded BEFORE unicode-math
+		\usepackage[math-style=ISO,bold-style=ISO]{unicode-math}
+		\setmathfont[math-style=ISO,bold-style=ISO]{Latin Modern Math}
+		%\def\cpi{\symup{\pi}}			% konstanta pí: vzpřímeně
+		\let\itpi\pi
+		\pdfstringdefDisableCommands{%
+			\let\symup\@empty
+			\let\symit\@empty
+		}
+	\else
+		\cstyp@useLMandUpGreekCBtrue
+	\fi
+\else
+	\cstyp@useLMandUpGreekCBtrue
+\fi
+\ifcstyp@useLMandUpGreekCB
+	\usepackage{lmodern}		   		% písma Latin Modern
+	%\usepackage{textgreek}				% vzpřímená řecká písmena (text: \textpi)
+	%\usepackage{upgreek}				% ošklivé pí
+	\usepackage{upgreekcb}				% vzpřímená řecká písmena (math: \uppi)
+	%\def\cpi{\uppi}						% konstanta pí: vzpřímeně
+	\usepackage{amssymb}				% \leqq apod.
+	\usepackage{amsmath}					% matematické symboly, textové indexy $_{\text{čeština}}$
+\fi
+\DeclareRobustCommand\cpi{\ensuremath{\uppi}}	% konstanta pí: vzpřímeně
+
+\def\textb#1{{\fontseries{b}\selectfont #1}}	% (polo)tučné (serifové)
+\def\textbc#1{{\fontseries{sbc}\selectfont #1}}	% tučné zúžené (bezserifové)
+
+\usepackage{nicefrac}					% textové zlomky
+\usepackage{xfrac}						% textové zlomky
+\usepackage[nointegrals]{wasysym}		% různé symboly (kromě změněných integrálů)
+\usepackage{eurosym}					% euro
+\usepackage{textcomp}					% promile: \textperthousand, zobrazení tildy, \textopenbullet, 
+
+% \permil je definován ve wasysym, ale stylově je jiný než procento,
+% lepší je \textperthousand z balíku textcomp, ale nefunguje v matematickém režimu
+\usepackage{mathcomp}					% promile v mat. módu: $\tcperthousand$
+% redefinice \permil vloží symbol \textperthousand v (textovém) boxu, takže lze použít i v mat. režimu
+%\def\permil{\mbox{\textperthousand}}
+\DeclareRobustCommand\permil{\ifmmode\tcperthousand\else\textperthousand\fi}
+\let\promile\permil
+
+
+% TODO: Do budoucna použít \usepackage{SIunits} nebo \usepackage{siunitx}
+\usepackage{units}						% jednotky pomocí \unit[hodnota]{jednotka}
+% redefinice pomocí \thinspace místo původního \, (neboť velikost \, je níže předefinována)
+\DeclareRobustCommand{\unitspace}{\ifthenelse{\boolean{B@UnitsLoose}}{~}{\thinspace}}
+\DeclareRobustCommand*{\unit}[2][]{\notblank{#1}{#1\unitspace}{}%
+	\ifmmode\mathrm{#2}\else{\upshape #2}\fi}
+\DeclareRobustCommand*{\unitfrac}[3][]{\notblank{#1}{#1\unitspace}{}%
+	\ifmmode\nicefrac[\mathrm]{#2}{#3}\else\nicefrac[\upshape]{#2}{#3}\fi}
+\DeclareRobustCommand\degree{\ifmmode\text{\textdegree}\else\textdegree\fi}			% ° (stupeň)
+\DeclareRobustCommand\degreeC{\ifmmode\text{\textdegree C}\else\textdegree C\fi}	% °C
+\DeclareRobustCommand\angstrom{\text{\AA}}	% značka Å (A s kroužkem) pro Angstrom
+
+\usepackage{siunitx}[=v2]				% čísla a jednotky, lepší než units nebo SIunits
+
+\cstyp@info{Setting siunitx options}
+\def\showKeyType{siunitx option}
+\showKeysAndExecute
+\sisetup{
+	%locale=CZ,							% zatím není podporována čeština
+	%locale=DE,							% němčina je nejblíž, až na jazykové und, …
+	binary-units=true,					% zapnout taky \bit, \byte a \kibi, \mebi, …
+	number-unit-product={\text{\,}},	% mezera mezi číslem a jednotkou
+	inter-unit-product={\mkern2mu},		% mezera pro násobení jednotek
+	detect-family=true,					% přizpůsobí se písmu: serif, sans-serif, monospaced
+	%detect-display-math=true,			% v $$…$$ fonty z matematiky
+	%detect-inline-family=math,			% v $…$ fonty z matematiky
+	detect-weight=true,					% v tučném textu tučně
+	%detect-inline-weight=math,			% v $…$ tučnost z matematiky
+	%detect-mode=true,					% font podle módu text/math
+	retain-explicit-plus=true,			% neodstraňovat explicitní plus
+	%retain-unity-mantissa=false,		% odstraňovat 1× v 1×10^{…}
+	%retain-zero-exponent=true,			% neodstraňovat nulový exponent ×10^0
+	group-digits=true,					% true, decimal, integer, false
+	group-minimum-digits=4,				% seskupovat již od 4ciferných čísel
+	group-separator={\,},				% v matem. režimu
+	%input-decimal-markers={.,},		% desetinnné znaménko na vstupu
+	%copy-decimal-marker=false,			% kopírovat vstupní na výstup
+	output-decimal-marker={,},			% desetinná čárka
+	exponent-product=\cdot,				% krát mezi mantisou a 10^{…}
+	list-final-separator={ a },
+	list-pair-separator={ a },
+	list-separator={; },
+	range-phrase={"--},
+	number-angle-product={\mkern1mu},	% mezera mezi číslem a ° ′ ″
+	%arc-separator={\,},				% mezera mezi ° ′ ″
+	%arc-separator={\text{~}},			% mezera mezi ° ′ ″
+	arc-separator={\text{\,}},			% mezera mezi ° ′ ″
+	% symboly chráněné před expanzí při analýze čísel:
+	%input-protect-tokens=\approx\dots\ge\geq\gg\le\leq\ll\mp\pi\pm\sim
+	% pro tabulky
+	table-number-alignment=center,		% sloupec S: řády pod sebe + zarovnávat na střed
+	%table-text-alignment=center,		% sloupec S: {text} zarovnávat na střed
+	%table-unit-alignment=center,		% sloupec s: jednotky zarovnávat na střed
+	%table-alignment=center,			% všechny tři stejně: text, number, unit
+}
+% \AtBeginDocument{\ifdefined\pgfqkeys \SendSettingsToPgf \fi}
+% číslo s jednotkou bez mezer
+\newcommand\SIn[1][]{\SI[number-unit-product={},number-angle-product={},#1]}
+%\sisetup{
+%	math-celsius = °\text{C},			% teplota
+%	text-celsius = °C,					% teplota
+%	math-degree = °,					% úhel
+%	text-degree = °						% úhel
+%}
+ 
+
+% TODO: replace by soul (soulutf8)
+\usepackage[normalem]{ulem}				% podpora podtrhávání a přeškrtávání
+% vyznačování pro \emph se přepíná pomocí \normalem (kurziva) a \ULforem (podtrhávání)
+% podtržení: \uline{text}, přeškrtnutí: \sout{text}
+% změna výchozí barvy (a možnost nastavení vlastní barvy) pro přeškrtnutí:
+\newcommand\colorsout[1][red]{\bgroup
+	\markoverwith{\textcolor{#1}{\rule[0.55ex]{2pt}{\ULthickness}}}\ULon}
+\newcommand\coloruline[1][red]{\bgroup\UL@setULdepth
+	\markoverwith{\textcolor{#1}{\rule[-\ULdepth]{2pt}{\ULthickness}}}\ULon}
+%\let\origsout\sout\let\sout\colorsout
+%\let\origuline\uline\let\uline\coloruline
+
+\usepackage{caption}					% podpora změn popisků
+\AtBeginDocument{						% vylepšení kompatibility caption s ragged2e
+	% definice z ragged2e při změně fontu nastavují \spaceskip dle zarovnání,
+	% přepnutí zarovnání popisků z caption s tím nepočítá,
+	% takže do zarovnávacích stylů vrátíme pružné mezery, tj. \spaceskip=0pt
+    \@ifpackageloaded{ragged2e}{%
+    	% výchozí zarovnání a justification=justified jsou prázdné příkazy:
+    	% je třeba definovat \justified, aby šlo přidat nastavení \spaceskip
+    	\providecommand\justified{}%
+    	\DeclareCaptionJustification{justified}{\justified}%
+    	% \DeclareCaptionDefaultJustification{\justified}%
+    	% nastavení \@raggedtwoe@spaceskipfalse nuluje \spaceskip
+    	\g@addto@macro\justified{\@raggedtwoe@spaceskipfalse\@raggedtwoe@everyselectfont}%
+    	\g@addto@macro\centerfirst{\@raggedtwoe@spaceskipfalse\@raggedtwoe@everyselectfont}%
+    	\g@addto@macro\centerlast{\@raggedtwoe@spaceskipfalse\@raggedtwoe@everyselectfont}%
+    }{}%
+}
+ 
+\usepackage{multicol}					% více než dva sloupce
+%\raggedcolumns							% nenatahovat
+%\flushcolumns							% zarovnávat (výchozí)
+
+\usepackage{fancyvrb}					% fancy verbatim
+\usepackage{listings}					% barevná syntaxe
+
+% listingsutf8 má problémy, proto je načtení zakomentováno
+% konverze z utf8 (nepodporovaného balíkem listings) do 8bit
+%\usepackage{listingsutf8}				% podpora inputencoding=utf8/8bit
+
+% číslovat podle sekce není podporováno, workaround pro article a section:
+\lst@Key{numberbysection}{true}[t]{\lstKV@SetIf{#1}\lst@ifnumberbysection}
+\AtBeginDocument{
+	\@ifundefined{thechapter}{}{\let\lst@ifnumberbysection\iffalse}
+	\lst@ifnumberbysection
+		\newcounter{lstlistings}[section]
+		\gdef\thelstlisting{\ifnum \c@section>\z@ \thesection.\fi \@arabic\c@lstlisting}
+	\fi
+}
+
+% oprava možností pro float a floatplacement: přidáno H (podpora balíku float)
+
+\def\lstbreakindent{\lst@breakindent}
+\lstset{
+	numberbychapter=true,				% číslování zahrnuje kapitolu
+	numberbysection=true,				% číslování zahrnuje sekci (není-li kapitola)
+	captionpos=b,						% pozice popisku: bt
+	aboveskip=\bigskipamount,
+	belowskip=.667\bigskipamount,
+	abovecaptionskip=\medskipamount,
+	belowcaptionskip=.6667\bigskipamount,
+	breaklines=true,					% povolení zalamování
+	breakatwhitespace=true,				% ale pouze v mezerách
+	postbreak={\llap{\hbox to\lst@breakindent{\tiny\ensuremath{\hookrightarrow}\hss}}},
+	columns=fixed,						% zarovnávání znaků
+	%basicstyle=\small\ttfamily,		% výchozí styl
+	fancyvrb=true,
+	% výchozí styl cca 10pt (pro základních 12pt)
+	%basicstyle=\footnotesize\ttfamily,
+	% výchozí styl cca 11pt (pro základních 12pt)
+	basicstyle={\lst@ifdisplaystyle\small\else\normalsize\fi
+		\ttfamily\mdseries},
+	basewidth=.5em,						% šířka znaku pro \tt 10pt je půl čtverčíku
+	fontadjust=true,					% šířka znaku vždy podle (různých) fontů
+	%backgroundcolor=\color{yellow},	% barva pozadí
+	rulecolor=\color{gray}, 			% barva linek (rámečků)
+	%fillolor=\color{gray},				% barva mezi linkami a textem
+	%rulesepolor=\color{gray},			% barva mezi dvojitými linkami
+	%keywordstyle=\color{green!50!black}\bfseries,
+	keywordstyle={\bfseries\color[HTML]{008000}},
+	keywordstyle={[2]\mdseries\color[HTML]{7D9029}},
+	keywordstyle={[3]\mdseries\color[HTML]{BC7A00}},
+	%identifierstyle=,
+	commentstyle=\color[HTML]{005580},
+	stringstyle=\color[HTML]{BA2121},
+	showstringspaces=false,				% nezobrazovat mezery v řetězcích (znakem ␣)
+	tabsize=4,							% počet mezer pro odsazení tabulátorem
+}
+% bug v balíku listings: chybí definice \lst@gkeywords@sty
+% oprava: použij stejný styl jako keywords
+% chyba se neprojevuje, nastaví-li se morekeywords={},
+\ifx\lst@gkeywords@sty\undefined
+	\def\lst@gkeywords@sty{\@nameuse{lst@keywordstyle}}
+\fi
+\lstset{language=TeX,					% výchozí nastavení pro TeX
+	%texcsstyle={\bfseries\color[HTML]{008000}},	% * = \ taky barevně
+	texcsstyle={*\bfseries\color[HTML]{008000}},	% * = \ taky barevně
+	keywordstyle={\bfseries\color[HTML]{006633}},	% použito pro otherkeywords, není-li zapnuto keywordsprefix=\\
+	language={},						% výchozí jazyk nenastavujeme
+}
+% přidatnastavení jen pro \lstinline
+\newcommand\lstsetinline[1]{\lst@AddToHook{TextStyle}{\lstset{#1}}}
+\lstdefinestyle{inline}{}				% lze předefinovat
+\lstsetinline{
+	%basicstyle={\normalsize},
+	basewidth=.5em,						% šířka znaku pro \tt 10pt je půl čtverčíku
+	breaklines=false,					% zákaz zalamování
+	style=inline,
+}
+% použití:
+% \lstdefinestyle{inline}{nastavení}	% nastaví styl pro \lstinline
+% \lstsetinline{nastavení}				% přidá výchozí nastavení pro \lstinline
+
+
+\ifcstyp@LuaOrXeTeX\else				% LuaTeX je nativně UTF-8
+	\lstset{
+		%inputencoding=utf8/cp1250, extendedchars=false,	% UTF-8 z listingsutf8
+		inputencoding=utf8,
+		extendedchars=true,				% podpora UTF-8 + definice znaků češtiny:
+		literate =
+			{á}{{\'a}}1		{Á}{{\'A}}1
+			{é}{{\'e}}1		{É}{{\'E}}1
+			{í}{{\'\i}}1	{Í}{{\'I}}1
+			{ó}{{\'o}}1		{Ó}{{\'O}}1
+			{ú}{{\'u}}1		{Ú}{{\'U}}1
+			{ý}{{\'y}}1		{Ý}{{\'Y}}1
+			{ŕ}{{\'r}}1		{Ŕ}{{\'R}}1
+			{ĺ}{{\'l}}1		{Ĺ}{{\'L}}1
+			{ů}{{\r u}}1	{Ů}{{\r U}}1
+			{ě}{{\v e}}1	{Ě}{{\v E}}1
+			{š}{{\v s}}1	{Š}{{\v S}}1
+			{č}{{\v c}}1	{Č}{{\v C}}1
+			{ř}{{\v r}}1	{Ř}{{\v R}}1
+			{ž}{{\v z}}1	{Ž}{{\v Z}}1
+			{ď}{{\v d}}1	{Ď}{{\v D}}1
+			{ť}{{\v t}}1	{Ť}{{\v T}}1
+			{ň}{{\v n}}1	{Ň}{{\v N}}1
+			{ľ}{{\v l}}1	{Ľ}{{\v L}}1
+			{à}{{\`a}}1		{è}{{\`e}}1		{ì}{{\`\i}}1	{ò}{{\`o}}1		{ù}{{\`u}}1
+			{À}{{\`A}}1		{È}{{\'E}}1		{Ì}{{\`I}}1		{Ò}{{\`O}}1		{Ù}{{\`U}}1
+			{ä}{{\"a}}1		{ë}{{\"e}}1		{ï}{{\"\i}}1	{ö}{{\"o}}1		{ü}{{\"u}}1
+			{Ä}{{\"A}}1		{Ë}{{\"E}}1		{Ï}{{\"I}}1		{Ö}{{\"O}}1		{Ü}{{\"U}}1
+			{â}{{\^a}}1		{ê}{{\^e}}1		{î}{{\^\i}}1	{ô}{{\^o}}1		{û}{{\^u}}1
+			{Â}{{\^A}}1		{Ê}{{\^E}}1		{Î}{{\^I}}1		{Ô}{{\^O}}1		{Û}{{\^U}}1
+			{å}{{\r a}}1	{Å}{{\r A}}1	{Ã}{{\~A}}1		{ã}{{\~a}}1
+			{æ}{{\ae}}1		{Æ}{{\AE}}1		{œ}{{\oe}}1		{Œ}{{\OE}}1		{ß}{{\ss}}1
+			{Õ}{{\~O}}1		{õ}{{\~o}}1		{ő}{{\H{o}}}1	{Ő}{{\H{O}}}1
+			{ø}{{\o}}1		{Ø}{{\O}}1
+			{ű}{{\H{u}}}1	{Ű}{{\H{U}}}1
+			{ç}{{\c c}}1	{Ç}{{\c C}}1
+			{ñ}{{\~n}}1		{Ñ}{{\~N}}1	
+			{€}{{\euro}}1	{£}{{\pounds}}1
+			{¿}{{?`}}1		{¡}{{!`}}1
+			{«}{{\guillemotleft}}1			{»}{{\guillemotright}}1
+	}
+\fi
+\lstdefinelanguage{JavaScript}
+{
+	keywords = {typeof, new, true, false, function, return, null, switch, var, if, in, while, do, else, case, break, class, export, boolean, throw, implements, import, this, constructor, string, number, public, private, static, const, var, let, void},
+	morekeywords = [2]{class, export, boolean, throw, implements, import, this, interface},
+	morekeywords = [3]{Promise, Observable},
+	morekeywords = [4]{log},
+	otherkeywords = {;},
+	comment = [l]{//},
+	morecomment = [s]{/*}{*/},
+	morestring = [b]',
+	morestring = [b]",
+}
+\renewcommand\lstlistingname{Zdrojový kód}
+\renewcommand\lstlistlistingname{Seznam zdrojových kódů}
+
+% FIXME TODO: package option: section/chapter
+\usepackage[
+	newfloat=true,						% definuje listings pomocí newfloat
+	section,							% čísluje listings podle kapitol/sekcí
+	cache=true,							% bude používat cache, takže do ní jde vložit např. vlastní styl
+]{minted}								% barevná syntaxe
+\setminted{
+	%autogobble,				% detekuje počet mezer ze začátku všech řádků a odstraní je
+	%gobble=4,					% ignorované znaky (mezery) ze začátku řádků
+	tabsize=4,					% počet mezer pro odsazení tabulátorem
+	%frame=single,				% zarámečkovat
+	%framesep=1em,				% odsazení rámečku
+	rulecolor=\color{gray}, 			% barva linek (rámečků)
+	baselinestretch=1,			% řádkování
+	breaklines=true,			% zalamovat dlouhé řádky
+	%fontfamily=tt,				% tt, courier, helvetica
+	%formatcom=\let\itshape\relax,	% vypne kurzivu
+	%fontsize=\footnotesize, 	% cca 10pt (pro základních 12pt)
+	fontsize=\small, 			% cca 11pt (pro základních 12pt)
+	%fontsize=\scriptsize,		% cca 8.5pt (pro základních 12pt)
+	%fontsize=\tiny, 			% cca 7.3pt (pro základních 12pt)
+	%linenos,					% zapne číslování řádků
+	%numberblanklines=false, 	% nečísluje prázdné řádky
+	style=default,				% styl, viz URL
+	%style=friendly, 			% styl, viz URL
+	%style=trac, 				% styl, viz URL
+	% https://cs.overleaf.com/learn/latex/Code_Highlighting_with_minted#Reference_guide
+}
+\setmintedinline{
+	fontsize=\normalsize,
+}
+% prostředí z balíku minted
+\SetupFloatingEnvironment{listing}{
+	name=Zdrojový kód,
+	listname=Seznam zdrojových kódů,
+}
+% \listoflistings						% generuje seznam zdrojových kódů
+
+% vlastní styl lze vložit jako výstup příkazu:
+%	pygmentize -S <styl> -f latex -P commandprefix=PYG<styl>
+% do podadresáře projektu: _minted-\jobname,
+% což je pro overleaf: _minted-output
+% alternativně lze načíst výstup příkzu pomocí následujícího makra
+%	\loadMintedStyle[stylename]{stylefile}
+% nepoviný argument je jméno stylu použité v souboru
+% (makra v něm začínají prefixem \PYGstylename)
+\newcommand\loadMintedStyle{\@dblarg\loadMintedStyle@}
+\def\loadMintedStyle@[#1]#2{% očekává se jméno souboru
+ 	\ifstrempty{#1}{}{\ifcsname PYG\endcsname\else\minted@checkstyle{}\fi}%
+	\expandafter\gdef\csname minted@styleloaded@#1\endcsname{}%
+	\begingroup
+		\let\def\gdef
+		\catcode\string``=12
+		\catcode`\_=11
+		\catcode`\-=11
+		\catcode`\%=14
+		\endlinechar=-1\relax
+		\minted@input{#2.tex}%
+	\endgroup}
+
+
+%% vlastní deklarované prostředí pomocí caption (nezávislé na minted)
+%\DeclareCaptionType[fileext=loc]{code}[Zdrojový kód][Seznam zdrojových kódů]
+%\captionsetup[code]{
+%	position=bottom,
+%	within=section,						% číslování po sekcích
+%}
+%%\listofcodes
+
+% Redefinice \caption: přidán nakonec volitelný argument,
+% který se vloží do popisku, ale neobjeví se v seznamu
+% např. \caption{Popisek}[Zdroj: vlastní]
+\long\def\@captionSourceTest#1[#2]#3{\@ifnextchar[%
+	{\@captionSource{#1}[#2]{#3}}
+	{\latex@caption{#1}[#2]{#3}}}
+\long\def\@captionSource#1[#2]#3[#4]{\latex@caption{#1}[#2]{#3. #4}}
+\AtBeginDocument{
+	\let\latex@caption\@caption
+	\let\@caption\@captionSourceTest
+}
+
+
+\usepackage{graphicx}					% kreslení obrázků
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FORMÁT ODSTAVCE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{microtype}					% zapne mikrotypografická rozšíření (+ visící interpunkce)
+\microtypesetup{
+	%protrusion=false,					% vypne visící interpunkci
+	letterspace=200,					% prostrkávání na .2em \textls{}
+}
+
+% východový řádek odstavce by měl být široký alespoň 1,5× \parindent
+% a na konci by měla být mezera alespoň 1em (viz Olšák: TeXbook naruby)
+% nevýhody tohoto nastavení jsou, že je třeba je aktualizovat vždy při změně šířky \hsize
+% a potlačí se výpočet \predisplaysize (nepracuje \abovedisplayshortskip)
+\def\typoparfillskip{\ifdim\parindent=\z@ \normalparfillskip \else
+	\parfillskip\hsize	% \textwidth ne, nefungovalo by to ve sloupcové sazbě
+	\advance\parfillskip -1.5\parindent	% východový řádek musí být dlouhý alespoň 1,5× odsazení
+	\advance\parfillskip 0pt minus \parfillskip
+	\advance\parfillskip 0pt minus -1em\relax\fi}	% na konci východového řádku mezera ≥ 1em
+\def\normalparfillskip{\parfillskip\@flushglue}
+
+% s novým nastavením \parfillskip nefunguje \abovedisplayshortskip, protože TeX nenastaví \predisplaysize,
+% pokud v \parfillskip pracuje stahování a roztahování nulté úrovně (bez fil)
+% redefinice zahájení display módu s lokálním nastavením \parfillskip:
+\let\latexDisplayMathStart\[
+\let\latexDisplayMathStop \]
+\def\[{\bgroup\normalparfillskip\latexDisplayMathStart}
+\def\]{\latexDisplayMathStop\egroup\ignorespaces}
+% aby to fungovalo, je třeba matematiku v režimu display zahajovat pomocí \[ místo $$
+
+% vyznačování odstavců
+
+% odstavcová zarážka
+\def\normalparindent{\parindent1.5em\parskip\z@\setParfillSkip}
+% vynechaný řádek (násobek řádku lze specifikovat volitelným parametrem, např. .5)
+\newcommand\noparindent[1][1]{\parindent\z@		% bez zarážky, vynechaný řádek
+	\dimen@ #1\baselineskip \parskip1\dimen@ plus .15\dimen@
+	\normalparfillskip}
+
+% do bloku + centrovaný východový řádek:
+\def\centeredparfillskip{\leftskip\@flushglue\rightskip\z@ plus -1fil\relax
+	\parfillskip\z@ plus 2fil\relax}
+	
+	
+\newcommand\setParfillSkip{%
+	\ifdefstring{\cstyp@parfillskip}{typographic}{\typoparfillskip}{%
+	\ifdefstring{\cstyp@parfillskip}{centered}{\centeredparfillskip}{%
+	\ifdefstring{\cstyp@parfillskip}{normal}{\normalparfillskip}{%
+	\PackageError{czechtypo}{Unknown value for parfillskip. Allowed values:
+	typographic, centered, normal or aliases: typo, center}}}}%
+}
+
+\AtBeginDocument{\setParfillSkip}
+\def\multicolHook{\setParfillSkip}
+\AtBeginEnvironment{multicols}{\multicolHook}
+
+% předefinuje \centering, \ragged… – nastavitelná pružnost (2em) místo fil
+% původní jsou dostupné jako \LaTeX…
+\usepackage[newcommands]{ragged2e}
+% \centering necháme na původním významu LaTeXu,
+% aby nedocházelo při centrování k Underfull
+\let\centering\LaTeXcentering
+
+% zarovnání do bloku s odstavcovou zarážkou, podobné \justifying z ragged2e
+\def\justify{\@rightskip\z@skip\rightskip\@rightskip\leftskip\rightskip
+	\spaceskip\z@ \xspaceskip\z@ \normalparindent}
+	
+\@ifpackageloaded{ragged2e}{% použije pozměněné definice pro tabulky
+	% v tabulkách trochu jinak (mezislovní mezery pruží):
+	\newcommand\tabraggedright{\RaggedRight\@raggedtwoe@spaceskipfalse\@raggedtwoe@everyselectfont}
+	\newcommand\tabraggedleft{\RaggedLeft\@raggedtwoe@spaceskipfalse\@raggedtwoe@everyselectfont}
+	\newcommand\tabcentering{\Centering\@raggedtwoe@spaceskipfalse\@raggedtwoe@everyselectfont}
+	% umožní používat justyfying v tabulkách, kde je \\ definováno jinak
+	\let\@raggedtwoe@justifying\justifying
+	\newcommand\tabjustifying{\let\@raggedtwoe@savedcr\\ \@raggedtwoe@justifying}
+}{
+	% v tabulkách trochu jinak (mezislovní mezery pruží):
+	\newcommand\tabraggedright[1][2em]{\rightskip\z@ plus #1\leftskip\z@skip}
+	\newcommand\tabraggedleft[1][2em]{\rightskip\z@skip\leftskip\z@ plus #1\parindent\z@\parfillskip\z@skip}
+	\newcommand\tabcentering{\leftskip\@flushglue\rightskip\leftskip\parindent\z@\parfillskip\z@skip}
+	
+	% vylepšené \raggedright (podle plainu): pevné mezery a pružnost vpravo jen na šířku 2em
+	\renewcommand\raggedright[1][2em]{\let\\\@centercr\@rightskip\z@ plus #1\rightskip\@rightskip
+	  \leftskip\z@skip \spaceskip=.3333em \xspaceskip=.5em % pevné mezery
+	  \parindent\z@\normalparfillskip}
+	% totéž pro \raggedleft
+	\let\latexraggedleft\raggedleft
+	\renewcommand\raggedleft[1][2em]{\let\\\@centercr \leftskip\z@ plus #1\rightskip\z@skip
+		\spaceskip=.3333em \xspaceskip=.5em % pevné mezery
+		\parindent\z@ \parfillskip\z@skip}
+}
+	
+% \let\tabragged\@empty
+\def\tabragged{%
+	\let\raggedright\tabraggedright
+	\let\raggedleft \tabraggedleft
+	\let\centering  \tabcentering
+	\ifx\tabjustifying\undefined \else \let\justifying\tabjustifying\fi}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ZALAMOVÁNÍ: ZÁKAZ DĚLENÍ SLOV, URL
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def\nohyphenation{\hyphenpenalty\@M\exhyphenpenalty\@M}	% zákaz dělení slov
+\renewcommand\czechhyphenmins{22}		% alespoň dvě písmena na konci i začátku
+
+% dělení slov, která automatický algoritmus nedělí správně
+\babelhyphenation[czech]{žlu-ťou-č-ký šéf-lé-kař}
+
+% ZALAMOVÁNÍ V URL (vyžaduje \usepackage{url}, načítáno pomocí \usepackage{hyperref})
+
+\def\resetURLchars{%					% zrušení výchozích zalamovacích znaků v URL
+	\g@addto@macro\UrlOrds{\do\.\do\@\do\\\do\/\do\!\do\_\do\|\do\;\do\>\do\]%
+		\do\)\do\,\do\?\do\&\do\'\do+\do\=\do\#\do\:%
+		%\do\(\do\[\do\{\do\<
+	}%
+	\gdef\UrlNoBreaks{}%				% nemožnost zalomení za znakem: nic
+	\gdef\UrlSpecials{\do\ {\Url@space}\do\^^M{\Url@space}% mezera zůstává speciální
+		%\do\%{\Url@percent}			% procento neřešit
+		\Url@force@Tilde}% package option may force faked text-ascii-tilde
+	\gdef\UrlBreaks{}%					% možnost zalomení za znakem: nic
+	\gdef\UrlBigBreaks{\do@url@hyp}%	% přednostní zalomení za znakem: nic
+}
+% nastaví kategorie speciálních znaků na obyčejné s výjimkou: \ { }
+\def\URL@doBreakSpecial#1{\let\URL@doBreak\@makeother
+	\ifnum`#1=`\{	\let\URL@doBreak\@gobble\fi
+	\ifnum`#1=`\}	\let\URL@doBreak\@gobble\fi
+	\ifnum`#1=`\\	\let\URL@doBreak\@gobble\fi
+	\URL@doBreak{#1}}
+\newif\ifURL@breakBefore
+\newif\ifURL@breakPrefer
+% nastaví pro URL znaky z parametrů: lze zalomit za znaky #1 a před znaky #2
+% hvězdičková varianta: přednostní zalamování
+\def\setURLbreaks{\begingroup\let\do\URL@doBreakSpecial\dospecials\@ifstar
+	{\URL@breakPrefertrue \setURL@breaks}%
+	{\URL@breakPreferfalse\setURL@breaks}}
+\def\setURL@breaks#1#2{% #1: break after, #2: break before these characters
+	\URL@breakBeforefalse	\let\next\setURL@break\next#1\relax
+	\URL@breakBeforetrue	\let\next\setURL@break\next#2\relax\endgroup}
+\def\setURL@break#1{\@ifnextchar\bgroup	% test optional count
+	{\setURL@breakCount{#1}}%
+	{\setURL@breakCount{#1}{\z@}}}
+\def\setURL@breakCount#1#2{\ifx#1\relax \let\next\relax \else
+	% DEBUG:
+	%\par NEW: Allowing URL breaks \ifURL@breakBefore before\else after\fi
+	%	\ the char {\ttfamily \string#1}%
+	%	\ifnum#2>\z@~--~skip #2$\times$\fi\par
+	\typeout{Allowing URL breaks \ifURL@breakBefore before\else after\fi
+		\ the char \string#1\ifnum#2>\z@ -- skip #2times\fi}%
+	\ifnum#2>\z@						% postpone allowing breaks
+		\g@addto@macro\UrlSpecials{\doPostponeAllowBreak#1{#2}}%
+		% define resetting macro: to be activated after #2 occurences of #1
+		\ifURL@breakBefore
+			\ifURL@breakPrefer	\setURL@char#1{\doAllowBreakBefore#1\relpenalty}\else
+								\setURL@char#1{\doAllowBreakBefore#1\binoppenalty}\fi
+		\else
+			\ifURL@breakPrefer	\setURL@char#1{\@tempcnta"3000\set@mathcode#1}\else
+								\setURL@char#1{\@tempcnta"2000\set@mathcode#1}\fi
+		\fi
+	\else
+		\ifURL@breakBefore
+			\ifURL@breakPrefer	\g@addto@macro\UrlSpecials{\doAllowBreakBefore#1\relpenalty}\else
+								\g@addto@macro\UrlSpecials{\doAllowBreakBefore#1\binoppenalty}\fi
+		\else
+			\ifURL@breakPrefer	\g@addto@macro\UrlBigBreaks{\do#1}\else
+								\g@addto@macro\UrlBreaks{\do#1}\fi
+		\fi
+	\fi
+	\fi\next}
+\def\doAllowBreakBefore#1#2{\mathcode`#1"8000\defActiveChar#1{\penalty#2\mathchar`#1}}
+\def\defActiveChar#1{\bgroup \catcode`\~\active \lccode`\~`#1\lowercase{\egroup\def~}}
+\def\setURL@chCnt#1{\expandafter\xdef\csname URL@postpone:#1\endcsname}%
+\def\decURL@chCnt#1{\expandafter\count@\csname URL@postpone:#1\endcsname
+	\advance\count@\m@ne \setURL@chCnt#1{\the\count@}}
+\def\doPostponeAllowBreak#1#2{\mathcode`#1"8000\setURL@chCnt#1{#2}%
+	\defActiveChar#1{\mathchar`#1\decURL@chCnt#1%
+		\ifnum\count@>\z@\else \csname URL@char:#1\endcsname\fi}}
+\def\setURL@char#1{\expandafter\gdef\csname URL@char:#1\endcsname}
+%\newcommand\setURLspacePenalty[1][\UrlBigBreakPenalty]{\def\Url@sppen{#1}}	% nefunguje, asi konflikt s hyperref
+
+% zalamování v URL
+\resetURLchars							% vypne všechny zalamovací znaky (z url.sty)
+% \setURLbreaks*	{/{2}}	{&}				% přednostně za / (od 3. výskytu) a před &
+% \setURLbreaks	{:{1}}	{?+#}			% za : (od 2. výskytu) a před ?, + a #
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ZÁKAZ SIROTKŮ A VDOV, ZÚŽENÁ MEZERA, POZN. POD ČAROU SE SYMBOLEM
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\clubpenalty=\@M						% zákaz sirotků (první řádek odstavce samostatně)
+\widowpenalty=\@M						% zákaz vdov (poslední řádek odstavce samostatně)
+\displaywidowpenalty=\@M				% zákaz vdov před matematickým režimem display ($$rovnice$$)
+
+\def\figsp{\hphantom{0}}				% mezera o velikosti cifry
+\def\thinspace{\kern .25em }			% zúžená mezera dle normy ON ČSN 88 2503: 1/4 čtverčíku
+\def\negthinspace{\kern-.25em }			% záporná zúžená mezera
+% redefinice zúžené mezery i pro matematický režim
+%\def\,{\ifmmode\mskip 4.5mu\else\leavevmode\thinspace\fi \relax}
+% amsmath předefinovává \, a \!
+\renewcommand\,{\tmspace+\thinmuskip{.25em}}
+\let\thinspace\,
+\renewcommand\!{\tmspace-\thinmuskip{.25em}}
+\let\negthinspace\!
+
+% \footnote: umožnění změny číselného odkazu na symbol z volitelného parametru:
+% varianta 1:
+% % \footnote*[symbol]{poznámka pod čarou}
+% \let\latexfootnote\footnote
+% \def\footnote{\@ifstar{\@xxfootnote}{\latexfootnote}}
+% \def\@xxfootnote[#1]{\protected@xdef\@thefnmark{#1}\@footnotemark\@footnotetext}
+% varianta 2:
+% \footnote[symbol]{poznámka pod čarou}
+\def\@xfootnote[#1]{\protected@xdef\@thefnmark{#1}\@footnotemark\@footnotetext}
+
+% pokud symbol odkazu začíná hvězdičkou, nepoužije se horní index
+\def\@makefnmark{\hbox{\let\@maybesup\@textsuperscript
+	\def\@teststar##1##2^^J{\if\noexpand##1*\let\@maybesup\relax\fi}%
+	\expandafter\@teststar\@thefnmark^^J\@maybesup{\normalfont\@thefnmark}}}
+% text poznámky pod čarou je oddělen od symbolu mezerou
+\renewcommand\@makefntext[1]{\parindent 1em\noindent\hb@xt@1.8em{\hss\@makefnmark\kern.333em}#1}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ŘÁDKOVÝ REJSTŘÍK a vertikální mezery
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{relsize}					% relativní změna velikosti fontu: \smaller[m], \larger[m], \relsize{m}
+
+\newcommand\setskipamounts[1][\baselineskip]{%
+	\dimen@=#1\relax
+	\bigskipamount		= 1\dimen@ plus .333\dimen@ minus .333\dimen@
+	\medskipamount		= \bigskipamount	\divide\medskipamount\tw@
+	\smallskipamount	= \medskipamount	\divide\smallskipamount\tw@
+	% odsazení popisků plovoucích objektů
+	%\abovecaptionskip = .667\bigskipamount
+	%\belowcaptionskip = -.667\bigskipamount
+	\abovecaptionskip = .333\bigskipamount
+	\belowcaptionskip = -.333\bigskipamount
+	% odsazení plovoucích objektů umístěných [h] a [H]
+	\intextsep			= 1.29\bigskipamount plus .167\dimen@ minus .167\dimen@
+	% odsazení plovoucích objektů umístěných [t] a [b]
+	\textfloatsep		= \intextsep
+	% mezi plovoucími objekty [t] a [b]
+	\floatsep			= 1.667\bigskipamount plus .667\bigskipamount minus .333\bigskipamount
+	\advance\floatsep	-\belowcaptionskip
+	% mezi plovoucími objekty [p]
+	\@fpsep				= \floatsep
+	% odsazení matematiky na samostatném řádku
+	\abovedisplayskip	= 1\dimen@ plus .2\dimen@ minus .333\dimen@
+	\belowdisplayskip	= \abovedisplayskip
+	\abovedisplayshortskip	= \z@ plus .25\dimen@
+	\belowdisplayshortskip	= .7\dimen@ plus .2\dimen@ minus .2\dimen@
+}
+\normalsize\setskipamounts
+\AtBeginDocument{
+	\normalsize\setskipamounts
+}
+
+% změna řádkování
+\newlength\latex@footnotesep			% původní velikost footnotesep
+\setlength\latex@footnotesep\footnotesep
+\AtBeginDocument{\setlength\latex@footnotesep\footnotesep}
+\newif\ifBaseLineStretchOne				% pro snadné testování řádkování 1
+\BaseLineStretchOnetrue	
+\newcommand\setBaselineStretch[2][\normalsize]{%
+	\def\baselinestretch{#2}			% změna řádkování
+	\def\tmp@ne{1}\ifx\baselinestretch\tmp@ne  \BaseLineStretchOnetrue
+	\else \BaseLineStretchOnefalse \fi
+	#1									% nastavení \baselineskip dle velikosti fontu
+	\setskipamounts						% ekvivalentní změna vertikálních mezer
+	\setlength\footnotesep{#2\latex@footnotesep}	% úprava mezery mezi poznámkami pod čaarou
+}
+\let\setbaseline\setBaselineStretch
+\newcommand\setTitleBaselineStretch[1]{\def\titleBaselineStretch{#1}}
+\let\settitlebaseline\setTitleBaselineStretch
+\setTitleBaselineStretch{1.15}
+
+%\setbaseline{1.5}						% řádkování 1,5
+%\renewcommand\arraystretch{1.3}		% odsazení tabulkových linek od textu
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% TITULKY (nadpisy)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ifcstyp@beamer\else    % beamer class is not compatible with tocloft
+
+% and titleformat
+\usepackage[raggedright]{titlesec}
+\usepackage[titles]{tocloft}
+
+% \titleformat*\sectioncommand{styling}	% změna stylu (fontů)
+% \titleformat\sectioncommand[shape]{styling}{numbering}{label-title-sep}{before-title}[after-title]
+% \titlespacing\sectioncommand{leftmargin}{before-vertical-sep}{after-(v|h))sep}[right-sep]
+% \titlespacing* – zruší odsazení následujícího odstavce vyjma styplů runin (paragraph), wrap a drop
+\titleformat*\section					% titulek 1. úrovně
+	{\raggedright\nohyphenation\sloppy\phantomsection
+	\setbaseline[\LARGE]{\titleBaselineStretch}\bfseries\boldmath}
+\titleformat*\subsection				% titulek 2. úrovně
+	{\raggedright\nohyphenation\sloppy\phantomsection
+	\setbaseline[\Large]{\titleBaselineStretch}\bfseries\boldmath}
+\titleformat*\subsubsection				% titulek 3. úrovně
+	{\raggedright\nohyphenation\sloppy\phantomsection
+	\setbaseline[\large]{\titleBaselineStretch}\bfseries\boldmath}
+	
+\titlespacing*\paragraph				% titulek 4. úrovně v neodsazeném odstavci, oddělen obyč. mezerou
+	{\z@}{\bigskipamount}{\wordsep}
+\titlespacing*\subparagraph				% titulek 5. úrovně v odstavci, oddělen obyč. mezerou
+	{\parindent}{\medskipamount}{\wordsep}
+
+\fi
+
+% automaticky tučná matematika při zapnutí \bfseries
+%\g@addto@macro\bfseries{\boldmath}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Řešení pro:
+% • zahrnutí nečíslovaných sekcí do obsahu: \section*{Bude v~obsahu},
+% • sekce začínající na nové straně.
+% TODO:
+% • zobecnit pro další titulky: \subsection, \subsubsection a \chapter (book)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Balík titlesec umožňuje pomocí \sectionbreak nebo pomocí \titleclass
+% nastavit titulek tak, aby automaticky začínal na nové straně
+% – obojí ale generuje nesprávně odkazy (bookmarks) v PDF:
+% Ty pak odkazují místo na začátek sekce na konec textu na předchozí straně.
+% Příklad pro \section:
+%\def\sectionbreak{\clearpage}			% varianta 1
+%\titleclass{\section}{top}				% varianta 2
+% FIXME: otestovat: \def\sectionbreak{\clearpage\phantomsection}
+% Vlastní řešení, které funguje korektně i s PDF bookmarks:
+
+% Nečíslované titulky jako \section*{Titulek} nejsou v obsahu.
+% Aby nebylo třeba používat \phantomsection, \pdfbookmark a \addcontentsline,
+% redefinujeme \section* tak, že se bude titulek automaticky vkládat do obsahu.
+% Zároveň \section i \section* umožní začínat na nové straně.
+
+\newif\ifnosectionnumber				% nečíslovaný titulek sekce
+\newif\ifpagesection					% \section zahajuje novou stranu
+\newif\ifbackmatter						% číslování příloh (article, thesis)
+\def\handlestarsection{\@ifstar
+	{\nosectionnumbertrue \@dblarg\handle@section}		% \section*
+	{\nosectionnumberfalse\@dblarg\handle@section}}		% \section
+\let\clearSection\cleardoublepage
+\def\handle@section[#1]#2{%				% ošetřuje nečíslování a novou stránku
+	\ifpagesection\clearSection\fi	% nová (lichá pro twoside) stránka
+	\let\restoresecnumdepth\relax
+	\ifnosectionnumber
+		% zapamatuj si aktuální úroveň hloubky číslování titulků
+        \edef\restoresecnumdepth{\noexpand\c@secnumdepth=\the\c@secnumdepth\relax}
+		\c@secnumdepth=\z@				% vypne číslo titulku
+		% pokud neexistuje \nameref, definujeme \ref pro nečíslovanou sekci jako název
+		\ifx\nameref\undefined \protected@edef\@currentlabel{#1}\fi
+		% pokud jsme v části příloh, zvýšíme číslo (písmeno) přílohy a vytvoříme referenci
+		\ifbackmatter\refstepcounter{section}\fi
+	\fi
+	\latex@section[#1]{#2}				% vloží titulek původním makrem
+	\restoresecnumdepth}				% obnoví číslování titulků
+\let\latex@section\section				% původní \section kvůli redefinici
+\ifcstyp@beamer\else
+\let\section\handlestarsection			% zapnutí redefinované verze \section
+\fi
+%\pagesectiontrue						% zapnutí nové stránky pro \section
+
+\let\latex@addtocontents\addtocontents
+\def\contentsOff{\def\addtocontents##1##2{}}% nezahrne řádek v obsahu, ale ponechá odkaz v záložkách PDF
+\def\contentsOn{\let\addtocontents\latex@addtocontents}
+
+% oprava obsahu po redefinici \section, aby nebyl titulek „Obsah“ v obsahu
+\AtBeginDocument{
+	\let\latex@tableofcontents\tableofcontents
+	\def\tableofcontents{%
+		\contentsOff			% nezahrne řádek v obsahu, ale ponechá odkaz v záložkách PDF
+		% šlo by řešit možná i dočasným přenastavením tocdepth:
+		% \addtocontents{toc}{\setcounter{tocdepth}{0}\ignorespaces}
+		\latex@tableofcontents				% vloží obsah
+		\contentsOn
+	}
+}
+
+\ifcstyp@beamer\else    % beamer class is not compatible with l@figure
+% změna odsazení v seznamu obrázků a tabulek
+%\renewcommand*\l@figure
+%	{\@dottedtocline{1}{0em}{2.3em}}	% výchozí: 1.5em 2.3em
+%\let\l@table\l@figure
+% lépe pomocí tocloft
+\cftsetindents{figure}{0em}{2.3em}
+\cftsetindents{table}{0em}{2.3em}
+\fi
+
+%\setcounter{secnumdepth}{3}			% nejhlubší úroveň číslování titulků
+%\setcounter{tocdepth}{3}				% obsah generovat až do této úrovně
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% STYL STRÁNEK + PAGINACE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ifcstyp@beamer\else
+% změna polohy čísla pro styl plain:
+\usepackage{fancyhdr}					% možnosti úpravy záhlaví a zápatí (styl stránky)
+\fancypagestyle{plain}{					% redefinice stránkového stylu plain
+	\fancyhf{}							% odstraní všechny elementy
+	\renewcommand{\headrulewidth}{0pt}	% včetně linek
+	\renewcommand{\footrulewidth}{0pt}
+	%\cfoot{\thepage}					% uprostřed dole číslo strany
+	\rfoot{\thepage}					% vpravo dole číslo strany
+	%\fancyfoot[R]{\thepage}
+}
+\pagestyle{empty}						% strany nečíslovat (až do úvodu)
+\fi
+
+\raggedbottom							% neroztahovat stránku k dolnímu okraji
+% \raggedbottom nefunguje na plovoucí objekty (pokud jsou na samostatné stránce).
+% oprava:
+\@fptop = \z@							% odsazení shora pro plovoucí objekty
+\@fpbot = \z@ plus 1fill 				% zdola
+%\@fpbot = \z@ plus \vsize				% zdola
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% TABULKY a dlouhé tabulky menším stupněm písma, zarovnávání desetinných míst
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% POPISKY tabulek a obrázků
+\captionsetup{
+	font=footnotesize,					% menším stupněm písma
+	%justification=centering,			% centrovaně (na střed)
+	justification=centerlast,			% do bloku, poslední řádek centrovaně (na střed)
+	margin=\parindent,					% zúženě o \parindent
+	%margin=2em,
+	%figurewithin=none,					% číslování obrázků průběžně v celém dokumentu
+	%tablewithin=none,					% číslování tabulek průběžně v celém dokumentu
+	figurewithin=section,				% číslování obrázků po sekcích
+	tablewithin=section,				% číslování tabulek po sekcích
+}
+\captionsetup[table]{
+	%name={Tabulka},
+	position=top,						% popisek nad tabulkou
+	%position=bottom,					% popisek pod tabulkou
+}
+\captionsetup[figure]{
+	%name={Obrázek},					% název pro obrázek
+	position=bottom,					% popisek pod obrázkem
+	%position=top,						% popisek nad obrázkem
+	%labelsep=endash,					% mezi číslo a popisek pomlčku
+}
+
+% další plovoucí objekty
+%\floatstyle{plain}
+% \newfloat{typ}{umístění}{přípona souboru se seznamem}{}
+
+% zarovnávání slopců podle číselných řádů
+\usepackage{dcolumn}					% nový typ sloupce D
+\newcolumntype{d}[1]{D{,}{,}{#1}}		% typ sloupce d s parametrem počtu míst: d{3,2}
+\newcolumntype{,}{D{,}{,}{-1}}			% sloupec centrovaný dle desetinné čárky
+\newcolumntype{.}{D{.}{.}{-1}}			% sloupec centrovaný dle desetinné tečky
+% příklad použití:
+%\begin{tabular}{|d{3,2}|.|,|}
+%\hline
+%  \multicolumn{1}{|c|}{desetiny} & \multicolumn{1}{ c|}{dot} & \multicolumn{1}{ c|}{comma}\\
+%\hline
+%      1,15 &      3.141 & 12\,345,1 \\
+%    421,5 & 6\,242.42  &       5,87 \\
+%\hline
+%\end{tabular}
+
+% umožnění redefinice typu sloupce: \renewcolumntype
+% (rozšíření balíku array načítaného balíkem dcolumn)
+\def\renewcolumntype#1{\edef\NC@char{\string#1}\@ifundefined{NC@find@\NC@char}%
+	{\PackageWarning{array}{Column \NC@char\space not defined}}%
+	{\expandafter\let\csname NC@find@\NC@char\endcsname\relax\newcolumntype{#1}}}
+
+% volitelný typ tabulky: snadná změna mezi variantou
+%	s vnějším rámečkem, všechny linky a
+%	bez vnějšího rámečku a vnitřních řádkových linek.
+\newcolumntype{:}{|}					% side vertical line
+\let\latex@hline\hline
+\newcommand\allTableLines{\renewcolumntype{:}{|}%
+	\let\tophline\latex@hline
+	\let\headhline\latex@hline
+	\let\midhline\latex@hline
+	\let\hline\latex@hline
+	\let\foothline\latex@hline
+	\let\bottomhline\latex@hline}
+\newcommand\frameTableLines{\renewcolumntype{:}{|}%
+	\let\tophline\latex@hline
+	\let\headhline\latex@hline
+	\let\midhline\@empty
+	\let\hline\@empty
+	\let\foothline\latex@hline
+	\let\bottomhline\latex@hline}
+\newcommand\simpleTableLines{\renewcolumntype{:}{}%
+	\let\tophline\@empty
+	\let\headhline\latex@hline
+	\let\midhline\@empty
+	\let\hline\@empty
+	\let\foothline\latex@hline
+	\let\bottomhline\@empty}
+\newcommand\noTableLines{\renewcolumntype{:}{}%
+	\let\tophline\@empty
+	\let\headhline\@empty
+	\let\midhline\@empty
+	\let\hline\@empty
+	\let\foothline\@empty
+	\let\bottomhline\@empty}
+\allTableLines
+
+% pro použití je potřeba v tabulce používat jinak linky, aby šly jednoduše vypnout:
+% \begin{tabular}{:l|l:}				% : místo | na stranách
+% \tophline
+% Záhlaví & tabulky\\
+% \headhline
+% řádky & tabulky\\
+% \midhline
+% řádky & tabulky\\
+% \midhline
+% řádky & tabulky\\
+% \foothline
+% patička & tabulky\\
+% \bottomhline
+% \end{tabular}
+
+\usepackage{multirow}					% \multirow2*{text přes více řádků}
+% \multirow[vpos]{nrows}[bigstruts]{width}[vmove]{text}
+% \multirow#={text}
+% \multirow{2}={text}					% tento řádek a ten pod ním
+% \multirow{-2}={text}					% tento řádek a ten nad ním
+% šířka podle: = sloupce; * obsahu
+% \multirow[c]{#}[0]{=|*|dimen}[dimen]{text}
+% \multirow[ctb]{-#}[tb#]{=|*|dimen}[dimen]{text}
+
+%\usepackage{array}						% načteno už dcolumn
+\usepackage{delarray}					% delimiters + array
+
+\usepackage[math,column=C]{cellspace}	% vertikální odstup linek
+\cellspacetoplimit=3pt
+\cellspacebottomlimit=3pt
+%\addparagraphcolumntypes{X}			% při použití tabularx (načítat po cellspace)
+
+% lepší tabulky? tabu
+%\usepackage{colortbl}					% 
+%\usepackage{makecell}					% 
+%\usepackage{booktabs}					% 
+%\usepackage{tabularx}					% 
+
+% (…) We therefore do not recommend its usage at this point in time.
+% However, we hope that somebody will step forward and start actively
+% supporting the code base. --- The LaTeX3 Project Team
+%\usepackage{tabu}						% vylepšené tabulky
+%\tabulinesep=4pt						% minimální vertikální odstup linek
+
+% vlastní řešení minimálního odstupu vertikálních linek
+%\newdimen\tabPaddingTop 	\tabPaddingTop=2pt
+%\newdimen\tabPaddingBottom	\tabPaddingBottom=2pt
+\def\tabPaddingTop{.3em}
+\def\tabPaddingBottom{.3em}
+
+% prostředí tab, ve kterém se dodržuje vertikální odstup v buňkách (padding)
+%% pro původní tabular z LaTeXu
+%\newenvironment{tab}
+%	{\let\@tabclassz\cstyp@tabclassz\tabular}
+%	{\endtabular}
+%\newenvironment{tab*}
+%	{\let\@tabclassz\cstyp@tabclassz\@nameuse{tabular*}}
+%	{\@nameuse{endtabular*}}
+%\def\cstyp@tabclassz{\ifcase\@lastchclass \@acolampacol \or \@ampacol \or \or
+%	\or \@addamp \or \@acolampacol \or \@firstampfalse\@acol \fi
+%	\edef\@preamble{\@preamble\setbox\z@\hbox{\ifcase\@chnum
+%			\hfil\hskip1sp\ignorespaces\@sharp\unskip\hfil	% c
+%		\or \hskip1sp\ignorespaces\@sharp\unskip\hfil		% l
+%		\or \hfil\hskip1sp\ignorespaces\@sharp\unskip\fi}%	% r
+%		{\dimen@	\dimexpr \ht\z@+\tabPaddingTop
+%		\dimen@ii	\dimexpr \dp\z@+\tabPaddingBottom
+%		\vrule width\z@ height\dimen@ depth\dimen@ii
+%		\unhbox\z@}}}
+
+% pro změněné tabular z array.sty
+% prostředí tab, ve kterém se dodržuje vertikální odstup v buňkách (padding)
+\newenvironment{tab}
+	{\let\@classz\cstyp@arrayclassz\tabular}
+	{\endtabular}
+\newenvironment{tab*}
+	{\let\@classz\cstyp@arrayclassz\@nameuse{tabular*}}
+	{\@nameuse{endtabular*}}
+\def\cstyp@arrayclassz{\@classx \@tempcnta\count@ \prepnext@tok
+	\@addtopreamble{\setbox\z@\hbox{\ifcase \@chnum
+			\hfil\hskip1sp\d@llarbegin \insert@column \d@llarend \do@row@strut \hfil	% c
+		\or \hskip1sp\d@llarbegin \insert@column \d@llarend \do@row@strut \hfil			% l
+		\or \hfil\hskip1sp\d@llarbegin \insert@column \d@llarend \do@row@strut			% r
+		\or \setbox\ar@mcellbox\vbox \@startpbox{\@nextchar}\insert@column \@endpbox
+			\ar@align@mcell \do@row@strut												% m
+		\or \vtop \@startpbox{\@nextchar}\insert@column \@endpbox\do@row@strut			% p
+		\or \vbox \@startpbox{\@nextchar}\insert@column \@endpbox\do@row@strut \fi}%	% b
+		{\dimen@	\dimexpr \ht\z@+\tabPaddingTop		\relax
+		\dimen@ii	\dimexpr \dp\z@+\tabPaddingBottom	\relax
+		\vrule width\z@ height\dimen@ depth\dimen@ii}%
+		\unhbox\z@}\prepnext@tok}
+\let\cstyp@orig@array@classz\@classz
+% při zapnuté volbě tabularPadding=true bude prostředí tabular předefinováno
+% pro použití \tabPadding…
+\def\setTabularPadding{\ifcstyp@tabularPadding \let\@classz\cstyp@arrayclassz
+	\else \let\@classz\cstyp@orig@array@classz \fi}
+\setTabularPadding
+
+%\def\tabularHook{\footnotesize\tabragged\renewcommand\arraystretch{1.3}}
+\def\tabularHook{\footnotesize\tabragged}
+\AtBeginEnvironment{tabular}{\tabularHook}
+\AtBeginEnvironment{longtable}{\tabularHook}
+%\AtBeginEnvironment{tabu}{\tabularHook}
+\AtBeginEnvironment{tab}{\tabularHook}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ZMĚNY PROSTŘEDÍ (CENTROVÁNÍ, VÝČTY)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% zrušení dodatečné mezery kolem prostředí center + zákaz zlomu nad
+\def\center{\topsep\z@\partopsep\z@\par\nopagebreak
+	\trivlist\@nobreaktrue\centering\item\relax}
+% alternativně
+%\renewenvironment{center}				% zrušení dodatečné mezery kolem prostředí
+%	{\par\nopagebreak\centering}
+%	{\par\ignorespacesafterend}
+
+\usepackage{enumitem}					% možnost nastavení výčtů
+% nastavení se uplatňuje v pořadí:
+% \setlist, \setlist[úroveň], \setlist[typ], \setlist[typ,úroveň]
+% \setlist*… – přidá nastavení (nepřepíše původní)
+\setlist{
+	beginpenalty=\@M,					% zákaz zalomení nad výčtem
+	% položky za sebou jako řádky, ponechat místo kolem výčtu:
+	%noitemsep,
+	% položky za sebou jako řádky, bez místa navíc kolem výčtu:
+	nosep,				
+	% individuální nastavení mezer:
+	parsep=\parskip,					% mezi odstavci (tj. i před položkou)
+	%topsep=.2em,						% před výčtem
+	%partopsep=0em,						% navíc před výčtem, pokud je oddělen odstavcem
+	%itemsep=.1em,						% před novou položkou
+}
+% jsou‑li položky krátké, doporučuji nezarovnávat pravý okraj
+%\setlist*[itemize,enumerate]{
+%	%first=\raggedright,				% nezarovnávat pravý okraj
+%}
+%\setlist*[itemize,enumerate,description]{
+%	beginpenalty=\@M,					% zákaz zalomení nad konkrétními typy výčtů
+%}
+% nastavení odsazení pro výčty:
+%\setlist[itemize]		{leftmargin=2.5em}
+%\setlist[enumerate] 	{leftmargin=2.5em}
+\setlist[itemize]		{leftmargin=3em}		% 2\parindent
+\setlist[enumerate]		{leftmargin=3em}		% 2\parindent
+%\setlist[description]	{leftmargin=3em,labelsep=.333em plus .111em}		% 2\parindent, obyč. mezera
+\setlist[description]	{leftmargin=3em,labelsep=\wordsep}		% 2\parindent, velikost obyč. mezery (\wordsep definuje balík titlesec)
+\setlist[enumerate,2]	{label={\theenumii)}}	% jen jedna závorka zprava: a), b)
+%\setlist[enumerate,2]	{label={\alph*)}}	% jen jedna závorka zprava: a), b)
+% symboly pro úrovně nečíslovaných seznmů: • ◦ – *
+%\setlist[itemize,1] 	{label={$\bullet$}}
+%\setlist[itemize,2] 	{label={$\circ$}}
+\setlist[itemize,1] 	{label={\textBullet}}
+\setlist[itemize,2] 	{label={\textOpenBullet}}
+%\setlist[itemize,3] 	{label={\textasteriskcentered}}	
+%\setlist[itemize,3] 	{label={$\triangleright$}}	
+\setlist[itemize,3] 	{label={\textSquare}}	
+%\setlist[itemize,4] 	{label={--}}	
+\setlist[itemize,4] 	{label={\textOpenSquare}}	
+
+% Pokud bude uživatel chtít zakázat zalomení stránky mezi položkami výčtu,
+% stačí použít vertikální penaltu před \item, tj. např.: \par\nobreak\item
+% Proto je potřeba předefinovat \item:
+\let\latex@item\item
+\newcount\saved@itempenalty				% pro uložení \itempenalty ve výčtu
+\def\item{\if@newlist\saved@itempenalty\@itempenalty\else	% uloží \@itempenalty
+	\@itempenalty\saved@itempenalty\fi						% obnoví \@itempenalty
+	\ifvmode \ifnum\lastpenalty=\z@\else \@itempenalty\lastpenalty \fi\fi
+	\latex@item}
+% TODO: Možné vylepšení: automatická penalta za první a před poslední položkou
+
+% VÝČTY: REDEFINICE PUNTÍKU a KOLEČKA, DEFINICE ČTVEREČKU
+%
+% redefinice puntíku a kolečka bez velké mezery kolem,
+% kterou tam má znak v Latin Modern – \usepackage{lmodern};
+% různé velikosti písma mají puntík bohůmžel jinak vysoko,
+% posunutí na osu danou závorkami: dle výšky boxu s puntíkem se odvodí posun;
+% výpočet je pouze aproximace skutečnosti
+\let\latextextbullet\textbullet
+\let\latextextopenbullet\textopenbullet
+\def\get@vShift{\setbox\z@\hbox{\latextextbullet}\dimen@\ht\z@
+	\ifdim\dimen@<4pt \dimen@=0.008\dimen@ \advance\dimen@.16pt\else	% ≤10pt
+	\dimen@=-.15\dimen@ \advance\dimen@0.9pt\fi}	% >10pt
+% Předefinovávat snadno nelze, protože symbol je definovaný tak,
+% že v makru používá svůj název s prefixem jako příkaz,
+% a ten by se musel předefinovat taky. Proto je definován nový symbol.
+\DeclareRobustCommand\textBullet{\leavevmode\get@vShift
+	\raise\dimen@\hbox to .3em{\hss\latextextbullet\hss}}
+\DeclareRobustCommand\textOpenBullet{\leavevmode\get@vShift
+	\raise\dimen@\hbox to .3em{\hss\latextextopenbullet\hss}}
+
+% čtverečky (plný a prázdný) pro symboly do výčtů
+\def\textsquaresize{.268em }
+\def\mathsquaresize{.38em }
+
+% TODO: makro \mathSquare
+% TODO: \mathpalette?
+% zatím se \textSquare chová v mat. režimu jako čtvereček velikost \bullet
+
+% matematická osa je ve výšce \fontdimen22\font
+% wd = \wd\z@, ht = \ht\z@ = osa + wd/2, dp = \dp\z@ = −osa + wd/2
+% rulewd (tlošťka čáry) = \dimen@, margin = \dimen@ii
+\def\get@squaredimens{\ifmmode\dimen@\mathsquaresize
+	% výška matematické osy v metrice fontu
+	\dimen@ii\fontdimen22\textfont2\else \dimen@\textsquaresize
+	% osu v textovém režimu změříme dle závorky
+	% (pro Latin Modern by mělo být stejné jako v matematice, cca 0,58 ex)
+	\setbox\z@\hbox{()}\dimen@ii\ht\z@ \advance\dimen@ii\dp\z@
+	\divide\dimen@ii\tw@ \dimen@ii-\dimen@ii \advance\dimen@ii\ht\z@ \fi
+	\setbox\z@\null
+	\wd\z@\dimen@ \divide\dimen@\tw@ \advance\dimen@\dimen@ii \ht\z@\dimen@
+	\advance\dimen@-2\dimen@ii \dp\z@\dimen@ \dimen@.038em % tloušťka tahu
+	\ifmmode \setbox\@ne\hbox{\m@th$\bullet$}\dimen@ii\wd\@ne\else \dimen@ii=.3em\fi
+	\advance\dimen@ii-\wd\z@ \divide\dimen@ii\tw@}
+\DeclareRobustCommand\textSquare{\get@squaredimens\leavevmode\kern\dimen@ii%
+	\vrule width\wd\z@ height\ht\z@ depth\dp\z@\kern\dimen@ii}
+\DeclareRobustCommand\textOpenSquare{\get@squaredimens\leavevmode\kern\dimen@ii%
+	\setbox\@ne\vbox to\wd\z@{\hrule height\dimen@\kern-\dimen@\hbox to\wd\z@{%
+	\vrule width\dimen@ height\wd\z@\hss\vrule width\dimen@}\kern-\dimen@\hrule height\dimen@}%
+	\ht\@ne\ht\z@\dp\@ne\dp\z@\box\@ne\kern\dimen@ii}
+\DeclareRobustCommand\textsquare{\ifmmode\setbox\z@\hbox{\m@th$\bullet$}%
+	\hbox to\wd\z@{\hss\m@th$\textSquare$\hss}\else\get@vShift\leavevmode
+	\raise-\dimen@\hbox to\wd\z@{\hss\textSquare\hss}\fi}
+\DeclareRobustCommand\textopensquare{\ifmmode\setbox\z@\hbox{\m@th$\circ$}%
+	\hbox to\wd\z@{\hss\m@th$\textOpenSquare$\hss}\else\get@vShift\leavevmode
+	\raise-\dimen@\hbox to\wd\z@{\hss\textOpenSquare\hss}\fi}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% UVOZOVKY, SPOJOVNÍK
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% next char %%%%%% \ifnextchar<znak>{true}{false} bez přeskakování mezer:
+\def\@ifNextChar#1#2#3{\let\reserved@d=#1\def\reserved@a{#2}\def\reserved@b{#3}%
+	\futurelet\@let@token\@ifNCh}
+\def\@ifNCh{\ifx\@let@token\reserved@d \let\reserved@c\reserved@a
+	\else \let\reserved@c\reserved@b \fi \reserved@c}
+
+\useshorthands*{"}						% zapne zkrácené zadávání některých symbolů
+% zkratky pro uvozovky: "` "' "> "<		\clqq \crqq \frqq \flqq
+% opakující se rozdělovník: "=			propan"-butan
+%\splithyphens							% aktivuje znak -, aby se automaticky opakoval i bez "-
+%\defineshorthand{"=}{\babelhyphen*{repeat}}	% neumožní dělení jinde než ve švu
+%\defineshorthand{"-}{\babelhyphen{nobreak}}	% zkratka pro nezlomitelný spojovník
+% zkratka pro nezlomitelný spojovník a nezlomitelné pomlčky
+\defineshorthand{"-}{\@ifNextChar-%
+	{\afterassignment\test@mdash\let\reserved@d=}{\babelhyphen{nobreak}}}
+\def\test@mdash{\@ifNextChar-{\mbox{---}\@gobble}{\mbox{--}}}
+
+
+\usepackage[autostyle]{csquotes}		% context-sensitive quotes: automatické vnořené uvozovky
+% \DeclareQuoteStyle[style]{lang}[outer-init][inner-init]
+%	{outer-open}[outer-middle-mark]{outer-close}[kern]
+%	{inner-open}[inner-middle-mark]{inner-close}
+% middle-mark je použito na začátku každého odstavce pro víceodstavcové citace
+% kern je vkládán mezi vnější a vnitřní uvozovky, pokud font neobsahuje kerningový pár
+\DeclareQuoteStyle[quotes]{czech}
+	{\quotedblbase}{\textquotedblleft}[0.05em]	 	% vnější uvozovky	„“
+	{\quotesinglbase}{\fixligatures\textquoteleft}	% vnitřní uvozovky	‚‘
+\DeclareQuoteStyle[guillemets]{czech}
+	{\guillemotright}{\guillemotleft}[0.025em]		% vnější uvozovky	»«
+	{\guilsinglright}{\guilsinglleft}				% vnitřní uvozovky	›‹
+\DeclareQuoteStyle[quoteguillemet]{czech}
+	{\quotedblbase}{\textquotedblleft}[0.025em]	 	% vnější uvozovky	„“
+	{\guillemotright}{\guillemotleft}				% vnitřní uvozovky	»«
+\DeclareQuoteStyle[guillemetquote]{czech}
+	{\guillemotright}{\guillemotleft}[0.025em]	 	% vnější uvozovky	»«
+	{\quotedblbase}{\textquotedblleft}				% vnitřní uvozovky	„“
+% výchozí uvozovky pro češtinu jsou „dvojité a ‚jednoduché‘ uvozovky“
+% \DeclareQuoteAlias[výchozí varianta]{styl (definován výše)}{alias (jazyk babel)}
+\DeclareQuoteAlias[quotes]{czech}{czech}
+
+% redefinice uvozovek babelu na csquotes
+\let\babeluv\uv	\let\uv\enquote			% výchozí chování \uv podle csquotes
+\defineshorthand{"`}{\openautoquote}	% zkratky pro uvozovky podle csquotes
+\defineshorthand{"'}{\closeautoquote}
+
+% redefinice odkazu na zdroj bez závorek
+% (vkládá se pomocí volitelného argumentu prostředí displayquote)
+\renewcommand*{\mkcitation}[1]{\unspace~#1}
+% \begin{displayquote}[\cite{cit:id}]
+% text citace
+% \end{displayquote}
+
+% nové prostředí pro blokovou citaci v uvozovkách
+% volitelný argument (zdroj) v definici není, ale lze uvést: převezme jej displayquote
+\newenvironment{displayautoquote}% l = literal (doslova) ⇒ v uvozovkách
+	{\begingroup
+	\renewcommand{\mkbegdispquote}[2]{\leavevmode\llap{\textooquote}\initoquote}%\itshape
+	\renewcommand{\mkenddispquote}[2]{##1\textcoquote##2}%
+	\begin{displayquote}}%
+	{\end{displayquote}\endgroup}
+% pro citaci v jiném jazyce (uvozovky kolem citace budou dle vnějšího jazyka)
+\newenvironment{foreigndisplayautoquote}[1]% jazyk je povinný argument
+	{\begingroup
+	\renewcommand{\mkbegdispquote}[2]{\leavevmode\llap{\textooquote}\initoquote\begin{otherlanguage}{#1}}%\itshape
+	\renewcommand{\mkenddispquote}[2]{##1\end{otherlanguage}\textcoquote##2}%
+	\begin{displayquote}}
+	{\end{displayquote}\endgroup}
+% použití:
+% \begin{displayautoquote}[\cite{cit:id}]
+% text citace
+% \end{displayautoquote}
+% \begin{foreigndisplayautoquote}{english}[\cite{cit:id}]
+% text citace
+% \end{foreigndisplayautoquote}
+
+% kompatibilita s předchozí verzí:
+\let\displaylquote\displayautoquote \let\enddisplaylquote\enddisplayautoquote
+\let\foreigndisplaylquote\foreigndisplayautoquote \let\endforeigndisplaylquote\endforeigndisplayautoquote
+
+% bloková citace kurzivou
+%\AtBeginEnvironment{quote}{\itshape}
+%\AtBeginEnvironment{blockquote}{\itshape}
+%\AtBeginEnvironment{displayquote}{\itshape}
+%\AtBeginEnvironment{foreigndisplayquote}{\itshape}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% MATEMATICKÉ ZMĚNY A DOPLŇKY
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def\tg{\mathop{\mathrm{tg}}}							% \tg navíc k \tan
+\def\cotg{\mathop{\mathrm{cotg}}}						% \cotg navíc k \cotan
+
+% umožní TeXu korektně určit minus za | jako unární
+\newcommand\abs[1]{\mathopen|#1\mathclose|}
+\newcommand\Abs[1]{\left|#1\right|}
+
+% pomocné makro pro větvení dle následujícího tokenu
+\newif\ifswitchNCh
+% save next token into \switchToken
+\long\def\switchNextChar#1{\def\reserved@s:{#1}\let\doCase\@empty\switchNChfalse \futurelet\switchToken\@switchNCh}
+\def\@switchNCh{\ifx\switchToken\@sptoken \let\reserved@S\@spSwitchNCh
+	\else \let\reserved@S\reserved@s\fi \reserved@S:}
+\futurelet\@sptoken{ }% vkládá space token do \@sptoken
+\def\@spSwitchNCh: {\futurelet\switchToken\@switchNCh}
+% test saved token \switchToken against #1
+\def\swCase#1{\ifx#1\switchToken \switchNChtrue \fi}
+\def\letCase#1{\ifswitchNCh \def\doCase{#1}\switchNChfalse \fi}
+\def\ifCase#1#2{\swCase{#1}\letCase{#2}}
+
+% úprava automatických mezer po velké závorce
+% kern mezi ( nebo ⟨ a -
+\let\texOrigLeft=\left
+\def\leftKernMinus{\switchNextChar\@testMinus}
+\def\@testMinus#1{\texOrigLeft#1\swCase(\swCase\langle
+	\letCase{\@ifnextchar-{\mkern-3mu }\@empty}\doCase}
+\let\left\leftKernMinus
+
+% kern mezi ) a exponentem
+\let\texOrigRight=\right
+\def\rightKernExp{\switchNextChar\@testExponent}
+\def\@testExponent#1{\global\let\@swTok\switchToken
+	\texOrigRight#1 \let\switchToken\@swTok \@ifnextchar^{%
+		\ifCase	 )		{\@setExpKern{-4mu}}%
+		\ifCase	\rangle	{\@setExpKern{-3mu}}%
+		\ifCase	\}		{\@setExpKern{-1mu}}%
+		\ifCase	 ]		{\@setExpKern{-1mu}}%
+		\doCase
+	}\@empty}
+\def\@setExpKern#1#2#3{^{\mkern#1 #3}}% #1 = mudimen, #2 = ^, #3 = exponent
+\let\right\rightKernExp
+
+%\let\texOrigRight=\right
+%\def\rightExp{\@ifnextchar)\@testExponent\texOrigRight}
+%\def\@testExponent#1{\texOrigRight#1\@ifnextchar^\@expKern\@empty}% #1 = )
+%\def\@expKern#1#2{^{\mkern-4mu #2}}% #1 = ^
+%\let\right\rightExp
+
+%\let\texOrigLeft=\left
+%\def\leftKernMinus{\@ifnextchar(\@testMinus\@testLangle}
+%\def\@testLangle{\@ifnextchar\langle\@testMinus\texOrigLeft}
+%\def\@testMinus#1{\texOrigLeft#1\@ifnextchar-{\mkern-3mu }\@empty}% #1 = (
+%\let\left\leftKernMinus
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% XMP data
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ifcstyp@writexmp
+
+\def\sep{\sep}
+\def\@commaToSep#1{\let\@tempa\@empty \forcsvlist{\ifx\@tempa\@empty \else
+	\expandafter\appto\expandafter\@tempa\expandafter{\sep}\fi \appto\@tempa}{#1}%
+	\edef\@tempa{\expandafter\detokenize\expandafter{\@tempa}}}
+%\def\commaToSep#1#2{\expandafter\@commaToSep\expandafter{#2}\let#1\@tempa}
+\def\writeSep#1#2{\@ifnextchar\bgroup{\@writeSep@{#1}{#2}}{\@writeSep@@{#1}{#2}}}
+\def\@writeSep@#1#2#3{\@commaToSep{#3}\@writeSep{#1}{#2}}
+\def\@writeSep@@#1#2#3{\expandafter\@commaToSep\expandafter{#3}\@writeSep{#1}{#2}}
+\def\@writeSep#1#2{\immediate\write#1{\string#2{\@tempa}}}
+
+% Fix missing author and keywords in PDF /info
+\def\@title{}% no \@latex@error FIXME: test?
+\def\@author{}% no \@latex@warning
+\def\@keywords{}% no \@latex@warning
+\AtBeginDocument{
+	% set PDF info from XMP data
+	%\pdfx@topdfstring\pdfx@Author\xmp@Author
+	%\pdfx@topdfstring\pdfx@Keywords\xmp@Keywords
+	\newwrite\xmp@data
+	\immediate\openout\xmp@data=\jobname.xmpdata
+		% \sep should be used for separating keywords or multiple authors
+		\def\sep{\sep}		% default
+		% \def\sep{, }		% nonstandard
+		\writeSep\xmp@data\Title\@title
+		\writeSep\xmp@data\Author\@author
+		\writeSep\xmp@data\Keywords\@keywords
+		\writeSep\xmp@data\Language{cs}
+	\immediate\closeout\xmp@data
+	\cstyp@info{XMP data written}%
+	\let\do@write\undefined
+	\let\xmp@data\undefined
+	\global\advance\count17\m@ne
+}
+\fi
+
+\def\keywords{\def\@keywords}
+
+% BibLaTeX s opravami
+\ifx\cstyp@biblatex\relax \else
+	\usepackage{biblatex-fixes}
+	\let\familynameformat\textsc	% kapitálky místo verzálek
+\fi
+
+% vim:sw=4:ts=4
+% EOF

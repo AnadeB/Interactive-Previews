@@ -1,0 +1,518 @@
+% VYSOKOŠKOLSKÁ KVALIFIKAČNÍ PRÁCE
+% autor: 
+% název: 
+% kódování zdroje: UTF-8
+
+\documentclass[a4paper,12pt]{article}
+
+% test angličtiny \PassOptionsToPackage{main=english}{babel}
+
+% globální nastavení pro text VŠKP UPa
+\usepackage[
+    % zakomentovat obojí biblatex= pro manuálně tvořený seznam literatury
+	%biblatex=num,		% používat biblatex, číslované reference
+	biblatex=harvard,	% harvardský styl citací v BibLaTeXu
+	%pdfa,				% použít \usepackage[a-1b]{pdfx} pro PDF/A
+	writexmp,			% pro PDF/A: zapsat soubor XMP s metadaty dle \author, \title, \keywordsCZ
+	%otf,				% fonty Open Type
+]{vskpupa}				% globální nastavení pro text VŠKP UPa
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ÚDAJE O PRÁCI, budou uvedeny v PDF /Info
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\author{Tymofii Voronkin}				% autor
+\title{Rozšíření webového prohlížeče pro interaktivní náhledy souborů}			% název
+%\thesisType{Diplomová práce}			% typ práce
+\thesisType{Bakalářská práce}			% typ práce
+\thesisYear{2026}						% rok odevzdání
+\university{Univerzita Pardubice}		% univerzita
+\faculty{% odkomentovat správný název fakulty
+% Fakulta filozofická
+% Dopravní fakulta Jana Pernera
+% Fakulta ekonomicko-správní
+% Fakulta chemicko-technologická
+Fakulta elektrotechniky a informatiky
+% Fakulta restaurování
+% Fakulta zdravotnických studií
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% NASTAVENÍ BIBLIOGRAFIE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ifVSKPusesBibLaTeX
+\ExecuteBibliographyOptions{
+% nezle měnit zde: backend, style (bibstyle, citestyle)
+	%%sorting=none,						% none → podle pořadí odkazů na zdroje
+	%%sortlocale=cs_CZ,					% řazení dle abecedy v tomto jazyce
+	%%bibencoding=auto,					% auto = (jako .tex), UTF8
+	%autolang=other, 					% none|other – other = nastaví jazyk pro sazbu zdroje dle zdroje (podle langid)
+	%maxnames=9, 						% maximální počet jmen
+	%minnames=3, 						% je-li autorů více než maxnames, použije se jen minnames
+	%maxcitenames=1,						% maximální počet jmen v citaci (harvardský styl)
+	%mincitenames=1,
+	%datezeros=false,					% nuly (pouze formáty short a terse)
+	%date=short,
+	%%date=comp, 						% iso = yyyy-mm-dd, comp: plné (dle jazyka)
+	%%alldates=comp, 					% date, origdate, eventdate, urldate
+	%%urldate=edtf,						% (BibLaTeX ≥ 3.10: iso) formát pro datum citace
+	%dateabbrev=false,					% zkrácený formát (pouze formáty long a comp)
+	%datecirca=true, 			    	% \datecircaprint před hrubým datem?
+	%dateuncertain=true, 				% \(end)dateuncertainprint za nejistým datem?
+	%% pokud je v souboru bib např.: date = 1790?, date = 1700~ %(cca)
+	%shortnumeration=true,				% pro časopisy: true → svazek/ročník sázet tučně, číslo do závorky, false → slovně
+	%thesisinfoinnotes=false,			% false → typ VŠKP práce, instituce a vedoucí PŘED dostupnost (odkaz), true → jako poznámku v citaci (na konec)
+	%block=ragged,						% \raggedright pro bibliografii
+	%giveninits=true,					% pouze iniciály jmen
+	%uniquename=init,					% unikátní jméno počítá jen s iniciálami
+	%abbreviate=true,					% zkratky
+}
+
+% změna textů pro českou verzi
+\DefineBibliographyStrings{czech}{%
+	%urlfrom = {dostupné z},
+	urlfrom = {URL\addcolon},
+	pages = {str\addabbrvspace},
+}
+
+% v seznamu místo obyčejného číslování (číslo s tečkou) použít hranaté závorky: 
+\DeclareFieldFormat{labelnumberwidth}{\mkbibbrackets{#1}}
+
+% první jméno FAMILY, Given a další jména Given FAMILY:
+\DeclareNameAlias{author}{family-given/given-family}
+\DeclareNameAlias{editor}{family-given/given-family}
+
+%\DeclareNameAlias{translator}{given-family}
+%\DeclareNameAlias{byeditor}{given-family}
+%\DeclareNameAlias{bytranslator}{given-family}
+
+% BibLaTeX: změna oddělovače jmen: výchozí je středník (;), změněno ve stylu na:
+%	čárka (harvardský styl) v odkazech (cicacích)
+%	v seznamu literatury pak středník + spojka „a“
+
+% globálně (zejména odkazy):
+%\renewcommand\multinamedelim{\addsemicolon\space}			% středník
+%\renewcommand\multinamedelim{\addcomma\space}				% čárka
+
+% pouze v seznamu literatury:
+\AtBeginBibliography{%
+	% změna oddělovače jmen: výchozí je středník (;):
+	%\renewcommand\multinamedelim{\addsemicolon\space}		% středník
+	%\renewcommand\multinamedelim{\addcomma\space}%			% čárka
+	\renewcommand\multinamedelim{\addnbspace--\addspace}%	% pomlčka
+	\renewcommand\finalnamedelim{\addspace\bibstring{and}\addnbspace}%	% mezi předposlední a poslední jméno
+}
+
+% odkazy na více zdrojů: penalta za zlom mezi jednotlivými čísly v závorce
+%\setcounter{multicitedelimpenalty}{1000}
+%\setcounter{multicitefinaldelimpenalty}{10000}
+
+% zákaz dělení slov v seznamu literatury
+%\appto\bibsetup{\hyphenpenalty=10000 }
+
+% zmenšit font pro seznam zdrojů
+%\renewcommand*{\bibfont}{\footnotesize}
+
+\addbibresource{references.bib}			% seznam zdrojů
+
+\fi	% používání BibLaTeXu
+
+% DODATEČNÁ NASTAVENÍ
+
+% zalamování URL:
+% \resetURLchars						% vypne všechny zalamovací znaky (z url.sty)
+% \setURLbreaks*	{/{2}}	{&}			% přednostně za / (od 3. výskytu) a před &
+% \setURLbreaks	{:{1}}	{?+#}		% za : (od 2.výskytu) a před ?, + a #
+
+\renewcommand\arraystretch{1.1}		% rozestup linek tabulek
+
+\definecolor{red}{cmyk}{0,1,1,.1}	% redefinice červené barvy (tmavěji)
+\definecolor{green}{cmyk}{1,0,1,.1}	% redefinice zelené barvy (tmavěji)
+
+% často je vhodné výčty nezarovnávat na pravý okraj
+%\setlist*[itemize,enumerate,description]{
+%	%before=\raggedright,				% nezarovnávat pravý okraj ve výčtech
+%}
+
+%\setcounter{secnumdepth}{3} 			% číslovat titulky pouze do této úrovně
+%\setcounter{tocdepth}{3}				% obsah generovat až do této úrovně
+
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% NASTAVENÍ HYPERTEXTOVÝCH ODKAZŮ V PDF
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% a) výchozí nastavení: rámečky kolem textu, které se netisknou
+
+% b) bez rámečků, odkomentovat:
+%\hypersetup{hidelinks}
+
+% c) bez rámečků, barevně, odkomentovat:
+\hypersetup{
+	colorlinks=true,					% zapnout barvy, vypnout rámečky
+%	% nastavit barvy samostatně:
+%	linkcolor=red,						% interní odkazy (křížové reference)
+%	anchorcolor=black,					% text kotvy
+%	citecolor=green,					% text odkazu na citaci
+%	filecolor=cyan,						% URL pro lokální soubory
+%	urlcolor=magenta,					% URL
+%	% nebo nastavit všechny barvy stejně:
+%	%allcolors=blue, 					% všechny odkazy (netýká se rámečků)
+}
+
+% další vlastní nastavení uživatele
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ÚDAJE O PRÁCI
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% cesty k obrázkům naskenovaného zadání
+% jména souborů budou tvořena jako \prefixZadani #\suffixZadani
+% místo # se doplní pořadové číslo obrázku (začíná se jedničkou)
+\def\prefixZadani{img/zadani}			% cesta a začátek jména, bude doplněno číslo strany
+\def\suffixZadani{.jpg}					% doplní se ke každému jménu souboru zadání
+
+\def\datumOdevzdaniPrace{17.\,1.\,2017}	% datum pod pod prohlášením
+
+% nutné pouze pro vzor pro vkládání výplňkových textů
+\usepackage{lipsum}						% \lipsum[číslo] vloží jeden odstavec Lorem ipsum…
+
+% PROHLÁŠENÍ O VYUŽITÍ UMĚLÉ INTELIGENCE (Úroveň 2)
+\long\def\textProhlaseniAI{%
+	Při přípravě této práce byly využity nástroje umělé inteligence (zejména velké jazykové modely) v~souladu s~pravidly Univerzity Pardubice (Úroveň 2). Nástroje AI byly použity výhradně k~dílčím úkonům:
+	\begin{itemize}
+		\item Asistence při návrhu softwarové architektury,
+		\item Generování, úprava a kontrola částí zdrojového kódu (rozšíření prohlížeče),
+		\item Gramatická korektura a stylistická úprava textu.
+	\end{itemize}
+	Za konečný obsah a výsledky práce nesu plnou zodpovědnost.
+}
+
+% PODĚKOVÁNÍ
+\long\def\textPodekovani{%
+	Rád bych poděkoval vedoucímu své bakalářské práce, Mgr. Tomáši Hudcovi, za odborné vedení, cenné rady a čas, který mi věnoval při konzultacích. Dále děkuji své rodině a přátelům za podporu během celého studia.
+}
+% ANOTACE
+\long\def\anotace{%
+	Tato bakalářská práce se zabývá návrhem a implementací rozšíření pro webové prohlížeče (Google Chrome a Mozilla Firefox), které zvyšuje efektivitu prohlížení webových stránek. Rozšíření umožňuje okamžité zobrazení náhledů obrázků a PDF dokumentů pouhým najetím kurzoru myši na příslušný odkaz, čímž eliminuje nutnost stahování souborů a otevírání nových oken. Teoretická část popisuje architekturu rozšíření (Manifest V3), asynchronní programování v jazyce JavaScript a práci s knihovnou PDF.js. Praktická část detailně analyzuje implementaci logiky rozšíření, tvorbu uživatelského rozhraní s podporou filtrování domén pomocí regulárních výrazů a následné testování na reálných webových stránkách.
+}
+% KLÍČOVÁ SLOVA
+\keywordsCZ{rozšíření prohlížeče, JavaScript, interaktivní náhledy, PDF.js, asynchronní programování, Manifest V3}
+
+% ENGLISH TITLE
+\def\titleEN{Web Browser Extension for Interactive File Previews}
+% ENGLISH ANNOTATION
+\long\def\annotation{%
+	This bachelor thesis deals with the design and implementation of a web browser extension (for Google Chrome and Mozilla Firefox) that increases the efficiency of web browsing. The extension allows for instant previews of images and PDF documents simply by hovering the mouse cursor over the relevant link, eliminating the need to download files or open new windows. The theoretical part describes the architecture of extensions (Manifest V3), asynchronous programming in JavaScript, and working with the PDF.js library. The practical part analyzes in detail the implementation of the extension's logic, the creation of a user interface with support for domain filtering using regular expressions, and subsequent testing on real websites.
+}
+% ENGLISH KEYWORDS
+\keywordsEN{browser extension, JavaScript, interactive previews, PDF.js, asynchronous programming, Manifest V3}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ZAČÁTEK DOKUMENTU
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ÚVODNÍ STRANY
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\titulniStrana							% titul
+
+\pagestyle{plain}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ZADÁNÍ
+
+% vybrat alternativu:
+% pokud je zadání vloženo pomocí obrázků:
+	% je třeba mít obrázky pojmenované dle vzoru \prefixZadani číslo \suffixZadani
+	% odkomentovat:
+	\generujZadani[2]					% parametr je počet stran, výchozí (neuvede-li se) je 2
+% pokud zadání nemá být součástí PDF, odkomentovat:
+	%\addtocounter{page}{2}				% započítá pouze počet stran (negeneruje žádné prázdné strany)
+	% alternativně:
+	%\vakatZadani[2]					% vygeneruje daný počet prázdných stran (vakátů)
+
+\generujProhlaseni[m]					% prohlášení, [m] pro mužský rod
+% \podekovaniDolu						% odkomentovat, pokud má být poděkování vespod stránky
+
+% VLOŽENÍ PROHLÁŠENÍ O VYUŽITÍ AI (vlastní úprava pod standardní prohlášení)
+\clearpage
+\vspace*{\fill}
+\noindent\textbf{Prohlášení o využití umělé inteligence}\\[1em]
+\textProhlaseniAI
+\vspace{2cm}
+
+\generujPodekovani						% poděkování
+\generujAnotaci							% anotace
+% \clearpage							% odkomentovat, má-li být anglická anotace na následující straně
+\generujAnnotation						% anotace anglicky
+\generujObsah							% obsah
+\generujSeznamObrazku					% seznam obrázků
+\generujSeznamTabulek					% seznam tabulek
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SEZNAM ZKRATEK
+
+\seznamZkratek							% titulek a řádek do obsahu
+
+\begin{description}[
+	font=\mdseries,						% zkratky netučně
+	leftmargin=6em,						% odsazení popisku
+	labelwidth=!,						% šířka pro pojem/zkratku se dopočítá z odsazení
+	before=\raggedright,				% nezarovnávat pravý okraj
+]
+%\item[zkratka]	Význam					% vzor pro zkratku
+\item[PDF]		Portable Document Format
+\item[Dlouhá zkratka] Popisek zkratky
+\end{description}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ÚVOD
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\clearpage\pagestyle{plain}				% zapne číslování stránek (sazba zápatí)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section*{Úvod}
+\label{sec:uvod}
+
+V současné digitální éře představuje webový prohlížeč nejdůležitější bránu k informacím. Denně uživatelé projdou desítky až stovky webových stránek, přičemž se neustále setkávají s obrovským množstvím hypertextových odkazů, obrázků a dokumentů. Tradiční způsob interakce s tímto obsahem obvykle vyžaduje aktivní kliknutí na odkaz a načtení nové stránky, nebo stažení souboru na lokální disk před jeho samotným zobrazením. Tento proces je nejen časově náročný, ale také narušuje plynulost práce (tzv. \textit{workflow}) a zbytečně plní úložiště uživatele staženými soubory, které byly potřeba jen pro rychlé nahlédnutí.
+
+S narůstajícím tempem konzumace obsahu roste i poptávka po efektivnějších způsobech procházení webu. Jedním z možných řešení tohoto problému jsou rozšíření pro webové prohlížeče (tzv. \textit{browser extensions}), která dokážou modifikovat chování webových stránek a přidávat nové funkce přímo do uživatelského rozhraní prohlížeče.
+
+Cílem této bakalářské práce je navrhnout, naimplementovat a otestovat právě takové softwarové řešení -- moderní rozšíření pro webové prohlížeče (zaměřené na platformy Google Chrome a Mozilla Firefox), které uživatelům umožní okamžité zobrazení interaktivních náhledů obrázků a dokumentů (zejména formátu PDF). Rozšíření funguje na principu aktivace při pouhém najetí kurzoru myši (událost \textit{hover}) nad vybraný webový element, čímž eliminuje nutnost klikání či otevírání nových panelů. 
+
+Tato práce je rozdělena na dvě hlavní části. V~teoretické části (viz kapitola~\ref{sec:teorie}) jsou detailně rozebrány mechanismy a principy nezbytné pro vývoj takového rozšíření. Čtenář je seznámen s architekturou rozšíření prohlížečů postavenou na specifikaci Manifest V3, technikami responzivního webového designu (s důrazem na práci s obrázky pomocí atributů \texttt{srcset} a \texttt{sizes}) a obsluhou asynchronních událostí v jazyce JavaScript. Důležitá pozornost je věnována také moderním přístupům získávání dat přes rozhraní Fetch API a využití \textit{Promises}. Na závěr teoretické části je provedena analýza a zhodnocení existujících konkurenčních řešení, což slouží jako východisko pro vlastní implementaci.
+
+Praktická část (viz kapitola~\ref{sec:praxe}) pak popisuje konkrétní realizaci navrženého rozšíření. Zabývá se softwarovou architekturou projektu, implementací logiky detekce odkazů a tvorbou uživatelského rozhraní, které mimo jiné nabízí možnost pokročilé konfigurace domén pomocí regulárních výrazů (systém \textit{whitelist/blacklist}). Významná podkapitola je věnována integraci knihovny PDF.js pro bezpečné a plynulé renderování PDF dokumentů přímo v prohlížeči. Práce je zakončena kapitolou shrnující testování rozšíření v reálných podmínkách na frekventovaných webových stránkách a zhodnocením dosažených výsledků.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% TEORETICKÁ ČÁST
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Teoretická část}
+\label{sec:teorie}
+
+V této části je teoreticky popsán mechanismus fungování webových rozšíření a použité technologie.
+
+\subsection{Mechanismus vytváření rozšíření pro prohlížeče}
+\label{subsec:teorie_rozsireni}
+
+Rozšíření prohlížeče (anglicky \textit{browser extension}) je malý softwarový modul, který přizpůsobuje zážitek z prohlížení webu. Rozšíření umožňují uživatelům přizpůsobit funkcionalitu a chování prohlížeče individuálním potřebám nebo preferencím~\cite{mdn_extensions}. Moderní rozšíření jsou budována pomocí standardních webových technologií, tedy jazyka HTML, kaskádových stylů (CSS) a jazyka JavaScript~\cite{flanagan2020}. Většina současných prohlížečů, včetně Google Chrome, Mozilla Firefox, Microsoft Edge a Safari, podporuje unifikovaný standard WebExtensions API, díky kterému lze napsat kód jednou a s minimálními úpravami jej zkompilovat pro různé platformy~\cite{frisbie2025}.
+
+Klíčovým stavebním kamenem každého rozšíření je konfigurační soubor s názvem \texttt{manifest.json}. Tento soubor definuje základní metadata aplikace (název, verzi, popis), požadovaná oprávnění (např. přístup k aktivní záložce přes \texttt{activeTab} nebo oprávnění k ukládání dat přes \texttt{storage}) a deklaruje komponenty, ze kterých se rozšíření skládá~\cite{chrome_api}. Aktuálním standardem, který prohlížeče vyžadují, je Manifest verze 3 (V3), který klade silný důraz na bezpečnost, soukromí uživatelů a výkon prohlížeče.
+
+Architektura běžného rozšíření se skládá z několika oddělených, avšak vzájemně komunikujících komponent~\cite{frisbie2025}:
+\begin{itemize}
+    \item \textbf{Content Scripts (Skripty obsahu):} Tyto JavaScriptové soubory jsou injektovány přímo do kontextu webových stránek, které uživatel navštíví. Mohou číst a upravovat Document Object Model (DOM) dané stránky, což je nezbytné pro detekci prvků (např. odkazů nebo obrázků) a modifikaci uživatelského rozhraní přímo na prohlíženém webu. Sdílejí DOM s originální stránkou, ale jejich spouštěcí prostředí a proměnné jsou izolované.
+    \item \textbf{Background Scripts (Skripty na pozadí):} V rámci Manifestu V3 jsou realizovány prostřednictvím tzv. \textit{Service Workerů}. Běží nezávisle na životním cyklu webové stránky, reagují na systémové události prohlížeče (jako je např. kliknutí na ikonu rozšíření, instalace aktualizace) a mohou udržovat dlouhodobý stav. Tyto skripty nemají přímý přístup k DOMu žádné stránky, a proto musí s Content Skripty komunikovat přes mechanismus zpráv (Message Passing)~\cite{chrome_api}.
+    \item \textbf{Uživatelské rozhraní (Popup a Options):} Většina rozšíření disponuje viditelným grafickým rozhraním. \textit{Popup} se zobrazí při kliknutí na ikonu rozšíření v liště prohlížeče a slouží k rychlým interakcím. Stránka \textit{Options} (Možnosti) poskytuje komplexnější prostředí pro konfiguraci rozšíření, přičemž uživatelská nastavení se obvykle ukládají pomocí \texttt{chrome.storage} API, odkud je následně mohou asynchronně načítat ostatní komponenty.
+\end{itemize}
+
+Omezení přístupových práv (\textit{Permissions}) představuje jeden z nejdůležitějších bezpečnostních konceptů při vývoji rozšíření. Na rozdíl od běžných webových stránek mohou rozšíření po udělení souhlasu přistupovat k citlivým funkcím operačního systému prohlížeče, např. obcházet pravidla CORS (Cross-Origin Resource Sharing) pro asynchronní požadavky na vzdálené servery~\cite{mdn_extensions}. Toto je klíčové pro aplikace stahující dodatečný obsah na pozadí, aniž by došlo k blokování požadavku ze strany bezpečnostních mechanismů samotné prohlížené stránky.
+
+\subsection{Principy responzivních webových stránek s obrázky}
+\label{subsec:teorie_responzivni}
+
+Při vývoji rozšíření pro zobrazování náhledů obrázků je klíčové porozumět moderním technikám vkládání grafiky do HTML dokumentu. V minulosti vývojáři spoléhali výhradně na atribut \texttt{src} u značky \texttt{<img>}. S~nástupem mobilních zařízení s~displeji o vysoké hustotě pixelů (např. Retina displeje) však vznikla potřeba responzivního načítání obrázků~\cite{frain2020}. 
+
+Moderní specifikace HTML~\cite{whatwg_html} zavedla dva klíčové atributy pro element \texttt{<img>}, a to \texttt{srcset} a \texttt{sizes}, případně samostatný element \texttt{<picture>}. Atribut \texttt{srcset} obsahuje čárkou oddělený seznam adres obrázků spolu s jejich šířkou (např. \texttt{image-800w.jpg 800w}). Atribut \texttt{sizes} pak definuje, jaký prostor bude obrázek na obrazovce zabírat v závislosti na tzv. \textit{media queries} (např. \texttt{(max-width: 600px) 100vw, 50vw}). Prohlížeč následně sám asynchronně vyhodnotí velikost okna, hustotu pixelů displeje a z~atributu \texttt{srcset} stáhne nejvhodnější obrázek~\cite{mdn_img}. 
+
+Z hlediska vývoje rozšíření, které má po najetí myší zobrazit zvětšený náhled obrázku, to znamená, že se nelze spolehnout pouze na hodnotu atributu \texttt{src}, protože ta může obsahovat pouze \textit{fallback} (záložní obrázek) v nízkém rozlišení. Namísto toho musí rozšiřující skript analyzovat atribut \texttt{srcset} nebo nadřazené značky \texttt{<source>} a extrahovat URL adresu obrázku s~nejvyšším možným rozlišením.
+
+\subsection{Využívání událostí v JavaScriptu}
+\label{subsec:teorie_udalosti}
+
+Aby rozšíření dokázalo reagovat na činnost uživatele -- konkrétně na pohyb myši nad vybranými elementy -- je nutné využít systém událostí (tzv. \textit{Event Handling}) v~rámci DOM modelu. JavaScript komunikuje s~HTML dokumentem asynchronně prostřednictvím posluchačů událostí (\texttt{EventListeners})~\cite{flanagan2020}. 
+
+Pro účely náhledového rozšíření jsou klíčové události související s pohybem kurzoru~\cite{mdn_mouse}:
+\begin{itemize}
+    \item \texttt{mouseover} a \texttt{mouseout}: Tyto události jsou vyvolány, když kurzor vstoupí do oblasti elementu, respektive ji opustí. Jejich specifikem je, že tzv. \textit{probublávají} (Event Bubbling) směrem nahoru strukturou DOMu k nadřazeným elementům. Toho lze využít pro efektivní zachytávání událostí na celém dokumentu (tzv. \textit{Event Delegation}) namísto vázání samostatného posluchače na každý jednotlivý obrázek či odkaz na stránce.
+    \item \texttt{mouseenter} a \texttt{mouseleave}: Podobné jako předchozí, avšak s tím rozdílem, že neprobublávají. K vyvolání dojde pouze tehdy, když kurzor myši fyzicky překročí hranici elementu, na kterém je posluchač navázán~\cite{mdn_mouse}.
+    \item \texttt{mousemove}: Vyvolává se opakovaně po celou dobu, kdy se kurzor pohybuje uvnitř elementu. V~kontextu rozšíření se využívá k~průběžnému přepočítávání pozice (\textit{X, Y} souřadnic) náhledového okna tak, aby plynule následovalo pohyb uživatelovy myši.
+\end{itemize}
+
+Vzhledem k četnosti spouštění události \texttt{mousemove} je při implementaci nezbytné dbát na výkon a využívat optimalizační techniky (např. odebírání posluchačů v~době nečinnosti nebo využívání funkcí typu \textit{debounce} a \textit{throttle}), aby nedocházelo k zamrzání uživatelského rozhraní prohlížeče~\cite{flanagan2020}.
+
+\subsection{JavaScriptové Fetch API}
+\label{subsec:teorie_fetch}
+
+Pro načtení obsahu cílového odkazu (např. stažení PDF souboru) před jeho zobrazením v náhledovém okně slouží asynchronní HTTP požadavky. V minulosti byl za tímto účelem využíván objekt \texttt{XMLHttpRequest} (AJAX). Moderní vývoj však zcela přechází na rozhraní \textbf{Fetch API}, které poskytuje robustnější, flexibilnější a logičtější způsob pro získávání síťových zdrojů~\cite{flanagan2020}.
+
+Globální metoda \texttt{fetch()} iniciuje proces stahování zdroje ze sítě a na rozdíl od starších řešení vrací rovnou objekt typu \texttt{Promise} (slib), čímž elegantně řeší problémy spojené s vnořováním asynchronních \textit{callback} funkcí. Použití Fetch API v~kombinaci s \textit{Service Workery} rozšíření umožňuje elegantně stahovat bloky dat (např. formou datových proudů -- \textit{Streams}) i z domén, které by za normálních okolností blokovala politika stejného původu (Same-Origin Policy), a tato data následně dynamicky injectovat do prohlížené webové stránky formou HTML či Canvas elementů.
+
+\subsection{Používání Promises a asynchronní programování}
+\label{subsec:teorie_promises}
+
+Běhové prostředí jazyka JavaScript je ve své podstatě jednovláknové (\textit{single-threaded}). Jakákoliv zdlouhavá operace (např. stahování velkého PDF dokumentu) by v synchronním režimu zablokovala hlavní vlákno a způsobila zamrznutí celého uživatelského rozhraní prohlížeče. K~řešení tohoto problému slouží asynchronní programování~\cite{flanagan2020}.
+
+Základním kamenem moderní asynchronní logiky v JavaScriptu je objekt \texttt{Promise} (česky příslib nebo slib). \texttt{Promise} reprezentuje hodnotu, která v~daném okamžiku ještě nemusí existovat, ale bude dostupná někdy v budoucnosti~\cite{mdn_promises}. Tento objekt se může nacházet ve třech stavech:
+\begin{itemize}
+    \item \textbf{Pending (čekající):} Výchozí stav, asynchronní operace ještě nebyla dokončena.
+    \item \textbf{Fulfilled (splněný):} Operace byla úspěšně dokončena a \texttt{Promise} obsahuje výslednou hodnotu.
+    \item \textbf{Rejected (zamítnutý):} Operace selhala (např. chyba sítě, soubor nenalezen) a \texttt{Promise} obsahuje důvod selhání (objekt chyby).
+\end{itemize}
+
+I když API samotných \textit{Promises} (metody \texttt{.then()} a \texttt{.catch()}) výrazně zlepšilo čitelnost kódu oproti starším metodám, novější specifikace ECMAScript představily syntaktický cukr v podobě klíčových slov \texttt{async} a \texttt{await}. Tato syntaxe umožňuje psát asynchronní kód tak, aby vypadal a choval se jako klasický kód synchronní, což zásadně snižuje složitost logiky při vývoji komplexních rozšíření.
+
+\subsection{Přehled existujících rozšíření pro náhledy a jejich hodnocení}
+\label{subsec:teorie_existujici}
+
+Koncept interaktivních náhledů pomocí najetí myší (hover) není v prostředí webových prohlížečů novinkou. Existuje několik zaběhnutých řešení, mezi nejznámější patří rozšíření \textit{Imagus} a \textit{Hover Zoom+}. Obě tato řešení však trpí určitými nedostatky, které odůvodňují vývoj vlastního, moderního nástroje.
+
+Rozšíření \textbf{Imagus} je dlouhodobě populární nástroj, avšak jeho vývoj v posledních letech ustrnul. Kódová základna je starší a rozšíření není plně optimalizováno pro moderní specifikaci Manifest V3, což může v budoucnu vést k jeho nefunkčnosti. Rozšíření \textbf{Hover Zoom+} (dříve pouze Hover Zoom) mělo v minulosti vážné bezpečnostní problémy spojené se sledováním uživatelů a vkládáním škodlivého kódu (spyware/malware), což vedlo k narušení důvěry komunity a dočasnému odstranění z oficiálního obchodu s doplňky. 
+
+Zásadním nedostatkem naprosté většiny současných rozšíření je navíc podpora složitějších dokumentových formátů, zejména PDF. Většina z nich se omezuje čistě na bitmapovou grafiku (JPEG, PNG, GIF) či krátká videa (MP4, WebM). Implementace vlastního rozšíření s integrovanou knihovnou \textit{PDF.js} tak přináší signifikantní přidanou hodnotu, neboť umožňuje rychlý a bezpečný náhled vícestránkových textových dokumentů bez nutnosti stahovat je lokálně na disk.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PRAKTICKÁ ČÁST
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Praktická část}
+\label{sec:praxe}
+
+V praktické části je popsán proces návrhu, implementace a následného testování vytvořeného rozšíření.
+
+\subsection{Návrh a implementace rozšíření}
+\label{subsec:praxe_navrh}
+
+Architektura vyvíjeného rozšíření, nazvaného \textit{Interactive Previews}, je navržena modulárně a striktně odděluje jednotlivé logické celky. Jádro projektu je definováno v~souboru \texttt{manifest.json} (verze 3), který deklaruje potřebná práva, primárně \texttt{activeTab} pro přístup k aktuální stránce a \texttt{storage} pro ukládání uživatelského nastavení.
+
+Kódová základna je strukturována do několika klíčových adresářů:
+\begin{itemize}
+    \item \texttt{src/content/} obsahuje skripty injektované do webových stránek (\texttt{content.js}, \texttt{preview-image.js}, \texttt{preview-pdf.js} a \texttt{info-bar.js}). Tyto skripty primárně naslouchají události \texttt{mouseover} na odkazech a obrázcích. Po uplynutí definovaného zpoždění (tzv. \textit{hover delay}) se asynchronně vytvoří a zobrazí plovoucí kontejner s~náhledem.
+    \item \texttt{src/background/} zajišťuje běh na pozadí pomocí Service Workeru. Tento modul slouží především jako proxy pro HTTP požadavky (Fetch), čímž řeší restrikce CORS při stahování vzdálených PDF souborů do náhledového okna.
+    \item \texttt{src/common/} sdružuje pomocné funkce a konstanty využívané napříč celým rozšířením.
+\end{itemize}
+
+Vykreslovací logika počítá i s optimalizací výkonu. Zobrazený náhledový element (tzv. informační panel neboli \textit{Info Bar}) poskytuje uživateli základní metadata o~souboru a ovládací prvky, aniž by blokoval překreslování původní webové stránky. Pokud uživatel myší opustí oblast odkazu či náhledu (událost \texttt{mouseleave}), element se okamžitě bezpečně odstraní z DOMu, čímž se uvolní alokovaná operační paměť.
+
+\subsection{Uživatelské rozhraní}
+\label{subsec:praxe_ui}
+
+Z pohledu uživatele se rozšíření skládá ze dvou grafických rozhraní: z~vyskakovacího okna (Popup) a stránky s podrobným nastavením (Options). Grafika je navržena v souladu s~moderními designovými trendy s důrazem na čistotu a srozumitelnost.
+
+Vyskakovací okno (\texttt{src/popup/}) se zobrazí po kliknutí na ikonu rozšíření v horní liště prohlížeče. Slouží jako rychlý přepínač umožňující okamžité zapnutí či vypnutí funkcionality na právě prohlíženém webu.
+
+Stránka s nastavením (\texttt{src/options/}) nabízí pokročilou konfiguraci. Stěžejní funkcí je možnost detailní správy chování na specifických doménách prostřednictvím modulu pro filtrování. Uživatel si může vybrat ze tří režimů: \textit{Off} (zcela vypnuto), \textit{Disable on} (zakázáno na vybraných doménách -- blacklist) a \textit{Enable on} (povoleno pouze na vybraných doménách -- whitelist). Výrazným prvkem tohoto rozhraní je podpora \textbf{regulárních výrazů (Regex)}. Díky tomu mohou pokročilí uživatelé definovat složitá pravidla pokrývající celé sítě webů (např. \texttt{.*\\.wikipedia\\.org}). Veškerá tato nastavení se ihned ukládají pomocí asynchronního API \texttt{chrome.storage.sync}, což zajišťuje synchronizaci napříč všemi zařízeními daného uživatele přihlášeného k účtu prohlížeče.
+
+\subsection{Zobrazení náhledů PDF dokumentů}
+\label{subsec:praxe_pdf}
+
+Nejkomplexnější technickou výzvou celého projektu byla implementace interaktivních náhledů dokumentů ve formátu PDF. Vzhledem k tomu, že prohlížeče neposkytují nativní a snadno dostupné API pro extrakci obsahu z PDF přímo do kontextu webové stránky, bylo přistoupeno k integraci populární open-source knihovny \textbf{PDF.js} vyvíjené společností Mozilla~\cite{pdfjs}.
+
+Proces zobrazení probíhá v několika fázích. Modul \texttt{preview-pdf.js} nejprve detekuje, že odkaz, nad kterým se nachází kurzor, směřuje na soubor s příponou \texttt{.pdf}. Následně vyvolá zprávu na \textit{Background Script}, který pomocí Fetch API asynchronně stáhne hlavičku a první stranu daného dokumentu ve formátu \texttt{ArrayBuffer}. Tato data jsou předána knihovně \textit{PDF.js}, jejíž výpočetně náročné jádro (\texttt{pdf.worker.min.js}) běží odděleně v rámci Web Workeru, aby nedošlo k zablokování hlavního vlákna prohlížeče. Výsledná rastrová podoba první strany dokumentu je následně vykreslena na dynamicky vytvořený element \texttt{<canvas>}, který je bezpečně vložen do informačního panelu náhledu.
+
+\subsection{Testování na reálných webových stránkách}
+\label{subsec:praxe_testovani}
+
+Pro ověření spolehlivosti a uživatelské přívětivosti bylo rozšíření podrobeno sadě testů na reálných a frekventovaných webových portálech. Testování bylo zaměřeno na dvě hlavní oblasti: správnou detekci URL adres a vizuální stabilitu náhledového kontejneru.
+
+Při testování na portálu \textit{Wikipedia} rozšíření úspěšně extrahovalo verze obrázků ve vysokém rozlišení z atributů \texttt{srcset}, přičemž plovoucí okno plynule následovalo kurzor myši bez tzv. artefaktů překreslování (\textit{screen tearing}). Na univerzitním informačním systému \textit{IS STAG} pak rozšíření spolehlivě zachytávalo odkazy směřující na PDF soubory, stahovalo je na pozadí a s minimální latencí vykreslovalo první strany dokumentů, a to i u vizuálně komplexních sylabů předmětů. Proti nechtěnému otevírání náhledů při rychlém přejetí myší (tzv. \textit{accidental hover}) byla úspěšně otestována implementace časovače s konstantním zpožděním (\textit{hover delay}) 500 milisekund.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ZÁVĚR
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section*{Závěr}
+
+Cílem této bakalářské práce bylo navrhnout a implementovat moderní rozšíření pro webové prohlížeče, které zefektivní práci s online obsahem tím, že uživatelům umožní okamžité zobrazení náhledů obrázků a PDF dokumentů pouhým najetím kurzoru myši.
+
+V teoretické části byly popsány mechanismy asynchronního programování, zpracování událostí v rámci DOM struktury a limity současných technologických standardů. Tyto poznatky byly následně aplikovány v praktické části při vývoji samotného softwarového modulu. Výsledkem je plně funkční, responzivní a výkonnostně optimalizované rozšíření \textit{Interactive Previews}, které bezpečně integruje knihovnu PDF.js pro vykreslování vícestránkových dokumentů a nabízí uživateli rozsáhlé možnosti personalizace prostřednictvím regulárních výrazů (filtrování domén).
+
+Testování na produkčních webech potvrdilo, že navržené řešení eliminuje nutnost neustálého klikání a stahování souborů za účelem rychlé inspekce jejich obsahu, čímž prokazatelně šetří čas a zvyšuje plynulost prohlížení webu. Z hlediska budoucího vývoje se nabízí možnost integrace podpory dalších komplexních kancelářských formátů, například DOCX či XLSX, a implementace analytických nástrojů pro měření průměrné časové úspory koncových uživatelů.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% POUŽITÁ LITERATURA
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% BibLaTeX
+
+\ifVSKPusesBibLaTeX					% při použití BibLaTeXu
+
+\printbibliography
+
+\else								% při nepoužití BibLaTeXu
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% pokud není použit biblatex:
+
+\begin{thebibliography}{99}	% parametr určuje nejširší položku
+\sloppy\latexraggedright
+% nezlomitelné spojovníky lze zapisovat zkratkou "- nebo příkazem \babelhyphen{nobreak}
+
+\bibitem{bib:iso690pdf2011}
+	\textsc{Biernátová}, Olga a Jan \textsc{Skůpa}.
+	\textit{Bibliografické odkazy a citace dokumentů dle ČSN~ISO~690~(01~0197) platné od 1.\,dubna~2011}. Online.
+	Brno, 2.\,9.\,2011.
+	Dostupné z:~\url{http://www.citace.com/CSN-ISO-690.pdf} [cit.\,2016"-07"-29].
+
+\bibitem{bib:kocicka2004}
+	\textsc{Kočička}, Pavel a Filip \textsc{Blažek}.
+	\textit{Praktická typografie}.
+	2.\,vyd.
+	Brno: Computer Press, 2004.
+	ISBN 80"-7226"-385"-4.
+	
+\bibitem{bib:lukes2017}
+	\textsc{Lukeš}, Lubomír.
+	\textit{Úroveň podpory typografie v současných kancelářských editorech}.
+	Pardubice, 2017.
+	Diplomová práce. Univerzita Pardubice. Vedoucí práce Tomáš \textsc{Hudec}.
+
+\end{thebibliography}
+
+\fi									% else: při použití BibLaTeXu
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PŘÍLOHY
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% SEZNAM PŘÍLOH
+
+\listofappendices
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\normalparfillskip
+%\noparindent[.5]					% odstavce bez zarážky, půl řádku vynechávat
+
+% reset číslování pro přílohy, volitelný parametr je makro pro úpravu titulku např. pro verzálky [\MakeUppercase]
+\backmatter%[\MakeUppercase]
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PŘÍLOHA A
+% v případě dlouhého názvu přílohy lze do seznamu (do obsahu) vložit kratší název:
+% \appendix[Krátký název v~obsahu]{Velmi dlouhý název přílohy~A}
+\appendix{Název přílohy~A}
+\label{priloha:A}
+
+Popis přílohy~A.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PŘÍLOHA B
+\appendix{Soubor metadat XMP v~PDF}
+\label{priloha:B}
+
+% Popis přílohy~B.
+Obsah souboru s~metadaty ve formátu XMP. Vyžadováno pro PDF/A.
+
+\VerbatimInput{\jobname.xmpdata}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% KONEC DOKUMENTU
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}
+
+% vim:sw=8:ts=8
+% EOF

@@ -1,2 +1,18 @@
 assets/additional/
 temp/
+
+# LaTeX temp files
+Documentation/LaTeX/*.aux
+Documentation/LaTeX/*.bbl
+Documentation/LaTeX/*.bcf
+Documentation/LaTeX/*.blg
+Documentation/LaTeX/*.fdb_latexmk
+Documentation/LaTeX/*.fls
+Documentation/LaTeX/*.lof
+Documentation/LaTeX/*.log
+Documentation/LaTeX/*.lot
+Documentation/LaTeX/*.out
+Documentation/LaTeX/*.run.xml
+Documentation/LaTeX/*.toc
+Documentation/LaTeX/*.xmpdata
+Documentation/LaTeX/*.synctex.gz

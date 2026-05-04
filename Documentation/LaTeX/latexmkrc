@@ -1,0 +1,2 @@
+$ENV{'TZ'}='Europe/Prague';
+$success_cmd = 'cp "%D" "../Voronkin_Tymofii_BP_2026.pdf"';
