@@ -263,7 +263,7 @@ function handleMouseOver(e) {
     if (mods.ctrl && !e.ctrlKey && !e.metaKey) return;
     if (mods.alt && !e.altKey) return;
 
-    const src = findImageSrc(e.target);
+    const src = findImageSrc(e.target, e.clientX, e.clientY);
     if (src) {
         if (hoverTimeout) clearTimeout(hoverTimeout);
         // If NO modifiers are required, use delay. If any modifier is required, delay is 0.
@@ -291,7 +291,18 @@ function handleMouseMove(e) {
     lastMouseX = e.clientX;
     lastMouseY = e.clientY;
 
-    if (!previewContainer || !previewContainer.classList.contains('visible')) return;
+    const isVisible = previewContainer && previewContainer.classList.contains('visible');
+
+    // If waiting for delay to show preview, check if we moved off the trigger
+    if (hoverTimeout && !isVisible) {
+        const el = document.elementFromPoint(e.clientX, e.clientY);
+        if (!el || !isPreviewTrigger(el, e.clientX, e.clientY)) {
+            clearTimeout(hoverTimeout);
+            hoverTimeout = null;
+        }
+    }
+
+    if (!isVisible) return;
 
     const mods = currentSettings.settings.triggerModifiers || { shift: false, ctrl: false, alt: false };
     if (mods.shift && !e.shiftKey) { hidePreview(); return; }
@@ -311,14 +322,20 @@ function handleMouseMove(e) {
             // Cursor left preview — hide only if also not over a trigger element
             // elementFromPoint ignores pointer-events:none, so it sees what's "behind" preview
             const el = document.elementFromPoint(e.clientX, e.clientY);
-            if (!el || !isPreviewTrigger(el)) {
+            if (!el || !isPreviewTrigger(el, e.clientX, e.clientY)) {
                 // Don't hide if user is actively dragging to select text
                 if (!isMouseDown) hidePreview();
             }
         }
         // Do NOT call updatePosition — preview stays put
     } else {
-        updatePosition(e.clientX, e.clientY);
+        // For Image mode, instantly hide if cursor moved off the trigger bounds
+        const el = document.elementFromPoint(e.clientX, e.clientY);
+        if (!el || !isPreviewTrigger(el, e.clientX, e.clientY)) {
+            hidePreview();
+        } else {
+            updatePosition(e.clientX, e.clientY);
+        }
     }
 }
 
@@ -343,7 +360,7 @@ function handleKeyDown(e) {
 
     const el  = document.elementFromPoint(lastMouseX, lastMouseY);
     if (!el) return;
-    const src = findImageSrc(el);
+    const src = findImageSrc(el, lastMouseX, lastMouseY);
     if (src) {
         if (hoverTimeout) clearTimeout(hoverTimeout);
         showPreview(src, lastMouseX, lastMouseY);
