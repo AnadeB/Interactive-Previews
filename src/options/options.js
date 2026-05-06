@@ -426,8 +426,18 @@ const restoreOptions = () => {
         });
 
         // filter out any unknown ids in case items were removed in a future version
-        let shownItems = (ib.shownItems || [...DEFAULT_INFOBAR_ORDER]).filter(id => allKnown.includes(id));
-        let hiddenItems = (ib.hiddenItems || []).filter(id => allKnown.includes(id));
+        const allKnownIds = DEFAULT_INFOBAR_ORDER;
+        // Use .length check — empty array [] is truthy, so `|| fallback` alone wouldn't work
+        let shownItems = (ib.shownItems && ib.shownItems.length > 0 ? ib.shownItems : [...DEFAULT_INFOBAR_ORDER])
+            .filter(id => allKnownIds.includes(id));
+        let hiddenItems = (ib.hiddenItems && ib.hiddenItems.length > 0 ? ib.hiddenItems : [])
+            .filter(id => allKnownIds.includes(id));
+        // Safety net: any known ID missing from both lists gets added to shownItems
+        allKnownIds.forEach(id => {
+            if (!shownItems.includes(id) && !hiddenItems.includes(id)) {
+                shownItems.push(id);
+            }
+        });
 
         populateDragLists(shownItems, hiddenItems);
 
@@ -477,6 +487,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setupTab(els.tabBlocklist);
     setupTab(els.tabAllowlist);
 
+    els.infoBarEnabled.addEventListener('change', () => { updateUIState(); scheduleSave(); });
+
     // Theme buttons
     els.themeBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -488,7 +500,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Auto-save on all relevant inputs
 Array.from(els.sizeModeRadios).forEach(r => r.addEventListener('change', () => { updateUIState(); scheduleSave(); }));
-els.infoBarEnabled.addEventListener('change', () => { updateUIState(); scheduleSave(); });
 
 const autoSaveInputs = [
     els.blocklist, els.allowlist,

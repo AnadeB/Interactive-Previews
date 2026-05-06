@@ -4,8 +4,11 @@ temp/
 # LaTeX temp files
 Documentation/LaTeX/*.aux
 Documentation/LaTeX/*.bbl
+Documentation/LaTeX/*.bbl-SAVE-ERROR
 Documentation/LaTeX/*.bcf
+Documentation/LaTeX/*.bcf-SAVE-ERROR
 Documentation/LaTeX/*.blg
+Documentation/LaTeX/*.blg-SAVE-ERROR
 Documentation/LaTeX/*.fdb_latexmk
 Documentation/LaTeX/*.fls
 Documentation/LaTeX/*.lof

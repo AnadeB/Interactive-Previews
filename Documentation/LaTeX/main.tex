@@ -173,11 +173,12 @@ Fakulta elektrotechniky a informatiky
 \def\prefixZadani{img/zadani}			% cesta a začátek jména, bude doplněno číslo strany
 \def\suffixZadani{.jpg}					% doplní se ke každému jménu souboru zadání
 
-\def\datumOdevzdaniPrace{17.\,1.\,2017}	% datum pod pod prohlášením
+\def\datumOdevzdaniPrace{6.\,5.\,2026}	% datum pod prohlášením
 
 % nutné pouze pro vzor pro vkládání výplňkových textů
 \usepackage{lipsum}						% \lipsum[číslo] vloží jeden odstavec Lorem ipsum…
 \usepackage{graphicx}
+\usepackage{pdfpages}					% vkládání stránek z externího PDF
 \usepackage{subcaption}                 % Pro vedle sebe umístěné obrázky
 \usepackage{listings}
 \lstset{
@@ -250,15 +251,15 @@ Fakulta elektrotechniky a informatiky
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % ZADÁNÍ
 
-% vybrat alternativu:
-% pokud je zadání vloženo pomocí obrázků:
-	% je třeba mít obrázky pojmenované dle vzoru \prefixZadani číslo \suffixZadani
-	% odkomentovat:
-	\generujZadani[2]					% parametr je počet stran, výchozí (neuvede-li se) je 2
-% pokud zadání nemá být součástí PDF, odkomentovat:
-	%\addtocounter{page}{2}				% započítá pouze počet stran (negeneruje žádné prázdné strany)
-	% alternativně:
-	%\vakatZadani[2]					% vygeneruje daný počet prázdných stran (vakátů)
+% zadání vloženo přímo z PDF pomocí pdfpages (zachovává vektorovou kvalitu):
+	\clearpage
+	\phantomsection\label{assignment}
+	\pdfbookmark[1]{Zadání}{assignment}
+	\includepdf[pages=1-2]{img/Zadani-BP-Voronkin.pdf}
+% alternativy:
+	%\generujZadani[2]					% vložení pomocí obrázků (img/zadani1.jpg, …)
+	%\addtocounter{page}{2}				% pouze započítat strany bez vložení
+	%\vakatZadani[2]					% prázdné stránky (vakáty)
 
 \generujProhlaseni[m]					% prohlášení, [m] pro mužský rod
 % \podekovaniDolu						% odkomentovat, pokud má být poděkování vespod stránky
@@ -284,14 +285,14 @@ Fakulta elektrotechniky a informatiky
 \seznamZkratek							% titulek a řádek do obsahu
 
 \begin{description}[
-	font=\mdseries,
+	font=\mdseries, 
 	leftmargin=9em,
 	labelwidth=!,
 	before=\raggedright,
 ]
 \item[AJAX]		Asynchronous JavaScript and XML — asynchronní JavaScript a XML
 \item[API]		Application Programming Interface — rozhraní pro programování aplikací
-\item[CORS]		Cross-Origin Resource Sharing — mechanismus sdílení zdrojů napříч doménami
+\item[CORS]		Cross-Origin Resource Sharing — mechanismus sdílení zdrojů napříč doménami
 \item[CSS]		Cascading Style Sheets — kaskádové styly
 \item[CSP]		Content Security Policy — bezpečnostní politika obsahu
 \item[DOM]		Document Object Model — objektový model dokumentu
@@ -451,8 +452,18 @@ Rozšíření \textbf{Imagus} (viz obrázek~\ref{fig:imagus}) představuje podob
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.8\textwidth]{img/competitors_Imagus-Reborn_Options.png}
-    \caption{Konfigurační rozhraní (Options) konkurenčního rozšíření Imagus}
+    \begin{subfigure}[b]{\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{img/competitors_Imagus-Reborn_Chrome-Web-store.png}
+        \caption{Stránka v Chrome Web Store}
+    \end{subfigure}
+    \vspace{0.5em}
+    \begin{subfigure}[b]{\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{img/competitors_Imagus-Reborn_Options.png}
+        \caption{Konfigurační rozhraní (Options) s pravidly ve formátu Sieve}
+    \end{subfigure}
+    \caption{Ukázka konkurenčního rozšíření Imagus}
     \label{fig:imagus}
 \end{figure}
 
@@ -683,21 +694,85 @@ Testování na produkčních webech potvrdilo, že navržené řešení eliminuj
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PŘÍLOHA A
-% v případě dlouhého názvu přílohy lze do seznamu (do obsahu) vložit kratší název:
-% \appendix[Krátký název v~obsahu]{Velmi dlouhý název přílohy~A}
-\appendix{Název přílohy~A}
-\label{priloha:A}
+\appendix{Struktura souborů projektu}
+\label{priloha:struktura}
 
-Popis přílohy~A.
+Vývojový adresář projektu je logicky rozdělen do několika složek podle funkce jednotlivých komponent rozšíření. Níže je uvedena zjednodušená stromová struktura repozitáře s~popisem klíčových souborů a adresářů:
 
+\begin{lstlisting}[language={}, numbers=none, basicstyle=\ttfamily\small]
+Interactive-Previews/
+|-- assets/                # Statické soubory (ikony aplikace)
+|-- Documentation/         # Zdrojové soubory textu bakalářské práce (LaTeX)
+|-- src/                   # Zdrojové kódy samotného rozšíření
+|   |-- background/        # Skripty běžící na pozadí (Service Worker)
+|   |-- common/            # Sdílené konstanty a pomocné funkce
+|   |-- content/           # Skripty a styly vkládané do stránek (DOM logika)
+|   |-- options/           # Konfigurační rozhraní (Options)
+|   |-- pdfjs/             # Knihovna PDF.js pro vykreslování PDF
+|   `-- popup/             # Vyskakovací okno rozšíření (Popup)
+|-- manifest.json          # Hlavní konfigurační soubor rozšíření
+`-- README.md              # Základní informace o projektu
+\end{lstlisting}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PŘÍLOHA B
-\appendix{Soubor metadat XMP v~PDF}
-\label{priloha:B}
+\appendix{Konfigurační soubor manifest.json}
+\label{priloha:manifest}
 
-% Popis přílohy~B.
-Obsah souboru s~metadaty ve formátu XMP. Vyžadováno pro PDF/A.
+Klíčový soubor \texttt{manifest.json} (dle specifikace Manifest V3), který definuje základní metadata rozšíření, potřebná oprávnění (např. \texttt{activeTab}) a cesty k~jednotlivým komponentám (Service Worker, Content Scripts atd.).
+
+\begin{lstlisting}[language=JavaScript, numbers=none, basicstyle=\ttfamily\footnotesize]
+{
+  "manifest_version": 3,
+  "name": "Interactive Previews",
+  "version": "1.0",
+  "description": "Shows interactive previews of images and documents on hover.",
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "src/background/background.js"
+  },
+  "action": {
+    "default_popup": "src/popup/popup.html"
+  },
+  "options_ui": {
+    "page": "src/options/options.html",
+    "open_in_tab": true
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": [
+        "src/pdfjs/pdf.min.js",
+        "src/content/utils.js",
+        "src/content/info-bar.js",
+        "src/content/preview-image.js",
+        "src/content/preview-pdf.js",
+        "src/content/content.js"
+      ],
+      "css": ["src/content/content.css"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["src/pdfjs/pdf.worker.min.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PŘÍLOHA C
+\appendix{Soubor metadat XMP v~PDF}
+\label{priloha:xmp}
+
+Obsah souboru s~metadaty ve formátu XMP. Vyžadováno pro archivaci ve formátu PDF/A.
 
 \VerbatimInput{\jobname.xmpdata}
 
