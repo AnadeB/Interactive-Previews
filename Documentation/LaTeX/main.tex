@@ -196,7 +196,7 @@ Fakulta elektrotechniky a informatiky
 
 % PROHLÁŠENÍ O VYUŽITÍ UMĚLÉ INTELIGENCE (Úroveň 2)
 \long\def\textProhlaseniAI{%
-	Při přípravě této práce byly využity nástroje umělé inteligence (zejména velké jazykové modely) v~souladu s~pravidly Univerzity Pardubice (Úroveň 2). Nástroje AI byly použity výhradně k~dílčím úkonům:
+	Při přípravě této práce byly využity nástroje umělé inteligence (zejména velké jazykové modely) v~souladu s~pravidly Univerzity Pardubice (Úroveň 2). Konkrétně byly použity modely \textit{Google Gemini 3.1 Pro} a \textit{Anthropic Claude Sonnet 4.6}. Nástroje AI byly použity výhradně k~dílčím úkonům:
 	\begin{itemize}
 		\item Asistence při návrhu softwarové architektury,
 		\item Generování, úprava a kontrola částí zdrojového kódu (rozšíření prohlížeče),
@@ -207,7 +207,15 @@ Fakulta elektrotechniky a informatiky
 
 % PODĚKOVÁNÍ
 \long\def\textPodekovani{%
-	Rád bych poděkoval vedoucímu své bakalářské práce, Mgr. Tomáši Hudcovi, za odborné vedení, cenné rady a čas, který mi věnoval při konzultacích. Dále děkuji své rodině a přátelům za podporu během celého studia.
+	Rád bych poděkoval vedoucímu své bakalářské práce, Mgr. Tomáši Hudcovi, za odborné vedení, cenné rady a čas, který mi věnoval při konzultacích.
+
+	Zvláštní poděkování patří mým přátelům, kteří byli vždy po mém boku -- podporovali mě, pomáhali mi v těžkých chvílích a nikdy nenechali chvíle smutku trvat příliš dlouho. Jejich přítomnost pro mě znamená víc, než dokáži slovy vyjádřit.
+
+	Děkuji svému otci za vše, co do mě vložil -- zejména za lásku k počítačům a informačním technologiím, kterou ve mně probouzel od nejútlejšího věku. Díky němu jsem našel cestu, po které dnes kráčím.
+
+	Děkuji své mladší sestře, která mi byla oporou a radostí zároveň -- a která nedovolila, aby mé vnitřní dítě úplně zaniklo.
+
+	Zvláštní, hluboký dík patří mé mamince -- člověku, který ve mě věřil za všech okolností, od dětství mě učil nevzdávat se a důvěřovat vlastní cestě. Je mi nesmírně líto, že se nedočká mého promoce ani dalšího dospívání po mém boku. \textit{Světlá paměť.}
 }
 % ANOTACE
 \long\def\anotace{%
@@ -268,7 +276,7 @@ Fakulta elektrotechniky a informatiky
 \generujAnnotation						% anotace anglicky
 \generujObsah							% obsah
 \generujSeznamObrazku					% seznam obrázků
-\generujSeznamTabulek					% seznam tabulek
+% seznam tabulek záměrně vynechán — práce neobsahuje žádné tabulky
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SEZNAM ZKRATEK
@@ -276,14 +284,32 @@ Fakulta elektrotechniky a informatiky
 \seznamZkratek							% titulek a řádek do obsahu
 
 \begin{description}[
-	font=\mdseries,						% zkratky netučně
-	leftmargin=6em,						% odsazení popisku
-	labelwidth=!,						% šířka pro pojem/zkratku se dopočítá z odsazení
-	before=\raggedright,				% nezarovnávat pravý okraj
+	font=\mdseries,
+	leftmargin=9em,
+	labelwidth=!,
+	before=\raggedright,
 ]
-%\item[zkratka]	Význam					% vzor pro zkratku
-\item[PDF]		Portable Document Format
-\item[Dlouhá zkratka] Popisek zkratky
+\item[AJAX]		Asynchronous JavaScript and XML — asynchronní JavaScript a XML
+\item[API]		Application Programming Interface — rozhraní pro programování aplikací
+\item[CORS]		Cross-Origin Resource Sharing — mechanismus sdílení zdrojů napříч doménami
+\item[CSS]		Cascading Style Sheets — kaskádové styly
+\item[CSP]		Content Security Policy — bezpečnostní politika obsahu
+\item[DOM]		Document Object Model — objektový model dokumentu
+\item[FEI]		Fakulta elektrotechniky a informatiky
+\item[HTML]		HyperText Markup Language — značkovací jazyk pro webové stránky
+\item[HTTP]		HyperText Transfer Protocol — protokol pro přenos hypertextu
+\item[IS STAG]	Informační systém Studijní agenda
+\item[JS]		JavaScript — skriptovací jazyk pro webové aplikace
+\item[JSON]		JavaScript Object Notation — formát pro výměnu dat
+\item[MIME]		Multipurpose Internet Mail Extensions — typ internetového média
+\item[MV3]		Manifest Version 3 — specifikace Manifest V3
+\item[PDF]		Portable Document Format — přenosný formát dokumentů
+\item[SVG]		Scalable Vector Graphics — škálovatelná vektorová grafika
+\item[UI]		User Interface — uživatelské rozhraní
+\item[UPCE]		Univerzita Pardubice
+\item[URL]		Uniform Resource Locator — jednotný lokátor zdrojů
+\item[UX]		User Experience — uživatelský prožitek
+\item[XMP]		Extensible Metadata Platform — rozšiřitelná platforma pro metadata
 \end{description}
 
 
