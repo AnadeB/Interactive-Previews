@@ -39,4 +39,16 @@ The full text of the bachelor thesis, written in Czech, including theoretical ba
 
 👉 **[Documentation/Voronkin_Tymofii_BP_2026.pdf](./Documentation/Voronkin_Tymofii_BP_2026.pdf)**
 
+
+### LaTeX Live Preview
+
 The LaTeX source files used to compile this document are located in the `Documentation/LaTeX` directory.
+
+To automatically recompile the PDF on every file save and view it live in [SumatraPDF](https://www.sumatrapdfreader.org/):
+
+```bash
+cd Documentation/LaTeX
+latexmk -pdf -pvc main.tex
+```
+
+> `-pvc` (preview continuously) watches for file changes and recompiles automatically. SumatraPDF reloads the PDF in place without locking the file, making it ideal for this workflow. Requires a TeX distribution ([TeX Live](https://tug.org/texlive/) or [MiKTeX](https://miktex.org/)).
