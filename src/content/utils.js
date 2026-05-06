@@ -1,12 +1,16 @@
-// ─── URL matchers ─────────────────────────────────────────────────────────────
+// url matchers — used everywhere to detect what type of link we're dealing with
 const IMAGE_EXT_RE = /\.(jpe?g|png|gif|webp|svg|bmp|avif|ico|tiff?)(\?|#|$)/i;
 const PDF_EXT_RE   = /\.pdf(\?|#|$)/i;
 
+// quick check: is this url a pdf we're allowed to preview
 function isPdfUrl(url) {
     return typeof url === 'string' && PDF_EXT_RE.test(url) && isFileTypeAllowed(url);
 }
 
-// ─── File info ────────────────────────────────────────────────────────────────
+// ── file info helpers ───────────────────────────────────────────────────────────
+
+// pull filename + extension from a url string
+// uses URL api first, falls back to manual split if thats broken (data urls etc)
 function extractFileInfo(src) {
     let fileName = '', fileExt = '';
     try {
@@ -19,6 +23,7 @@ function extractFileInfo(src) {
             if (dot > 0) fileExt = fileName.substring(dot + 1).toUpperCase();
         }
     } catch (e) {
+        // URL() threw — probably malformed, do it manually
         const clean = src.split('?')[0].split('#')[0];
         const parts = clean.split('/');
         fileName = parts[parts.length - 1] || '';
@@ -28,27 +33,31 @@ function extractFileInfo(src) {
     return { fileName, fileExt };
 }
 
+// formats bytes to human readable: B / KB / MB
 function formatFileSize(bytes) {
     if (bytes < 1024)    return bytes + ' B';
     if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
     return (bytes / 1048576).toFixed(1) + ' MB';
 }
 
+// checks if the url's file type is enabled in settings
+// data: and blob: urls are allowed if at least one basic type is on
 function isFileTypeAllowed(url) {
     if (typeof url !== 'string') return false;
-    
-    // For data URLs or blob URLs, allow if basic image types are enabled
+
+    // data/blob urls dont have extensions, allow them if img is generally on
     if (url.startsWith('data:image/') || url.startsWith('blob:')) {
         const allowed = currentSettings.settings?.allowedFileTypes || {};
         return allowed.jpg !== false || allowed.png !== false || allowed.webp !== false;
     }
 
     const { fileExt } = extractFileInfo(url);
-    if (!fileExt) return true; // If we can't determine, allow by default so we don't break dynamic images
-    
+    // if we cant figure out the ext, just let it through — better false positive than missing previews
+    if (!fileExt) return true;
+
     const ext = fileExt.toLowerCase();
     const allowed = currentSettings.settings?.allowedFileTypes || {};
-    
+
     if (ext === 'jpg' || ext === 'jpeg') return allowed.jpg !== false;
     if (ext === 'png') return allowed.png !== false;
     if (ext === 'gif') return allowed.gif !== false;
@@ -59,17 +68,17 @@ function isFileTypeAllowed(url) {
     if (ext === 'ico') return allowed.ico !== false;
     if (ext === 'tiff' || ext === 'tif') return allowed.tiff !== false;
     if (ext === 'pdf') return allowed.pdf !== false;
-    
-    return true; // Unknown extension, let it through
+
+    return true; // unknown ext → let it thru
 }
 
+// greatest common divisor, used for aspect ratio calc
 function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
 
-// ─── Element detection ────────────────────────────────────────────────────────
+// ── element detection ───────────────────────────────────────────────────────────
 
-/**
- * Helper to parse srcset and return the absolute URL with the largest width/density.
- */
+// parse srcset string and return the highest-res url
+// if descriptor is 'w', bigger number = better. if 'x', bigger = better too (scaled to 1000)
 function getBestSrcset(srcset, baseURI) {
     if (!srcset) return null;
     const parts = srcset.split(',').map(s => s.trim()).filter(Boolean);
@@ -87,36 +96,35 @@ function getBestSrcset(srcset, baseURI) {
             if (descriptor.endsWith('w')) {
                 width = parseInt(descriptor.slice(0, -1), 10) || 0;
             } else if (descriptor.endsWith('x')) {
+                // convert density to fake width so comparison works the same
                 width = parseFloat(descriptor.slice(0, -1)) * 1000 || 0;
             }
         }
-        
+
         if (width >= maxWidth) {
             maxWidth = width;
             bestUrl = url;
         }
     }
-    
+
     if (bestUrl) {
         try {
             return new URL(bestUrl, baseURI || document.baseURI).href;
         } catch(e) {
-            return bestUrl;
+            return bestUrl; // cant resolve, return as-is
         }
     }
     return null;
 }
 
-/**
- * Find the best previewable URL from the hovered element.
- * Respects deepSearch settings for each source type.
- */
+// main detection fn — given a hovered element + cursor pos, returns the best previewable url
+// order matters: parent <a> first, then direct img, then containers, then css bg, then overlay fallback
 function findImageSrc(target, x, y) {
-    if (!target || target.nodeType !== 1) return null; // Ensure target is an Element
+    if (!target || target.nodeType !== 1) return null; // not an element node, bail
 
     const ds = currentSettings.settings.deepSearch || {};
 
-    // 0. Check parent <a> first. If the image is wrapped in a link to a high-res image/pdf, use that.
+    // 0. check if img is wrapped in a link to hi-res version — very common pattern on galleries/shops
     const parentA = target.closest('a');
     if (parentA && parentA.href) {
         const href = parentA.href;
@@ -124,25 +132,26 @@ function findImageSrc(target, x, y) {
         if (ds.pdfEnabled !== false && PDF_EXT_RE.test(href) && isFileTypeAllowed(href)) return href;
     }
 
-    // 1. Direct <img>
+    // 1. direct <img> — prefer srcset over src for best resolution
     if (target.tagName === 'IMG') {
         if (target.srcset) {
             const bestSrc = getBestSrcset(target.srcset, target.baseURI);
             if (bestSrc && isFileTypeAllowed(bestSrc)) return bestSrc;
         }
+        // data-src for lazy loaded imgs (common on modern sites)
         const src = target.src || target.dataset.src;
         if (src && isFileTypeAllowed(src)) return src;
     }
 
-    // 2. <a href> pointing to image or PDF
+    // 2. direct <a> pointing to img or pdf
     if (target.tagName === 'A' && target.href) {
         const href = target.href;
         if (ds.imageLinkHrefs !== false && IMAGE_EXT_RE.test(href) && isFileTypeAllowed(href)) return href;
         if (ds.pdfEnabled     !== false && PDF_EXT_RE.test(href) && isFileTypeAllowed(href))   return href;
     }
 
-    // 3. Search inside container elements
-    // Only triggers if the cursor is physically over the bounds of the found element
+    // 3. search inside container elements
+    // only triggers if cursor is literally on top of the found child element (bounding rect check)
     if (ds.searchInside !== false && x !== undefined && y !== undefined) {
         const images = target.querySelectorAll('img');
         for (const childImg of images) {
@@ -156,7 +165,8 @@ function findImageSrc(target, x, y) {
                 if (src && isFileTypeAllowed(src)) return src;
             }
         }
-        
+
+        // also check links inside containers
         const links = target.querySelectorAll('a[href]');
         for (const childA of links) {
             const href = childA.href;
@@ -170,7 +180,7 @@ function findImageSrc(target, x, y) {
         }
     }
 
-    // 4. CSS background-image
+    // 4. css background-image — grab url() value from computed style
     if (ds.cssBackgrounds !== false) {
         const bg = getComputedStyle(target).backgroundImage;
         if (bg && bg !== 'none') {
@@ -179,17 +189,15 @@ function findImageSrc(target, x, y) {
         }
     }
 
-    // 5. Universal Overlay Fallback using elementsFromPoint.
-    // If the mouse is physically over an image, but the event was caught by an overlay
-    // (like an icon, badge, or transparent div), document.elementsFromPoint will find the image underneath.
+    // 5. overlay fallback — elementsFromPoint sees thru pointer-events:none overlays
+    // catches cases where hover fires on an icon/badge on top of the actual image
     if (ds.searchInside !== false && x !== undefined && y !== undefined) {
         const elementsUnderCursor = document.elementsFromPoint(x, y);
         for (const el of elementsUnderCursor) {
-            // We skip the original target since we already checked it
-            if (el === target) continue;
+            if (el === target) continue; // already checked above
 
             if (el.tagName === 'IMG') {
-                // Ignore tiny tracking pixels or hidden images
+                // skip 1x1 tracking pixels and invisible imgs
                 if (el.offsetWidth < 10 || el.offsetHeight < 10) continue;
                 const style = getComputedStyle(el);
                 if (style.opacity === '0' || style.visibility === 'hidden') continue;
@@ -204,12 +212,11 @@ function findImageSrc(target, x, y) {
         }
     }
 
-    return null;
+    return null; // nothing found
 }
 
-/**
- * Returns true if leaving this element should hide the preview.
- */
+// same logic as findImageSrc but returns bool — used to decide if we should KEEP showing preview
+// when cursor moves we check this to know if we're still "on" a trigger elem
 function isPreviewTrigger(target, x, y) {
     if (!target || target.nodeType !== 1) return false;
 
@@ -237,6 +244,7 @@ function isPreviewTrigger(target, x, y) {
 
     if (ds.searchInside !== false) {
         if (x !== undefined && y !== undefined) {
+            // coord-aware check — only count if cursor actually overlaps the child
             const images = target.querySelectorAll('img');
             for (const childImg of images) {
                 const rect = childImg.getBoundingClientRect();
@@ -249,7 +257,7 @@ function isPreviewTrigger(target, x, y) {
                     if (src && isFileTypeAllowed(src)) return true;
                 }
             }
-            
+
             const links = target.querySelectorAll('a[href]');
             for (const childA of links) {
                 const href = childA.href;
@@ -262,6 +270,7 @@ function isPreviewTrigger(target, x, y) {
                 }
             }
         } else {
+            // no coords — less precise, just check if any child qualifies (used in mouseout path)
             const childImg = target.querySelector('img');
             if (childImg) {
                 if (childImg.srcset) {
@@ -287,14 +296,13 @@ function isPreviewTrigger(target, x, y) {
         }
     }
 
-    // 5. Universal Overlay Fallback using elementsFromPoint
+    // same overlay fallback as in findImageSrc
     if (ds.searchInside !== false && x !== undefined && y !== undefined) {
         const elementsUnderCursor = document.elementsFromPoint(x, y);
         for (const el of elementsUnderCursor) {
             if (el === target) continue;
 
             if (el.tagName === 'IMG') {
-                // Ignore tiny tracking pixels or hidden images
                 if (el.offsetWidth < 10 || el.offsetHeight < 10) continue;
                 const style = getComputedStyle(el);
                 if (style.opacity === '0' || style.visibility === 'hidden') continue;

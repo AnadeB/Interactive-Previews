@@ -37,8 +37,8 @@ let storedData = { blocklist: [], allowlist: [] };
 
 const updateModeUI = () => {
     document.getElementById('mode-off').classList.toggle('active', currentMode === 'off');
-    document.getElementById('mode-blacklist').classList.toggle('active', currentMode === 'blocklist');
-    document.getElementById('mode-whitelist').classList.toggle('active', currentMode === 'allowlist');
+    document.getElementById('mode-blocklist').classList.toggle('active', currentMode === 'blocklist');
+    document.getElementById('mode-allowlist').classList.toggle('active', currentMode === 'allowlist');
     renderActionButtons();
 };
 
@@ -147,8 +147,8 @@ const setupModeBtn = (id, mode) => {
 };
 
 setupModeBtn('mode-off', 'off');
-setupModeBtn('mode-blacklist', 'blocklist');
-setupModeBtn('mode-whitelist', 'allowlist');
+setupModeBtn('mode-blocklist', 'blocklist');
+setupModeBtn('mode-allowlist', 'allowlist');
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
@@ -163,18 +163,12 @@ document.addEventListener('DOMContentLoaded', () => {
             mode: 'blocklist',
             blocklist: [],
             allowlist: [],
-            blacklist: [],
-            whitelist: [],
             theme: 'green'
         }, (items) => {
-            currentMode = items.mode;
-            if (currentMode === 'blacklist') currentMode = 'blocklist';
-            if (currentMode === 'whitelist') currentMode = 'allowlist';
-            
-            storedData.blocklist = items.blocklist.length ? items.blocklist : items.blacklist;
-            storedData.allowlist = items.allowlist.length ? items.allowlist : items.whitelist;
+            currentMode = items.mode || 'blocklist';
+            storedData.blocklist = items.blocklist;
+            storedData.allowlist = items.allowlist;
 
-            // Apply theme
             document.documentElement.setAttribute('data-theme', items.theme || 'green');
 
             updateModeUI();

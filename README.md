@@ -12,7 +12,7 @@ This repository contains the source code and documentation for my **Bachelor The
 ### Features
 * 🖼️ **Instant Image Previews**: Automatically finds and displays the highest resolution image available using `srcset` and `sizes`.
 * 📄 **Native PDF Rendering**: Integrated `PDF.js` library allows rendering multi-page PDF documents securely without downloading them locally.
-* ⚙️ **Granular Control**: Use the Options page to enable or disable the extension on specific domains (Whitelist/Blacklist) with full Regular Expression (Regex) support.
+* ⚙️ **Granular Control**: Use the Options page to enable or disable the extension on specific domains (Blocklist/Allowlist) with full Regular Expression (Regex) support.
 * 🚀 **Performance Optimized**: Built with Manifest V3, utilizing Service Workers and asynchronous Fetch API.
 
 ## 📥 Installation
@@ -40,7 +40,7 @@ The full text of the bachelor thesis, written in Czech, including theoretical ba
 👉 **[Documentation/Voronkin_Tymofii_BP_2026.pdf](./Documentation/Voronkin_Tymofii_BP_2026.pdf)**
 
 
-### LaTeX Live Preview
+### ⚛️ LaTeX Live Preview
 
 The LaTeX source files used to compile this document are located in the `Documentation/LaTeX` directory.
 

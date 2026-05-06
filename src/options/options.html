@@ -31,31 +31,31 @@
         <div id="mode-off" class="mode-tab">
           <button type="button" class="btn">Off</button>
         </div>
-        <div id="mode-blacklist" class="mode-tab active">
-          <button type="button" class="btn">Disable on</button>
+        <div id="mode-blocklist" class="mode-tab active">
+          <button type="button" class="btn">Blocklist Mode</button>
         </div>
-        <div id="mode-whitelist" class="mode-tab">
-          <button type="button" class="btn">Enable on</button>
+        <div id="mode-allowlist" class="mode-tab">
+          <button type="button" class="btn">Allowlist Mode</button>
         </div>
       </div>
 
       <div class="actions-area">
-        <div id="blacklist-container" class="list-container">
-          <h3>Disable on</h3>
+        <div id="blocklist-container" class="list-container">
+          <h3>Blocklist Mode</h3>
           <p class="description">
             Enter domains where the extension should be <strong>disabled</strong>.
             <br>One entry per line. Example: <code>google.com</code>
           </p>
-          <textarea id="blacklist" rows="6" placeholder="nothing here yet"></textarea>
+          <textarea id="blocklist" rows="6" placeholder="nothing here yet"></textarea>
         </div>
 
-        <div id="whitelist-container" class="list-container hidden">
-          <h3>Enable on</h3>
+        <div id="allowlist-container" class="list-container hidden">
+          <h3>Allowlist Mode</h3>
           <p class="description">
             Enter domains where the extension should be <strong>enabled</strong>.
             <br>One entry per line. Example: <code>github.com</code>
           </p>
-          <textarea id="whitelist" rows="6" placeholder="nothing here yet"></textarea>
+          <textarea id="allowlist" rows="6" placeholder="nothing here yet"></textarea>
         </div>
 
         <div id="off-container" class="list-container hidden">

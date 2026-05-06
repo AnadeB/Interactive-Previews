@@ -1,4 +1,4 @@
-// ─── Shared globals (used by all content scripts) ─────────────────────────────
+// ── shared globals (all content scripts share this scope) ──────────────────────
 const defaultSettings = {
     mode: 'blocklist',
     blocklist: [],
@@ -30,50 +30,30 @@ const defaultSettings = {
 };
 
 let currentSettings   = { ...defaultSettings };
-let previewContainer  = null;
-let previewImg        = null;
-let previewCanvas     = null;
-let infoBar           = null;
-let hoverTimeout      = null;
-let hideTimer         = null;  // deferred hide for PDF mode
-let lastMouseX        = 0;
+let previewContainer  = null;  // the floating preview div injected into page
+let previewImg        = null;  // <img> inside container for image previews
+let previewCanvas     = null;  // <canvas> inside container for pdf previews
+let infoBar           = null;  // info panel (shown on top or bottom of preview)
+let hoverTimeout      = null;  // debounce timer — delays showing preview on hover
+let hideTimer         = null;  // deferred hide for pdf mode (cursor needs time to reach preview)
+let lastMouseX        = 0;     // track cursor pos so keydown handler can use it
 let lastMouseY        = 0;
-let isMouseDown       = false; // track selection drag state
+let isMouseDown       = false; // true while user is dragging (text selection) — dont hide during this
 
-// ─── Boot ─────────────────────────────────────────────────────────────────────
+// ── boot ────────────────────────────────────────────────────────────────────────
+// load settings from chrome.storage.sync before doing anything
 chrome.storage.sync.get(defaultSettings, (items) => {
     if (chrome.runtime.lastError) {
         console.error('[Interactive-Previews] Error loading settings:', chrome.runtime.lastError);
         return;
     }
 
-    // Migration from old settings
-    let loadedMode = items.mode;
-    let loadedBlocklist = items.blocklist || [];
-    let loadedAllowlist = items.allowlist || [];
-    if (items.mode === 'blacklist') {
-        loadedMode = 'blocklist';
-        loadedBlocklist = items.blacklist || items.blocklist || [];
-    } else if (items.mode === 'whitelist') {
-        loadedMode = 'allowlist';
-        loadedAllowlist = items.whitelist || items.allowlist || [];
-    }
-
     currentSettings = items;
-    currentSettings.mode = loadedMode;
-    currentSettings.blocklist = loadedBlocklist;
-    currentSettings.allowlist = loadedAllowlist;
-    
-    currentSettings.settings = { ...defaultSettings.settings, ...items.settings };
-    
-    // Migrate triggerModifier
-    if (currentSettings.settings.triggerModifier && typeof currentSettings.settings.triggerModifier === 'string') {
-        currentSettings.settings.triggerModifiers = { shift: false, ctrl: false, alt: false };
-        if (currentSettings.settings.triggerModifier === 'shift') currentSettings.settings.triggerModifiers.shift = true;
-        if (currentSettings.settings.triggerModifier === 'ctrl') currentSettings.settings.triggerModifiers.ctrl = true;
-        delete currentSettings.settings.triggerModifier;
-    }
 
+    // merge nested settings so missing keys fall back to defaults
+    currentSettings.settings = { ...defaultSettings.settings, ...items.settings };
+
+    // deep merge nested objects so partial saves dont wipe unrelated keys
     currentSettings.settings.infoBar = {
         ...defaultSettings.settings.infoBar,
         ...(items.settings?.infoBar || {})
@@ -87,20 +67,9 @@ chrome.storage.sync.get(defaultSettings, (items) => {
         ...(items.settings?.deepSearch || {})
     };
 
-    // Migrate missing Info Bar items (e.g. pageCount for existing users)
-    const ib = currentSettings.settings.infoBar;
-    const allKnown = defaultSettings.settings.infoBar.shownItems;
-    const allPresent = [...(ib.shownItems || []), ...(ib.hiddenItems || [])];
-    allKnown.forEach(id => {
-        if (!allPresent.includes(id)) {
-            if (!ib.shownItems) ib.shownItems = [];
-            ib.shownItems.push(id);
-        }
-    });
-
     console.log('[Interactive-Previews] Loaded settings:', currentSettings);
 
-    // Initialize PDF.js worker
+    // init pdfjs worker — has to be extension url, cant use cdn (csp blocks it)
     if (typeof pdfjsLib !== 'undefined') {
         pdfjsLib.GlobalWorkerOptions.workerSrc = chrome.runtime.getURL('src/pdfjs/pdf.worker.min.js');
         console.log('[Interactive-Previews] PDF.js ready.');
@@ -108,14 +77,18 @@ chrome.storage.sync.get(defaultSettings, (items) => {
 
     init();
 
+    // listen for settings changes in real-time (e.g. user toggled something in options tab)
     chrome.storage.onChanged.addListener((changes, area) => {
         if (area !== 'sync') return;
         for (let key in changes) currentSettings[key] = changes[key].newValue;
+        // if this page is now disabled (e.g. user added it to blocklist), hide immediately
         if (!isAllowedOnThisPage()) hidePreview();
     });
 });
 
-// ─── Permission check ─────────────────────────────────────────────────────────
+// ── permission check ─────────────────────────────────────────────────────────────
+
+// returns false if extension is off or current url matches blocklist / not in allowlist
 function isAllowedOnThisPage() {
     if (currentSettings.mode === 'off') return false;
 
@@ -124,26 +97,29 @@ function isAllowedOnThisPage() {
     try { domain = new URL(currentUrl).hostname; } catch (e) {}
 
     if (currentSettings.mode === 'blocklist') {
+        // allowed unless current url matches any pattern in the blocklist
         return !(currentSettings.blocklist || []).some(p => {
             if (!p) return false;
             return domain.includes(p) || currentUrl.includes(p);
         });
     }
+    // allowlist mode: only allowed if url matches something in the list
     return (currentSettings.allowlist || []).some(p => {
         if (!p) return false;
         return domain.includes(p) || currentUrl.includes(p);
     });
 }
 
-// ─── Document event listeners ───────────────────────────────────────────────────
+// ── document event listeners ─────────────────────────────────────────────────────
+// passive:true for perf — we never call preventDefault in mouseover/out/move
 document.addEventListener('mouseover', handleMouseOver, { passive: true });
 document.addEventListener('mouseout', handleMouseOut, { passive: true });
 document.addEventListener('mousemove', handleMouseMove, { passive: true });
 
 document.addEventListener('mousedown', () => { isMouseDown = true; }, { passive: true });
-document.addEventListener('mouseup', () => { 
-    isMouseDown = false; 
-    // If cursor ended up outside preview and trigger after selection, hide it
+document.addEventListener('mouseup', () => {
+    isMouseDown = false;
+    // after text selection drag ends: if cursor landed outside preview, hide it
     if (isPdfMode && previewContainer && previewContainer.classList.contains('visible')) {
         const r = previewContainer.getBoundingClientRect();
         const overPreview = lastMouseX >= r.left && lastMouseX <= r.right &&
@@ -155,13 +131,18 @@ document.addEventListener('mouseup', () => {
     }
 }, { passive: true });
 
-// ─── Init ─────────────────────────────────────────────────────────────────────
+// ── init ─────────────────────────────────────────────────────────────────────────
+
+// separate from boot because we dont want key listeners until settings are loaded
 function init() {
     document.addEventListener('keydown',    handleKeyDown);
     document.addEventListener('keyup',      handleKeyUp);
 }
 
-// ─── Container ────────────────────────────────────────────────────────────────
+// ── container ─────────────────────────────────────────────────────────────────────
+
+// creates the floating preview container once and appends to body
+// subsequent calls are no-ops (idempotent)
 function createPreviewContainer() {
     if (previewContainer) return;
 
@@ -175,7 +156,7 @@ function createPreviewContainer() {
 
     previewCanvas = document.createElement('canvas');
     previewCanvas.id = 'interactive-preview-canvas';
-    previewCanvas.style.display = 'none';
+    previewCanvas.style.display = 'none'; // hidden by default, only shown in pdf mode
 
     previewContainer.appendChild(infoBar);
     previewContainer.appendChild(previewImg);
@@ -183,9 +164,11 @@ function createPreviewContainer() {
     document.body.appendChild(previewContainer);
 }
 
-// ─── Preview dispatcher ───────────────────────────────────────────────────────
+// ── preview dispatcher ────────────────────────────────────────────────────────────
+
+// routes to image or pdf preview based on url type
 function showPreview(src, x, y) {
-    if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+    if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; } // cancel any pending hide
     if (isPdfUrl(src)) {
         showPdfPreview(src, x, y);
     } else {
@@ -193,7 +176,8 @@ function showPreview(src, x, y) {
     }
 }
 
-// ─── Hide & position ──────────────────────────────────────────────────────────
+// ── hide & position ───────────────────────────────────────────────────────────────
+
 function hidePreview() {
     if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
     cancelPdfTask();
@@ -202,9 +186,10 @@ function hidePreview() {
     if (previewContainer) {
         previewContainer.classList.remove('visible', 'pdf-loading', 'pdf-error');
         previewContainer.style.width = '';
-        previewContainer.style.pointerEvents = '';
+        previewContainer.style.pointerEvents = ''; // reset so overlay doesnt block page interaction
     }
     if (previewImg) {
+        // clear handlers and src to stop any in-flight img load
         previewImg.onload = null;
         previewImg.onerror = null;
         previewImg.src = '';
@@ -215,29 +200,26 @@ function hidePreview() {
     }
 }
 
-/**
- * Schedule a hide with a short delay.
- * Used in PDF mode so cursor has time to reach the preview container.
- * If cursor lands on preview bounds, the hide is cancelled by handleMouseMove.
- */
+// deferred hide used in pdf mode — gives cursor time to travel from link to preview container
+// if cursor reaches preview within 120ms, the hide is cancelled by handleMouseMove
 function scheduleHide() {
     if (hideTimer) clearTimeout(hideTimer);
     hideTimer = setTimeout(() => {
         hideTimer = null;
-        // If cursor ended up over preview — keep showing
+        // double-check: if cursor is over preview by now, keep showing
         if (previewContainer && previewContainer.classList.contains('visible') && isPdfMode) {
             const r = previewContainer.getBoundingClientRect();
             if (lastMouseX >= r.left && lastMouseX <= r.right &&
                 lastMouseY >= r.top  && lastMouseY <= r.bottom) return;
         }
         hidePreview();
-    }, 120);
+    }, 120); // 120ms feels right — not too slow, not too snappy
 }
 
+// position preview near cursor, flip to opposite side if it would overflow viewport
 function updatePosition(x, y) {
     if (!previewContainer) return;
-    // For PDF, we want the preview EXACTLY under the mouse so the user can scroll instantly
-    // For images, we keep the 20px offset so the cursor doesn't block the image
+    // pdf stays put (user needs to scroll it), img follows cursor with offset so cursor doesnt cover content
     const offset = isPdfMode ? 0 : 20;
     const rect   = previewContainer.getBoundingClientRect();
     const vw     = window.innerWidth;
@@ -245,8 +227,10 @@ function updatePosition(x, y) {
 
     let left = x + offset;
     let top  = y + offset;
+    // flip if overflowing right or bottom
     if (left + rect.width  > vw) left = x - rect.width  - offset;
     if (top  + rect.height > vh) top  = y - rect.height - offset;
+    // clamp to min 10px from edges
     if (left < 10) left = 10;
     if (top  < 10) top  = 10;
 
@@ -254,11 +238,13 @@ function updatePosition(x, y) {
     previewContainer.style.top  = `${top}px`;
 }
 
-// ─── Event handlers ───────────────────────────────────────────────────────────
+// ── event handlers ────────────────────────────────────────────────────────────────
+
 function handleMouseOver(e) {
     if (!isAllowedOnThisPage()) return;
     const mods = currentSettings.settings.triggerModifiers || { shift: false, ctrl: false, alt: false };
-    
+
+    // if modifiers are configured, check they're held — dont show preview otherwise
     if (mods.shift && !e.shiftKey) return;
     if (mods.ctrl && !e.ctrlKey && !e.metaKey) return;
     if (mods.alt && !e.altKey) return;
@@ -266,7 +252,8 @@ function handleMouseOver(e) {
     const src = findImageSrc(e.target, e.clientX, e.clientY);
     if (src) {
         if (hoverTimeout) clearTimeout(hoverTimeout);
-        // If NO modifiers are required, use delay. If any modifier is required, delay is 0.
+        // with no modifier required: use delay (prevents accidental hover spam)
+        // with modifier: delay is 0 — user explicitly triggered, show instantly
         const noModsRequired = !mods.shift && !mods.ctrl && !mods.alt;
         const delay = noModsRequired ? currentSettings.settings.delay : 0;
         const x = e.clientX, y = e.clientY;
@@ -276,10 +263,10 @@ function handleMouseOver(e) {
 
 function handleMouseOut(e) {
     if (isPreviewTrigger(e.target)) {
-        if (hoverTimeout) clearTimeout(hoverTimeout);
+        if (hoverTimeout) clearTimeout(hoverTimeout); // cancel pending show
         if (isPdfMode) {
-            // PDF: deferred hide — give cursor time to reach the preview container
-            // Don't hide if user is actively dragging to select text
+            // pdf: dont hide instantly — user needs time to move cursor onto the preview itself
+            // but dont schedule hide if they're in the middle of text selection
             if (!isMouseDown) scheduleHide();
         } else {
             hidePreview();
@@ -293,7 +280,7 @@ function handleMouseMove(e) {
 
     const isVisible = previewContainer && previewContainer.classList.contains('visible');
 
-    // If waiting for delay to show preview, check if we moved off the trigger
+    // if preview hasnt shown yet but timer is running: cancel if cursor left the trigger area
     if (hoverTimeout && !isVisible) {
         const el = document.elementFromPoint(e.clientX, e.clientY);
         if (!el || !isPreviewTrigger(el, e.clientX, e.clientY)) {
@@ -304,32 +291,31 @@ function handleMouseMove(e) {
 
     if (!isVisible) return;
 
+    // if modifier was released while preview is showing, hide immediately
     const mods = currentSettings.settings.triggerModifiers || { shift: false, ctrl: false, alt: false };
     if (mods.shift && !e.shiftKey) { hidePreview(); return; }
     if (mods.ctrl && !e.ctrlKey && !e.metaKey) { hidePreview(); return; }
     if (mods.alt && !e.altKey) { hidePreview(); return; }
 
     if (isPdfMode) {
-        // PDF preview is LOCKED — does not follow cursor
+        // pdf preview is LOCKED IN PLACE — doesnt follow cursor
         const r = previewContainer.getBoundingClientRect();
         const overPreview = e.clientX >= r.left && e.clientX <= r.right &&
                             e.clientY >= r.top  && e.clientY <= r.bottom;
 
         if (overPreview) {
-            // Cursor is on preview — cancel any scheduled hide
+            // cursor is on the preview box — cancel any scheduled hide
             if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
         } else {
-            // Cursor left preview — hide only if also not over a trigger element
-            // elementFromPoint ignores pointer-events:none, so it sees what's "behind" preview
+            // cursor left preview area — hide unless its still over a trigger element
             const el = document.elementFromPoint(e.clientX, e.clientY);
             if (!el || !isPreviewTrigger(el, e.clientX, e.clientY)) {
-                // Don't hide if user is actively dragging to select text
-                if (!isMouseDown) hidePreview();
+                if (!isMouseDown) hidePreview(); // dont hide during text selection drag
             }
         }
-        // Do NOT call updatePosition — preview stays put
+        // no position update for pdf — it stays where it opened
     } else {
-        // For Image mode, instantly hide if cursor moved off the trigger bounds
+        // image mode: follow cursor, hide if cursor left the trigger element
         const el = document.elementFromPoint(e.clientX, e.clientY);
         if (!el || !isPreviewTrigger(el, e.clientX, e.clientY)) {
             hidePreview();
@@ -342,22 +328,24 @@ function handleMouseMove(e) {
 function handleKeyDown(e) {
     if (!isAllowedOnThisPage()) return;
     const mods = currentSettings.settings.triggerModifiers || { shift: false, ctrl: false, alt: false };
-    
-    // Check if ALL required modifiers are currently pressed (or about to be pressed by this event)
+
+    // figure out which keys are pressed (including the one being pressed right now)
     const shiftPressed = e.key === 'Shift' || e.shiftKey;
     const ctrlPressed = e.key === 'Control' || e.key === 'Meta' || e.ctrlKey || e.metaKey;
     const altPressed = e.key === 'Alt' || e.altKey;
-    
+
+    // all required modifiers must be satisfied
     if (mods.shift && !shiftPressed) return;
     if (mods.ctrl && !ctrlPressed) return;
     if (mods.alt && !altPressed) return;
-    
-    // Only trigger if at least one modifier was required and was just pressed
+
+    // dont trigger keydown if no modifiers are configured — mouseover handles that case
     const noModsRequired = !mods.shift && !mods.ctrl && !mods.alt;
-    if (noModsRequired) return; 
+    if (noModsRequired) return;
 
-    if (previewContainer && previewContainer.classList.contains('visible')) return;
+    if (previewContainer && previewContainer.classList.contains('visible')) return; // already showing
 
+    // show preview for whatever element is under cursor right now
     const el  = document.elementFromPoint(lastMouseX, lastMouseY);
     if (!el) return;
     const src = findImageSrc(el, lastMouseX, lastMouseY);
@@ -369,10 +357,12 @@ function handleKeyDown(e) {
 
 function handleKeyUp(e) {
     const mods = currentSettings.settings.triggerModifiers || { shift: false, ctrl: false, alt: false };
+    // check if one of the required modifier keys was just released
     const isShiftRelease = mods.shift && e.key === 'Shift';
     const isCtrlRelease  = mods.ctrl && (e.key === 'Control' || e.key === 'Meta');
     const isAltRelease   = mods.alt && e.key === 'Alt';
-    
+
+    // if a required key was released, hide the preview immediately
     if (isShiftRelease || isCtrlRelease || isAltRelease) {
         if (hoverTimeout) clearTimeout(hoverTimeout);
         hidePreview();

@@ -1,9 +1,9 @@
-/**
- * Background Service Worker
- * Fetches PDF data on behalf of content scripts, bypassing CORS restrictions.
- * Extensions with host_permissions can fetch cross-origin resources freely.
- */
+// bg service worker — only job is fetching PDFs for content scripts
+// content scripts cant do cross-origin fetch themselves (CORS blocks it),
+// but extensions with host_permissions can, so we proxy it thru here
+
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    // ignore anything thats not our fetch request
     if (msg.type !== 'FETCH_PDF') return false;
 
     const url = msg.url;
@@ -12,18 +12,21 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     fetch(url)
         .then(res => {
             if (!res.ok) throw new Error(`HTTP error: ${res.status} ${res.statusText}`);
+            // need arraybuffer to pass raw bytes to pdfjs
             return res.arrayBuffer();
         })
         .then(buffer => {
-            // Convert ArrayBuffer to plain Array so it can be JSON-serialized
-            // through the message channel
+            // cant send arraybuffer thru message channel directly, gotta convert to plain array
+            // ugly but works, json serializes it fine
             const uint8 = Array.from(new Uint8Array(buffer));
             sendResponse({ success: true, data: uint8 });
         })
         .catch(err => {
+            // log + send error back so content script can show err state
             console.warn('[Interactive-Previews BG] Fetch failed:', err.message);
             sendResponse({ success: false, error: err.message });
         });
 
-    return true; // Keep the message channel open for async sendResponse
+    // IMPORTANT: must return true here or the channel closes before async sendResponse fires
+    return true;
 });

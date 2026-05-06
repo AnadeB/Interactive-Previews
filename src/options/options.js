@@ -50,14 +50,14 @@ const defaultSettings = {
 // ===== UI Elements =====
 const els = {
     tabOff: document.getElementById('mode-off'),
-    tabBlocklist: document.getElementById('mode-blacklist'),
-    tabAllowlist: document.getElementById('mode-whitelist'),
+    tabBlocklist: document.getElementById('mode-blocklist'),
+    tabAllowlist: document.getElementById('mode-allowlist'),
     tabBar: document.querySelector('.tab-bar'),
-    blocklistContainer: document.getElementById('blacklist-container'),
-    allowlistContainer: document.getElementById('whitelist-container'),
+    blocklistContainer: document.getElementById('blocklist-container'),
+    allowlistContainer: document.getElementById('allowlist-container'),
     offContainer: document.getElementById('off-container'),
-    blocklist: document.getElementById('blacklist'),
-    allowlist: document.getElementById('whitelist'),
+    blocklist: document.getElementById('blocklist'),
+    allowlist: document.getElementById('allowlist'),
 
     delay: document.getElementById('delay'),
     triggerShift: document.getElementById('triggerShift'),
@@ -381,18 +381,9 @@ const restoreOptions = () => {
             return;
         }
 
-        // Handle backward compatibility / migration
-        let loadedMode = items.mode;
-        let loadedBlocklist = items.blocklist || [];
-        let loadedAllowlist = items.allowlist || [];
-        
-        if (items.mode === 'blacklist') {
-            loadedMode = 'blocklist';
-            loadedBlocklist = items.blacklist || items.blocklist || [];
-        } else if (items.mode === 'whitelist') {
-            loadedMode = 'allowlist';
-            loadedAllowlist = items.whitelist || items.allowlist || [];
-        }
+        const loadedMode = items.mode || 'blocklist';
+        const loadedBlocklist = items.blocklist || [];
+        const loadedAllowlist = items.allowlist || [];
 
         // Mode Tabs
         els.tabOff.classList.toggle('active', loadedMode === 'off');
@@ -409,17 +400,8 @@ const restoreOptions = () => {
         const ds = { ...defaultSettings.settings.deepSearch, ...(items.settings.deepSearch || {}) };
         const af = { ...defaultSettings.settings.allowedFileTypes, ...(items.settings.allowedFileTypes || {}) };
 
-        // Triggers
-        let tMods = s.triggerModifiers;
-        // Migration from old triggerModifier
-        if (s.triggerModifier && typeof s.triggerModifier === 'string') {
-            tMods = { shift: false, ctrl: false, alt: false };
-            if (s.triggerModifier === 'shift') tMods.shift = true;
-            if (s.triggerModifier === 'ctrl') tMods.ctrl = true;
-        } else if (!tMods) {
-            tMods = { shift: false, ctrl: false, alt: false };
-        }
-        
+        let tMods = s.triggerModifiers || { shift: false, ctrl: false, alt: false };
+
         els.triggerShift.checked = !!tMods.shift;
         els.triggerCtrl.checked = !!tMods.ctrl;
         els.triggerAlt.checked = !!tMods.alt;
@@ -443,17 +425,9 @@ const restoreOptions = () => {
             r.checked = r.value === ib.position;
         });
 
-        // Populate drag lists
-        let shownItems = ib.shownItems || [...DEFAULT_INFOBAR_ORDER];
-        let hiddenItems = ib.hiddenItems || [];
-
-        const allKnown = INFO_ITEMS.map(i => i.id);
-        const allPresent = [...shownItems, ...hiddenItems];
-        allKnown.forEach(id => {
-            if (!allPresent.includes(id)) shownItems.push(id);
-        });
-        shownItems = shownItems.filter(id => allKnown.includes(id));
-        hiddenItems = hiddenItems.filter(id => allKnown.includes(id));
+        // filter out any unknown ids in case items were removed in a future version
+        let shownItems = (ib.shownItems || [...DEFAULT_INFOBAR_ORDER]).filter(id => allKnown.includes(id));
+        let hiddenItems = (ib.hiddenItems || []).filter(id => allKnown.includes(id));
 
         populateDragLists(shownItems, hiddenItems);
 
