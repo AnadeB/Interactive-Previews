@@ -10,9 +10,13 @@ This repository contains the source code and documentation for my **Bachelor The
 **Interactive Previews** is a modern browser extension designed to increase web browsing efficiency. Instead of constantly clicking links to view images or download PDF files, this extension allows you to instantly preview them by simply hovering your mouse cursor over the link.
 
 ### Features
-* 🖼️ **Instant Image Previews**: Automatically finds and displays the highest resolution image available using `srcset` and `sizes`.
+* 🖼️ **Instant Image Previews**: Automatically finds and displays the highest resolution image available using `srcset` and `sizes`. Supports various formats (JPG, PNG, GIF, WebP, SVG, AVIF, BMP, ICO, TIFF).
 * 📄 **Native PDF Rendering**: Integrated `PDF.js` library allows rendering multi-page PDF documents securely without downloading them locally.
-* ⚙️ **Granular Control**: Use the Options page to enable or disable the extension on specific domains (Blocklist/Allowlist) with full Regular Expression (Regex) support.
+* ℹ️ **Customizable Info Bar**: Displays metadata like image dimensions, file size, MIME type, and PDF page counts, with fully configurable visibility and ordering.
+* ⚙️ **Granular Control**: 
+  * Master toggles to independently enable/disable Image or PDF previews.
+  * Smart Triggers: Configure hover delays or require modifier keys (Shift, Ctrl, Alt).
+  * Enable or disable the extension on specific domains (Blocklist/Allowlist) with full Regular Expression (Regex) support.
 * 🚀 **Performance Optimized**: Built with Manifest V3, utilizing Service Workers and asynchronous Fetch API.
 
 ## 📥 Installation
@@ -33,7 +37,7 @@ This extension is currently in development and can be installed manually (unpack
 4. Navigate to the `src` folder and select the `manifest.json` file.
 5. The extension will be loaded temporarily (it will be removed when you restart Firefox).
 
-## 📚 Thesis Documentation (PDF)
+## 📚 Thesis Documentation
 
 The full text of the bachelor thesis, written in Czech, including theoretical background, architecture design, and testing results, can be found here:
 

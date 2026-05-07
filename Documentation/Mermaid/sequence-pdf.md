@@ -20,7 +20,7 @@ sequenceDiagram
         CS->>SW: sendMessage({type: 'FETCH_PDF', url: '...'})
         activate SW
         SW->>Net: Fetch API požadavek (GET)
-        Net-->>SW: Odpověď (ArrayBuffer hlavičky PDF)
+        Net-->>SW: Odpověď (ArrayBuffer dokumentu)
         SW-->>CS: sendResponse({data: ArrayBuffer})
         deactivate SW
         
@@ -30,7 +30,7 @@ sequenceDiagram
         PDF-->>CS: Vykreslení na <canvas>
         deactivate PDF
         
-        CS->>DOM: Vložení <canvas> do Info Baru a skrytí loaderu
+        CS->>DOM: Vložení <canvas> do náhledového kontejneru a skrytí loaderu
         User-->>DOM: Vidí náhled dokumentu
     end
 ```

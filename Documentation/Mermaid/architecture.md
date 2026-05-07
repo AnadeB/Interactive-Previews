@@ -2,14 +2,14 @@
 graph TD
     subgraph Web_Page
         DOM[DOM - Odkazy, Obrázky]
-        CS[Content Script - preview-pdf.js, info-bar.js]
+        CS[Content Script - Detekce a Vykreslování]
         DOM -->|mouseover event| CS
     end
 
     subgraph Browser_Extension_Context
         SW[Service Worker - Background Script]
         POP[Popup UI - Rychlé přepínání]
-        OPT[Options UI - Pravidla domén]
+        OPT[Options UI - Konfigurace rozšíření]
         STOR[(chrome.storage)]
         
         CS <-->|Message Passing| SW
