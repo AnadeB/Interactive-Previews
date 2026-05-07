@@ -6,9 +6,11 @@ const defaultSettings = {
     settings: {
         delay: 500,
         triggerModifiers: { shift: false, ctrl: false, alt: false },
-        sizeMode: 'original',
-        originalFitToScreen: true,
-        customSize: 512,
+        imageSizeMode: 'original',
+        imageOriginalFitToScreen: true,
+        imageCustomSize: 512,
+        pdfSizeMode: 'viewport',
+        pdfCustomSize: 512,
         pdfScrollMode: 'pages',
         infoBar: {
             enabled: false,
@@ -18,14 +20,15 @@ const defaultSettings = {
         },
         allowedFileTypes: {
             jpg: true, png: true, gif: true, webp: true, svg: true,
-            avif: true, bmp: true, ico: true, tiff: true, pdf: true
+            avif: true, bmp: true, ico: true, tiff: true
         },
         deepSearch: {
             searchInside: true,
             cssBackgrounds: true,
-            imageLinkHrefs: true,
-            pdfEnabled: true
-        }
+            imageLinkHrefs: true
+        },
+        imagePreviewsEnabled: true,
+        pdfPreviewsEnabled: true
     }
 };
 

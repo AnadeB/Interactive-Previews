@@ -72,8 +72,9 @@
       <h2>Trigger</h2>
 
       <div class="radio-group vertical">
-        <p class="description-text" style="margin-bottom: 10px;">Select which keys must be held down to trigger the preview. If none are selected, it will trigger just on mouse hover.</p>
-        
+        <p class="description-text" style="margin-bottom: 10px;">Select which keys must be held down to trigger the
+          preview. If none are selected, it will trigger just on mouse hover.</p>
+
         <div class="option-group">
           <label>
             <input type="checkbox" id="triggerShift"> Require <strong>Shift</strong>
@@ -103,63 +104,137 @@
       </div>
     </section>
 
-    <!-- Preview Sizing -->
+
+
+    <!-- Image Previews -->
     <section class="settings-section dark-section">
-      <h2>Preview Sizing</h2>
-      <div class="radio-group vertical">
+      <h2 class="section-title-toggle">
+        <label><input type="checkbox" id="imagePreviewsEnabled"> Image Previews</label>
+      </h2>
 
-        <!-- Original Size -->
+      <div id="image-suboptions">
         <div class="option-group">
-          <label>
-            <input type="radio" name="sizeMode" value="original" checked>
-            <strong>Original Size</strong>
-          </label>
-          <div class="sub-option" id="sub-original">
+          <label class="sub-label" style="display:block; margin-bottom:10px;">Supported File Types:</label>
+          <div class="sub-option-list file-types-grid"
+            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px;">
+            <label><input type="checkbox" id="typeJpg" checked> JPG / JPEG</label>
+            <label><input type="checkbox" id="typePng" checked> PNG</label>
+            <label><input type="checkbox" id="typeGif" checked> GIF</label>
+            <label><input type="checkbox" id="typeWebp" checked> WEBP</label>
+            <label><input type="checkbox" id="typeSvg" checked> SVG</label>
+            <label><input type="checkbox" id="typeAvif" checked> AVIF</label>
+            <label><input type="checkbox" id="typeBmp" checked> BMP</label>
+            <label><input type="checkbox" id="typeIco" checked> ICO</label>
+            <label><input type="checkbox" id="typeTiff" checked> TIFF</label>
+          </div>
+        </div>
+
+        <div class="option-group" style="margin-top: 20px;">
+          <label class="sub-label" style="display:block; margin-bottom:10px;">Content Detection:</label>
+          <div class="sub-option-list">
+            <label><input type="checkbox" checked disabled> Detect <code>&lt;img&gt;</code> tags</label>
+            <label><input type="checkbox" id="deepSearchInside" checked> Search inside container elements</label>
+            <label><input type="checkbox" id="deepSearchCssBackgrounds" checked> CSS background images</label>
+            <label><input type="checkbox" id="deepSearchImageLinks" checked> Links (<code>&lt;a href&gt;</code>) to
+              images</label>
+          </div>
+        </div>
+
+        <div class="radio-group vertical" style="margin-top: 20px;">
+          <label class="sub-label" style="display:block; margin-bottom:10px;">Preview Sizing:</label>
+          <!-- Original Size -->
+          <div class="option-group">
             <label>
-              <input type="checkbox" id="originalFitToScreen" checked>
-              Fit to screen if image is larger than viewport
+              <input type="radio" name="imageSizeMode" value="original" checked>
+              <strong>Original Size</strong>
             </label>
+            <div class="sub-option" id="sub-image-original">
+              <label>
+                <input type="checkbox" id="imageOriginalFitToScreen" checked>
+                Fit to screen if image is larger than viewport
+              </label>
+            </div>
+          </div>
+
+          <!-- Viewport Fit -->
+          <div class="option-group">
+            <label>
+              <input type="radio" name="imageSizeMode" value="viewport">
+              <strong>Always Fit to Screen</strong>
+            </label>
+            <div class="sub-option description-text">
+              Stretch or shrink to fill the viewport as much as possible.
+            </div>
+          </div>
+
+          <!-- Custom Size -->
+          <div class="option-group">
+            <label>
+              <input type="radio" name="imageSizeMode" value="custom">
+              <strong>Custom Size</strong>
+            </label>
+            <div class="sub-option description-text">
+              Stretch or shrink to make longest side equal to this value:
+            </div>
+            <div class="sub-option" id="sub-image-custom">
+              <input type="number" id="imageCustomSize" min="50" step="10" value="512"> px
+            </div>
           </div>
         </div>
+      </div>
+    </section>
 
-        <!-- Viewport Fit -->
+    <!-- PDF Previews -->
+    <section class="settings-section dark-section">
+      <h2 class="section-title-toggle">
+        <label><input type="checkbox" id="pdfPreviewsEnabled"> PDF Previews</label>
+      </h2>
+
+      <div id="pdf-suboptions">
         <div class="option-group">
-          <label>
-            <input type="radio" name="sizeMode" value="viewport">
-            <strong>Always Fit to Screen</strong>
-          </label>
-          <div class="sub-option description-text">
-            Stretch or shrink to fill the viewport as much as possible.
+          <label class="sub-label" style="display:block; margin-bottom:10px;">PDF Navigation Mode:</label>
+          <div class="radio-group vertical" style="margin-left: 28px;">
+            <label><input type="radio" name="pdfScrollMode" value="pages" checked> Single page (scroll to flip)</label>
+            <label><input type="radio" name="pdfScrollMode" value="vertical"> Continuous vertical scroll</label>
           </div>
         </div>
 
-        <!-- Custom Size -->
-        <div class="option-group">
-          <label>
-            <input type="radio" name="sizeMode" value="custom">
-            <strong>Custom Size</strong>
-          </label>
-          <div class="sub-option description-text">
-            Stretch or shrink to make longest side equal to this value:
+        <div class="radio-group vertical" style="margin-top: 20px;">
+          <label class="sub-label" style="display:block; margin-bottom:10px;">Preview Sizing:</label>
+
+          <!-- Viewport Fit -->
+          <div class="option-group">
+            <label>
+              <input type="radio" name="pdfSizeMode" value="viewport" checked>
+              <strong>Always Fit to Screen</strong>
+            </label>
+            <div class="sub-option description-text">
+              Stretch or shrink to fill the viewport as much as possible.
+            </div>
           </div>
-          <div class="sub-option" id="sub-custom">
-            <input type="number" id="customSize" min="50" step="10" value="512"> px
+
+          <!-- Custom Size -->
+          <div class="option-group">
+            <label>
+              <input type="radio" name="pdfSizeMode" value="custom">
+              <strong>Custom Width</strong>
+            </label>
+            <div class="sub-option description-text">
+              Set a specific width for the PDF preview:
+            </div>
+            <div class="sub-option" id="sub-pdf-custom">
+              <input type="number" id="pdfCustomSize" min="100" step="10" value="512"> px
+            </div>
           </div>
         </div>
-
       </div>
     </section>
 
     <!-- Info Bar -->
     <section class="settings-section dark-section">
-      <h2>Info Bar</h2>
-
-      <div class="option-group">
-        <label>
-          <input type="checkbox" id="infoBarEnabled">
-          <strong>Enable Info Bar</strong>
-        </label>
-      </div>
+      <h2 class="section-title-toggle">
+        <label><input type="checkbox" id="infoBarEnabled"> Info Bar</label>
+      </h2>
 
       <div id="infobar-suboptions">
         <div class="option-group" style="margin-top: 10px;">
@@ -193,45 +268,6 @@
       </div>
     </section>
 
-    <!-- Supported File Types -->
-    <section class="settings-section dark-section">
-      <h2>Supported File Types</h2>
-      <div class="option-group">
-        <p class="description-text" style="margin-bottom: 10px;">Select which file types should trigger a preview.</p>
-        <div class="sub-option-list file-types-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px;">
-          <label><input type="checkbox" id="typeJpg" checked> JPG / JPEG</label>
-          <label><input type="checkbox" id="typePng" checked> PNG</label>
-          <label><input type="checkbox" id="typeGif" checked> GIF</label>
-          <label><input type="checkbox" id="typeWebp" checked> WEBP</label>
-          <label><input type="checkbox" id="typeSvg" checked> SVG</label>
-          <label><input type="checkbox" id="typeAvif" checked> AVIF</label>
-          <label><input type="checkbox" id="typeBmp" checked> BMP</label>
-          <label><input type="checkbox" id="typeIco" checked> ICO</label>
-          <label><input type="checkbox" id="typeTiff" checked> TIFF</label>
-          <label><input type="checkbox" id="typePdf" checked> PDF</label>
-        </div>
-      </div>
-    </section>
-
-    <!-- Content Detection -->
-    <section class="settings-section dark-section">
-      <h2>Content Detection</h2>
-      <div class="option-group">
-        <div class="sub-option-list">
-          <label><input type="checkbox" checked disabled> Detect <code>&lt;img&gt;</code> tags</label>
-          <label><input type="checkbox" id="deepSearchInside" checked> Search inside container elements</label>
-          <label><input type="checkbox" id="deepSearchCssBackgrounds" checked> CSS background images</label>
-          <label><input type="checkbox" id="deepSearchImageLinks" checked> Links (<code>&lt;a href&gt;</code>) to images</label>
-          <label><input type="checkbox" id="deepSearchPdfEnabled" checked> Links to <strong>PDF</strong> documents</label>
-          <div class="sub-option" id="sub-pdfMode">
-            <label class="sub-label" style="display:block; margin-bottom:5px;">PDF Navigation Mode:</label>
-            <label><input type="radio" name="pdfScrollMode" value="pages" checked> Single page (scroll to flip)</label><br>
-            <label><input type="radio" name="pdfScrollMode" value="vertical"> Continuous vertical scroll</label>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- Appearance -->
     <section class="settings-section dark-section">
       <h2>Appearance</h2>
@@ -254,7 +290,16 @@
       </div>
     </section>
 
-    <script src="options.js"></script>
+    <footer class="options-footer">
+      <span>© 2026 Interactive Previews by </span>
+      <span><a href="http://timvoronkin.github.io/" class="accent" target="_blank">Tim Voronkin</a></span>
+      <p><a href="https://github.com/TimVoronkin/Interactive-Previews" class="accent" target="_blank">Source Code on
+          GitHub</a></p>
+    </footer>
+
+  </div>
+
+  <script src="options.js"></script>
 </body>
 
 </html>

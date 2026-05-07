@@ -62,20 +62,18 @@ function handlePdfWheel(e) {
 
 // calculate render scale based on user's size setting and actual page dimensions
 function getPdfRenderScale(pageWidth, pageHeight) {
-    const { sizeMode, originalFitToScreen, customSize } = currentSettings.settings;
+    const { pdfSizeMode: sizeMode, pdfCustomSize: customSize } = currentSettings.settings;
     const vw = window.innerWidth, vh = window.innerHeight, pad = 40;
     let scale = 1.0;
 
-    if (sizeMode === 'original') {
-        // clamp to screen if user wants, else 1:1
-        if (originalFitToScreen) scale = Math.min(1.0, (vw-pad)/pageWidth, (vh-pad)/pageHeight);
-    } else if (sizeMode === 'viewport') {
-        // fill as much screen as possible without overflow
-        scale = Math.min((vw-pad)/pageWidth, (vh-pad)/pageHeight);
-    } else if (sizeMode === 'custom') {
+    if (sizeMode === 'custom') {
         // fit longest side to user-defined px
         const max = customSize || 512;
         scale = pageWidth >= pageHeight ? max / pageWidth : max / pageHeight;
+    } else {
+        // viewport mode (default)
+        // fill as much screen as possible without overflow
+        scale = Math.min((vw-pad)/pageWidth, (vh-pad)/pageHeight);
     }
 
     return Math.max(scale, 0.1); // never go below 0.1, otherwise canvas gets invisible

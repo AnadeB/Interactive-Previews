@@ -45,31 +45,34 @@ function formatFileSize(bytes) {
 function isFileTypeAllowed(url) {
     if (typeof url !== 'string') return false;
 
+    const imgEnabled = currentSettings.settings?.imagePreviewsEnabled !== false;
+    const pdfEnabled = currentSettings.settings?.pdfPreviewsEnabled !== false;
+
     // data/blob urls dont have extensions, allow them if img is generally on
     if (url.startsWith('data:image/') || url.startsWith('blob:')) {
-        const allowed = currentSettings.settings?.allowedFileTypes || {};
-        return allowed.jpg !== false || allowed.png !== false || allowed.webp !== false;
+        return imgEnabled;
     }
 
     const { fileExt } = extractFileInfo(url);
     // if we cant figure out the ext, just let it through — better false positive than missing previews
-    if (!fileExt) return true;
+    // assuming it's an image if image previews are enabled
+    if (!fileExt) return imgEnabled;
 
     const ext = fileExt.toLowerCase();
     const allowed = currentSettings.settings?.allowedFileTypes || {};
 
-    if (ext === 'jpg' || ext === 'jpeg') return allowed.jpg !== false;
-    if (ext === 'png') return allowed.png !== false;
-    if (ext === 'gif') return allowed.gif !== false;
-    if (ext === 'webp') return allowed.webp !== false;
-    if (ext === 'svg') return allowed.svg !== false;
-    if (ext === 'avif') return allowed.avif !== false;
-    if (ext === 'bmp') return allowed.bmp !== false;
-    if (ext === 'ico') return allowed.ico !== false;
-    if (ext === 'tiff' || ext === 'tif') return allowed.tiff !== false;
-    if (ext === 'pdf') return allowed.pdf !== false;
+    if (ext === 'jpg' || ext === 'jpeg') return imgEnabled && allowed.jpg !== false;
+    if (ext === 'png') return imgEnabled && allowed.png !== false;
+    if (ext === 'gif') return imgEnabled && allowed.gif !== false;
+    if (ext === 'webp') return imgEnabled && allowed.webp !== false;
+    if (ext === 'svg') return imgEnabled && allowed.svg !== false;
+    if (ext === 'avif') return imgEnabled && allowed.avif !== false;
+    if (ext === 'bmp') return imgEnabled && allowed.bmp !== false;
+    if (ext === 'ico') return imgEnabled && allowed.ico !== false;
+    if (ext === 'tiff' || ext === 'tif') return imgEnabled && allowed.tiff !== false;
+    if (ext === 'pdf') return pdfEnabled;
 
-    return true; // unknown ext → let it thru
+    return imgEnabled; // unknown ext → let it thru as image
 }
 
 // greatest common divisor, used for aspect ratio calc
@@ -122,18 +125,23 @@ function getBestSrcset(srcset, baseURI) {
 function findImageSrc(target, x, y) {
     if (!target || target.nodeType !== 1) return null; // not an element node, bail
 
-    const ds = currentSettings.settings.deepSearch || {};
+    const s = currentSettings.settings || {};
+    const ds = s.deepSearch || {};
+    const imgEnabled = s.imagePreviewsEnabled !== false;
+    const pdfEnabled = s.pdfPreviewsEnabled !== false;
+
+    if (!imgEnabled && !pdfEnabled) return null; // Fast abort if both disabled
 
     // 0. check if img is wrapped in a link to hi-res version — very common pattern on galleries/shops
     const parentA = target.closest('a');
     if (parentA && parentA.href) {
         const href = parentA.href;
-        if (ds.imageLinkHrefs !== false && IMAGE_EXT_RE.test(href) && isFileTypeAllowed(href)) return href;
-        if (ds.pdfEnabled !== false && PDF_EXT_RE.test(href) && isFileTypeAllowed(href)) return href;
+        if (imgEnabled && ds.imageLinkHrefs !== false && IMAGE_EXT_RE.test(href) && isFileTypeAllowed(href)) return href;
+        if (pdfEnabled && PDF_EXT_RE.test(href) && isFileTypeAllowed(href)) return href;
     }
 
     // 1. direct <img> — prefer srcset over src for best resolution
-    if (target.tagName === 'IMG') {
+    if (imgEnabled && target.tagName === 'IMG') {
         if (target.srcset) {
             const bestSrc = getBestSrcset(target.srcset, target.baseURI);
             if (bestSrc && isFileTypeAllowed(bestSrc)) return bestSrc;
@@ -146,23 +154,25 @@ function findImageSrc(target, x, y) {
     // 2. direct <a> pointing to img or pdf
     if (target.tagName === 'A' && target.href) {
         const href = target.href;
-        if (ds.imageLinkHrefs !== false && IMAGE_EXT_RE.test(href) && isFileTypeAllowed(href)) return href;
-        if (ds.pdfEnabled     !== false && PDF_EXT_RE.test(href) && isFileTypeAllowed(href))   return href;
+        if (imgEnabled && ds.imageLinkHrefs !== false && IMAGE_EXT_RE.test(href) && isFileTypeAllowed(href)) return href;
+        if (pdfEnabled && PDF_EXT_RE.test(href) && isFileTypeAllowed(href)) return href;
     }
 
     // 3. search inside container elements
     // only triggers if cursor is literally on top of the found child element (bounding rect check)
     if (ds.searchInside !== false && x !== undefined && y !== undefined) {
-        const images = target.querySelectorAll('img');
-        for (const childImg of images) {
-            const rect = childImg.getBoundingClientRect();
-            if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
-                if (childImg.srcset) {
-                    const bestSrc = getBestSrcset(childImg.srcset, childImg.baseURI);
-                    if (bestSrc && isFileTypeAllowed(bestSrc)) return bestSrc;
+        if (imgEnabled) {
+            const images = target.querySelectorAll('img');
+            for (const childImg of images) {
+                const rect = childImg.getBoundingClientRect();
+                if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+                    if (childImg.srcset) {
+                        const bestSrc = getBestSrcset(childImg.srcset, childImg.baseURI);
+                        if (bestSrc && isFileTypeAllowed(bestSrc)) return bestSrc;
+                    }
+                    const src = childImg.src || childImg.dataset.src;
+                    if (src && isFileTypeAllowed(src)) return src;
                 }
-                const src = childImg.src || childImg.dataset.src;
-                if (src && isFileTypeAllowed(src)) return src;
             }
         }
 
@@ -170,8 +180,8 @@ function findImageSrc(target, x, y) {
         const links = target.querySelectorAll('a[href]');
         for (const childA of links) {
             const href = childA.href;
-            if ((ds.imageLinkHrefs !== false && IMAGE_EXT_RE.test(href) && isFileTypeAllowed(href)) ||
-                (ds.pdfEnabled !== false && PDF_EXT_RE.test(href) && isFileTypeAllowed(href))) {
+            if ((imgEnabled && ds.imageLinkHrefs !== false && IMAGE_EXT_RE.test(href) && isFileTypeAllowed(href)) ||
+                (pdfEnabled && PDF_EXT_RE.test(href) && isFileTypeAllowed(href))) {
                 const rect = childA.getBoundingClientRect();
                 if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
                     return href;
@@ -181,7 +191,7 @@ function findImageSrc(target, x, y) {
     }
 
     // 4. css background-image — grab url() value from computed style
-    if (ds.cssBackgrounds !== false) {
+    if (imgEnabled && ds.cssBackgrounds !== false) {
         const bg = getComputedStyle(target).backgroundImage;
         if (bg && bg !== 'none') {
             const m = bg.match(/url\(["']?(.*?)["']?\)/);
@@ -191,7 +201,7 @@ function findImageSrc(target, x, y) {
 
     // 5. overlay fallback — elementsFromPoint sees thru pointer-events:none overlays
     // catches cases where hover fires on an icon/badge on top of the actual image
-    if (ds.searchInside !== false && x !== undefined && y !== undefined) {
+    if (imgEnabled && ds.searchInside !== false && x !== undefined && y !== undefined) {
         const elementsUnderCursor = document.elementsFromPoint(x, y);
         for (const el of elementsUnderCursor) {
             if (el === target) continue; // already checked above
@@ -220,15 +230,20 @@ function findImageSrc(target, x, y) {
 function isPreviewTrigger(target, x, y) {
     if (!target || target.nodeType !== 1) return false;
 
-    const ds = currentSettings.settings.deepSearch || {};
+    const s = currentSettings.settings || {};
+    const ds = s.deepSearch || {};
+    const imgEnabled = s.imagePreviewsEnabled !== false;
+    const pdfEnabled = s.pdfPreviewsEnabled !== false;
+
+    if (!imgEnabled && !pdfEnabled) return false;
 
     const parentA = target.closest('a');
     if (parentA && parentA.href) {
-        if (ds.imageLinkHrefs !== false && IMAGE_EXT_RE.test(parentA.href) && isFileTypeAllowed(parentA.href)) return true;
-        if (ds.pdfEnabled !== false && PDF_EXT_RE.test(parentA.href) && isFileTypeAllowed(parentA.href)) return true;
+        if (imgEnabled && ds.imageLinkHrefs !== false && IMAGE_EXT_RE.test(parentA.href) && isFileTypeAllowed(parentA.href)) return true;
+        if (pdfEnabled && PDF_EXT_RE.test(parentA.href) && isFileTypeAllowed(parentA.href)) return true;
     }
 
-    if (target.tagName === 'IMG') {
+    if (imgEnabled && target.tagName === 'IMG') {
         if (target.srcset) {
             const bestSrc = getBestSrcset(target.srcset, target.baseURI);
             if (bestSrc && isFileTypeAllowed(bestSrc)) return true;
@@ -238,31 +253,33 @@ function isPreviewTrigger(target, x, y) {
     }
 
     if (target.tagName === 'A' && target.href) {
-        if (ds.imageLinkHrefs !== false && IMAGE_EXT_RE.test(target.href) && isFileTypeAllowed(target.href)) return true;
-        if (ds.pdfEnabled     !== false && PDF_EXT_RE.test(target.href) && isFileTypeAllowed(target.href))   return true;
+        if (imgEnabled && ds.imageLinkHrefs !== false && IMAGE_EXT_RE.test(target.href) && isFileTypeAllowed(target.href)) return true;
+        if (pdfEnabled && PDF_EXT_RE.test(target.href) && isFileTypeAllowed(target.href)) return true;
     }
 
     if (ds.searchInside !== false) {
         if (x !== undefined && y !== undefined) {
             // coord-aware check — only count if cursor actually overlaps the child
-            const images = target.querySelectorAll('img');
-            for (const childImg of images) {
-                const rect = childImg.getBoundingClientRect();
-                if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
-                    if (childImg.srcset) {
-                        const bestSrc = getBestSrcset(childImg.srcset, childImg.baseURI);
-                        if (bestSrc && isFileTypeAllowed(bestSrc)) return true;
+            if (imgEnabled) {
+                const images = target.querySelectorAll('img');
+                for (const childImg of images) {
+                    const rect = childImg.getBoundingClientRect();
+                    if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+                        if (childImg.srcset) {
+                            const bestSrc = getBestSrcset(childImg.srcset, childImg.baseURI);
+                            if (bestSrc && isFileTypeAllowed(bestSrc)) return true;
+                        }
+                        const src = childImg.src || childImg.dataset.src;
+                        if (src && isFileTypeAllowed(src)) return true;
                     }
-                    const src = childImg.src || childImg.dataset.src;
-                    if (src && isFileTypeAllowed(src)) return true;
                 }
             }
 
             const links = target.querySelectorAll('a[href]');
             for (const childA of links) {
                 const href = childA.href;
-                if ((ds.imageLinkHrefs !== false && IMAGE_EXT_RE.test(href) && isFileTypeAllowed(href)) ||
-                    (ds.pdfEnabled !== false && PDF_EXT_RE.test(href) && isFileTypeAllowed(href))) {
+                if ((imgEnabled && ds.imageLinkHrefs !== false && IMAGE_EXT_RE.test(href) && isFileTypeAllowed(href)) ||
+                    (pdfEnabled && PDF_EXT_RE.test(href) && isFileTypeAllowed(href))) {
                     const rect = childA.getBoundingClientRect();
                     if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
                         return true;
@@ -271,24 +288,26 @@ function isPreviewTrigger(target, x, y) {
             }
         } else {
             // no coords — less precise, just check if any child qualifies (used in mouseout path)
-            const childImg = target.querySelector('img');
-            if (childImg) {
-                if (childImg.srcset) {
-                    const bestSrc = getBestSrcset(childImg.srcset, childImg.baseURI);
-                    if (bestSrc && isFileTypeAllowed(bestSrc)) return true;
+            if (imgEnabled) {
+                const childImg = target.querySelector('img');
+                if (childImg) {
+                    if (childImg.srcset) {
+                        const bestSrc = getBestSrcset(childImg.srcset, childImg.baseURI);
+                        if (bestSrc && isFileTypeAllowed(bestSrc)) return true;
+                    }
+                    const src = childImg.src || childImg.dataset.src;
+                    if (src && isFileTypeAllowed(src)) return true;
                 }
-                const src = childImg.src || childImg.dataset.src;
-                if (src && isFileTypeAllowed(src)) return true;
             }
             const childA = target.querySelector('a[href]');
             if (childA && childA.href) {
-                if (ds.imageLinkHrefs !== false && IMAGE_EXT_RE.test(childA.href) && isFileTypeAllowed(childA.href)) return true;
-                if (ds.pdfEnabled     !== false && PDF_EXT_RE.test(childA.href) && isFileTypeAllowed(childA.href))   return true;
+                if (imgEnabled && ds.imageLinkHrefs !== false && IMAGE_EXT_RE.test(childA.href) && isFileTypeAllowed(childA.href)) return true;
+                if (pdfEnabled && PDF_EXT_RE.test(childA.href) && isFileTypeAllowed(childA.href)) return true;
             }
         }
     }
 
-    if (ds.cssBackgrounds !== false) {
+    if (imgEnabled && ds.cssBackgrounds !== false) {
         const bg = getComputedStyle(target).backgroundImage;
         if (bg && bg !== 'none') {
             const m = bg.match(/url\(["']?(.*?)["']?\)/);
@@ -297,7 +316,7 @@ function isPreviewTrigger(target, x, y) {
     }
 
     // same overlay fallback as in findImageSrc
-    if (ds.searchInside !== false && x !== undefined && y !== undefined) {
+    if (imgEnabled && ds.searchInside !== false && x !== undefined && y !== undefined) {
         const elementsUnderCursor = document.elementsFromPoint(x, y);
         for (const el of elementsUnderCursor) {
             if (el === target) continue;

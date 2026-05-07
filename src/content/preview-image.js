@@ -47,7 +47,7 @@ function showImagePreview(src, x, y) {
 // applies size mode from settings to the img element
 // called after onload so naturalWidth/Height are available
 function applySizeSettings() {
-    const { sizeMode, originalFitToScreen, customSize } = currentSettings.settings;
+    const { imageSizeMode: sizeMode, imageOriginalFitToScreen: originalFitToScreen, imageCustomSize: customSize } = currentSettings.settings;
     const vw = window.innerWidth, vh = window.innerHeight, pad = 40;
 
     // reset first so prev settings dont leak

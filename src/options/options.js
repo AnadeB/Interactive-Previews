@@ -24,9 +24,11 @@ const defaultSettings = {
             ctrl: false,
             alt: false
         },
-        sizeMode: 'original',
-        originalFitToScreen: true,
-        customSize: 512,
+        imageSizeMode: 'original',
+        imageOriginalFitToScreen: true,
+        imageCustomSize: 512,
+        pdfSizeMode: 'viewport',
+        pdfCustomSize: 512,
         pdfScrollMode: 'pages',
         infoBar: {
             enabled: false,
@@ -36,14 +38,15 @@ const defaultSettings = {
         },
         allowedFileTypes: {
             jpg: true, png: true, gif: true, webp: true, svg: true,
-            avif: true, bmp: true, ico: true, tiff: true, pdf: true
+            avif: true, bmp: true, ico: true, tiff: true
         },
         deepSearch: {
             searchInside: true,
             cssBackgrounds: true,
-            imageLinkHrefs: true,
-            pdfEnabled: true
-        }
+            imageLinkHrefs: true
+        },
+        imagePreviewsEnabled: true,
+        pdfPreviewsEnabled: true
     }
 };
 
@@ -65,11 +68,15 @@ const els = {
     triggerAlt: document.getElementById('triggerAlt'),
     subDelay: document.getElementById('sub-delay'),
 
-    sizeModeRadios: document.getElementsByName('sizeMode'),
-    subOriginal: document.getElementById('sub-original'),
-    subCustom: document.getElementById('sub-custom'),
-    originalFitToScreen: document.getElementById('originalFitToScreen'),
-    customSize: document.getElementById('customSize'),
+    imageSizeModeRadios: document.getElementsByName('imageSizeMode'),
+    subImageOriginal: document.getElementById('sub-image-original'),
+    subImageCustom: document.getElementById('sub-image-custom'),
+    imageOriginalFitToScreen: document.getElementById('imageOriginalFitToScreen'),
+    imageCustomSize: document.getElementById('imageCustomSize'),
+
+    pdfSizeModeRadios: document.getElementsByName('pdfSizeMode'),
+    subPdfCustom: document.getElementById('sub-pdf-custom'),
+    pdfCustomSize: document.getElementById('pdfCustomSize'),
 
     infoBarEnabled: document.getElementById('infoBarEnabled'),
     infoBarPositionRadios: document.getElementsByName('infoBarPosition'),
@@ -86,15 +93,18 @@ const els = {
     typeBmp: document.getElementById('typeBmp'),
     typeIco: document.getElementById('typeIco'),
     typeTiff: document.getElementById('typeTiff'),
-    typePdf: document.getElementById('typePdf'),
 
     deepSearchInside: document.getElementById('deepSearchInside'),
     deepSearchCssBackgrounds: document.getElementById('deepSearchCssBackgrounds'),
     deepSearchImageLinks: document.getElementById('deepSearchImageLinks'),
-    deepSearchPdfEnabled: document.getElementById('deepSearchPdfEnabled'),
-    pdfScrollModeRadios: document.querySelectorAll('input[name="pdfScrollMode"]'),
+
+    imagePreviewsEnabled: document.getElementById('imagePreviewsEnabled'),
+    pdfPreviewsEnabled: document.getElementById('pdfPreviewsEnabled'),
+    imageSuboptions: document.getElementById('image-suboptions'),
+    pdfSuboptions: document.getElementById('pdf-suboptions'),
 
     saveHint: document.getElementById('save-hint'),
+    pdfScrollModeRadios: document.getElementsByName('pdfScrollMode'),
     themeBtns: document.querySelectorAll('.theme-btn')
 };
 
@@ -259,28 +269,54 @@ const updateUIState = () => {
     els.tabBlocklist.classList.toggle('active', selectedMode === 'blocklist');
     els.tabAllowlist.classList.toggle('active', selectedMode === 'allowlist');
 
-    // Size Mode Toggle
-    const selectedSizeMode = Array.from(els.sizeModeRadios).find(r => r.checked)?.value;
+    // Image Size Mode Toggle
+    const selectedImageMode = Array.from(els.imageSizeModeRadios).find(r => r.checked)?.value;
 
-    els.subOriginal.classList.remove('disabled');
-    els.originalFitToScreen.disabled = false;
-    els.subCustom.classList.remove('disabled');
-    els.customSize.disabled = false;
+    els.subImageOriginal.classList.remove('disabled');
+    els.imageOriginalFitToScreen.disabled = false;
+    els.subImageCustom.classList.remove('disabled');
+    els.imageCustomSize.disabled = false;
 
-    if (selectedSizeMode === 'original') {
-        els.subCustom.classList.add('disabled');
-        els.customSize.disabled = true;
-    } else if (selectedSizeMode === 'custom') {
-        els.subOriginal.classList.add('disabled');
-        els.originalFitToScreen.disabled = true;
+    if (selectedImageMode === 'original') {
+        els.subImageCustom.classList.add('disabled');
+        els.imageCustomSize.disabled = true;
+    } else if (selectedImageMode === 'custom') {
+        els.subImageOriginal.classList.add('disabled');
+        els.imageOriginalFitToScreen.disabled = true;
     } else {
-        els.subOriginal.classList.add('disabled');
-        els.originalFitToScreen.disabled = true;
-        els.subCustom.classList.add('disabled');
-        els.customSize.disabled = true;
+        els.subImageOriginal.classList.add('disabled');
+        els.imageOriginalFitToScreen.disabled = true;
+        els.subImageCustom.classList.add('disabled');
+        els.imageCustomSize.disabled = true;
     }
 
-    // Info Bar — disable sub-options when master is off
+    // PDF Size Mode Toggle
+    const selectedPdfMode = Array.from(els.pdfSizeModeRadios).find(r => r.checked)?.value;
+    els.subPdfCustom.classList.remove('disabled');
+    els.pdfCustomSize.disabled = false;
+
+    if (selectedPdfMode !== 'custom') {
+        els.subPdfCustom.classList.add('disabled');
+        els.pdfCustomSize.disabled = true;
+    }
+
+    // Image Previews Master Toggle
+    const imageEnabled = els.imagePreviewsEnabled.checked;
+    if (imageEnabled) {
+        els.imageSuboptions.classList.remove('disabled');
+    } else {
+        els.imageSuboptions.classList.add('disabled');
+    }
+
+    // PDF Previews Master Toggle
+    const pdfEnabled = els.pdfPreviewsEnabled.checked;
+    if (pdfEnabled) {
+        els.pdfSuboptions.classList.remove('disabled');
+    } else {
+        els.pdfSuboptions.classList.add('disabled');
+    }
+
+    // Info Bar Master Toggle
     const infoEnabled = els.infoBarEnabled.checked;
     if (infoEnabled) {
         els.infoBarSuboptions.classList.remove('disabled');
@@ -323,9 +359,11 @@ function saveOptions() {
                 ctrl: els.triggerCtrl.checked,
                 alt: els.triggerAlt.checked
             },
-            sizeMode: Array.from(els.sizeModeRadios).find(r => r.checked)?.value || 'original',
-            originalFitToScreen: els.originalFitToScreen.checked,
-            customSize: parseInt(els.customSize.value, 10) || 512,
+            imageSizeMode: Array.from(els.imageSizeModeRadios).find(r => r.checked)?.value || 'original',
+            imageOriginalFitToScreen: els.imageOriginalFitToScreen.checked,
+            imageCustomSize: parseInt(els.imageCustomSize.value, 10) || 512,
+            pdfSizeMode: Array.from(els.pdfSizeModeRadios).find(r => r.checked)?.value || 'viewport',
+            pdfCustomSize: parseInt(els.pdfCustomSize.value, 10) || 512,
             pdfScrollMode: document.querySelector('input[name="pdfScrollMode"]:checked').value,
             infoBar: {
                 enabled: els.infoBarEnabled.checked,
@@ -342,15 +380,15 @@ function saveOptions() {
                 avif: els.typeAvif.checked,
                 bmp: els.typeBmp.checked,
                 ico: els.typeIco.checked,
-                tiff: els.typeTiff.checked,
-                pdf: els.typePdf.checked
+                tiff: els.typeTiff.checked
             },
             deepSearch: {
                 searchInside: els.deepSearchInside.checked,
                 cssBackgrounds: els.deepSearchCssBackgrounds.checked,
-                imageLinkHrefs: els.deepSearchImageLinks.checked,
-                pdfEnabled: els.deepSearchPdfEnabled.checked
-            }
+                imageLinkHrefs: els.deepSearchImageLinks.checked
+            },
+            imagePreviewsEnabled: els.imagePreviewsEnabled.checked,
+            pdfPreviewsEnabled: els.pdfPreviewsEnabled.checked
         }
     };
 
@@ -407,12 +445,21 @@ const restoreOptions = () => {
         els.triggerAlt.checked = !!tMods.alt;
         els.delay.value = s.delay;
 
-        // Size
-        Array.from(els.sizeModeRadios).forEach(r => {
-            r.checked = r.value === s.sizeMode;
+        // Image Size
+        const iMode = s.imageSizeMode || s.sizeMode || 'original'; // backward compatibility
+        Array.from(els.imageSizeModeRadios).forEach(r => {
+            r.checked = r.value === iMode;
         });
-        els.originalFitToScreen.checked = s.originalFitToScreen;
-        els.customSize.value = s.customSize;
+        els.imageOriginalFitToScreen.checked = s.imageOriginalFitToScreen !== undefined ? s.imageOriginalFitToScreen : (s.originalFitToScreen !== undefined ? s.originalFitToScreen : true);
+        els.imageCustomSize.value = s.imageCustomSize || s.customSize || 512;
+
+        // PDF Size
+        let pMode = s.pdfSizeMode || s.sizeMode || 'viewport';
+        if (pMode === 'original') pMode = 'viewport'; // original not supported for PDF
+        Array.from(els.pdfSizeModeRadios).forEach(r => {
+            r.checked = r.value === pMode;
+        });
+        els.pdfCustomSize.value = s.pdfCustomSize || s.customSize || 512;
 
         // PDF Scroll Mode
         els.pdfScrollModeRadios.forEach(r => {
@@ -451,13 +498,27 @@ const restoreOptions = () => {
         els.typeBmp.checked = !!af.bmp;
         els.typeIco.checked = !!af.ico;
         els.typeTiff.checked = !!af.tiff;
-        els.typePdf.checked = !!af.pdf;
 
         // Deep Search
         els.deepSearchInside.checked = ds.searchInside;
         els.deepSearchCssBackgrounds.checked = ds.cssBackgrounds;
         els.deepSearchImageLinks.checked = ds.imageLinkHrefs !== false;
-        els.deepSearchPdfEnabled.checked = ds.pdfEnabled !== false;
+
+        // Master Toggles (migration logic included)
+        // If the new settings don't exist yet, we infer them from the old settings if possible
+        let imgEnabled = s.imagePreviewsEnabled;
+        if (imgEnabled === undefined) {
+            // Default to true, unless all image types were previously disabled
+            imgEnabled = true; 
+        }
+        els.imagePreviewsEnabled.checked = imgEnabled;
+
+        let pdfEnabled = s.pdfPreviewsEnabled;
+        if (pdfEnabled === undefined) {
+            // Infer from old pdf settings
+            pdfEnabled = (af.pdf !== false) && (ds.pdfEnabled !== false);
+        }
+        els.pdfPreviewsEnabled.checked = pdfEnabled;
 
         // Theme
         applyTheme(items.theme || 'green');
@@ -488,6 +549,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setupTab(els.tabAllowlist);
 
     els.infoBarEnabled.addEventListener('change', () => { updateUIState(); scheduleSave(); });
+    els.imagePreviewsEnabled.addEventListener('change', () => { updateUIState(); scheduleSave(); });
+    els.pdfPreviewsEnabled.addEventListener('change', () => { updateUIState(); scheduleSave(); });
 
     // Theme buttons
     els.themeBtns.forEach(btn => {
@@ -499,16 +562,17 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Auto-save on all relevant inputs
-Array.from(els.sizeModeRadios).forEach(r => r.addEventListener('change', () => { updateUIState(); scheduleSave(); }));
+Array.from(els.imageSizeModeRadios).forEach(r => r.addEventListener('change', () => { updateUIState(); scheduleSave(); }));
+Array.from(els.pdfSizeModeRadios).forEach(r => r.addEventListener('change', () => { updateUIState(); scheduleSave(); }));
 
 const autoSaveInputs = [
     els.blocklist, els.allowlist,
     els.triggerShift, els.triggerCtrl, els.triggerAlt, els.delay,
-    els.customSize, els.originalFitToScreen, els.infoBarEnabled,
+    els.imageCustomSize, els.imageOriginalFitToScreen, els.pdfCustomSize,
     els.typeJpg, els.typePng, els.typeGif, els.typeWebp, els.typeSvg,
-    els.typeAvif, els.typeBmp, els.typeIco, els.typeTiff, els.typePdf,
+    els.typeAvif, els.typeBmp, els.typeIco, els.typeTiff,
     els.deepSearchInside, els.deepSearchCssBackgrounds,
-    els.deepSearchImageLinks, els.deepSearchPdfEnabled
+    els.deepSearchImageLinks
 ];
 autoSaveInputs.forEach(el => {
     if(el) {
