@@ -534,9 +534,14 @@
 % \lstsetinline{nastavení}				% přidá výchozí nastavení pro \lstinline
 
 
-\ifcstyp@LuaOrXeTeX\else				% LuaTeX je nativně UTF-8
+\ifcstyp@LuaOrXeTeX						% LuaTeX je nativně UTF-8
+	\lstset{
+		texcl=true,
+	}
+\else
 	\lstset{
 		%inputencoding=utf8/cp1250, extendedchars=false,	% UTF-8 z listingsutf8
+		texcl=true,
 		inputencoding=utf8,
 		extendedchars=true,				% podpora UTF-8 + definice znaků češtiny:
 		literate =
