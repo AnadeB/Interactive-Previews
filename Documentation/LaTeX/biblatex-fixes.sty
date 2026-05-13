@@ -543,6 +543,79 @@
 % tolerantní sazba na praporek
 \appto\bibsetup{\sloppy}
 
+% ISO 690:2022
+% [online] → Online
+\renewbibmacro*{medium-type}{%
+  \iffieldundef{howpublished}
+    {% Automatic printing of '[online]' type of medium when
+     % a) 'urldate' is present AND
+     % b) url is enabled (pkg option url=true) OR
+     %    entry type is '@online'
+      \ifboolexpr{
+        not test {\iffieldundef{urlyear}}
+        and (   test {\iftoggle{bbx:url}}  
+             or test {\ifentrytype{online}})
+      }
+        % Use a localisation string 'online' in the main document language
+        %{\midsentence\mainlangbibstring[\mkbibbrackets]{online}}%
+        {\newunit\newblock\mainlangbibstring{online}}%
+        {}}% Don't print anything
+    {% The only situation when we don't want to print
+     % 'howpublished' field is when
+     % a) url is disabled (pkg option url=false) AND
+     % b) entry type is other than '@online' AND
+     % c) 'howpublished' field is 'online'.
+     % Please note that this field is not checked against
+     % any possible literal value (e.g. electronic, online article)
+     % that should be probably also hidden when a) AND b) hold.
+      \ifboolexpr{   
+        test {\iffieldequalstr{howpublished}{online}}
+        and not test {\iftoggle{bbx:url}}
+        and not test {\ifentrytype{online}}
+      } 
+        {}% Don't print 'howpublished' field
+        {\printfield{howpublished}}}%
+}       
+
+\DeclareBibliographyDriver{online}{%
+  \usebibmacro{bibindex}%
+  \usebibmacro{begentry}%
+  \usebibmacro{names:primary}%
+  \setunit{\printdelim{nametitledelim}}\newblock
+  \usebibmacro{multi:titles}%
+  \setunit{\addspace}%
+  \usebibmacro{medium-type}%
+  \newunit\newblock
+  \printfield{edition}%
+  \newunit\newblock
+  \usebibmacro{names:subsidiary}%
+  \newunit\newblock
+  \usebibmacro{location+publisher+fulldate}%
+  \newunit
+  \printfield{version}%
+  %\usebibmacro{urldate-space}%
+  %\usebibmacro{urldate}%
+  \newunit\newblock
+  \usebibmacro{series+number}%
+  \newunit\newblock
+  \usebibmacro{identifier}%
+  \newunit\newblock
+  \usebibmacro{availability+access}%
+  \setunit{\addspace}%
+  % urldate moved here
+  \usebibmacro{urldate}%
+  \setunit{\addspace}%
+  \iftoggle{bbx:totalpages}
+    {\printfield{pagetotal}}
+    {}%
+  \newunit\newblock
+  \printfield{note}%
+  \newunit\newblock
+  \setunit{\bibpagerefpunct}\newblock
+  \usebibmacro{pageref}%
+  \usebibmacro{finentry}}%
+
+
 \endinput
 % vim:ts=4:sw=4
 % EOF
