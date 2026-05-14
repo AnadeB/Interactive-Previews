@@ -12,7 +12,7 @@
     % zakomentovat obojí biblatex= pro manuálně tvořený seznam literatury
 	%biblatex=num,		% používat biblatex, číslované reference
 	biblatex=harvard,	% harvardský styl citací v BibLaTeXu
-	%pdfa,				% použít \usepackage[a-1b]{pdfx} pro PDF/A
+	pdfa,				% použít \usepackage[a-1b]{pdfx} pro PDF/A
 	writexmp,			% pro PDF/A: zapsat soubor XMP s metadaty dle \author, \title, \keywordsCZ
 	%otf,				% fonty Open Type
 ]{vskpupa}				% globální nastavení pro text VŠKP UPa
@@ -708,30 +708,31 @@ Testování na produkčních webech potvrdilo, že navržené řešení eliminuj
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % pokud není použit biblatex:
 
-\begin{thebibliography}{99}	% parametr určuje nejširší položku
-\sloppy\latexraggedright
-% nezlomitelné spojovníky lze zapisovat zkratkou "- nebo příkazem \babelhyphen{nobreak}
-
-\bibitem{bib:iso690pdf2011}
-	\textsc{Biernátová}, Olga a~Jan \textsc{Skůpa}.
-	\textit{Bibliografické odkazy a~citace dokumentů dle ČSN~ISO~690~(01~0197) platné od 1.\,dubna~2011}. Online.
-	Brno, 2.\,9.\,2011.
-	Dostupné z:~\url{http://www.citace.com/CSN-ISO-690.pdf} [cit.\,2016"-07"-29].
-
-\bibitem{bib:kocicka2004}
-	\textsc{Kočička}, Pavel a~Filip \textsc{Blažek}.
-	\textit{Praktická typografie}.
-	2.\,vyd.
-	Brno: Computer Press, 2004.
-	ISBN 80"-7226"-385"-4.
-	
-\bibitem{bib:lukes2017}
-	\textsc{Lukeš}, Lubomír.
-	\textit{Úroveň podpory typografie v~současných kancelářských editorech}.
-	Pardubice, 2017.
-	Diplomová práce. Univerzita Pardubice. Vedoucí práce Tomáš \textsc{Hudec}.
-
-\end{thebibliography}
+% VZOR:
+%\begin{thebibliography}{99}	% parametr určuje nejširší položku
+%\sloppy\latexraggedright
+%% nezlomitelné spojovníky lze zapisovat zkratkou "- nebo příkazem \babelhyphen{nobreak}
+%
+%\bibitem{bib:iso690pdf2011}
+%	\textsc{Biernátová}, Olga a~Jan \textsc{Skůpa}.
+%	\textit{Bibliografické odkazy a~citace dokumentů dle ČSN~ISO~690~(01~0197) platné od 1.\,dubna~2011}. Online.
+%	Brno, 2.\,9.\,2011.
+%	Dostupné z:~\url{http://www.citace.com/CSN-ISO-690.pdf} [cit.\,2016"-07"-29].
+%
+%\bibitem{bib:kocicka2004}
+%	\textsc{Kočička}, Pavel a~Filip \textsc{Blažek}.
+%	\textit{Praktická typografie}.
+%	2.\,vyd.
+%	Brno: Computer Press, 2004.
+%	ISBN 80"-7226"-385"-4.
+%	
+%\bibitem{bib:lukes2017}
+%	\textsc{Lukeš}, Lubomír.
+%	\textit{Úroveň podpory typografie v~současných kancelářských editorech}.
+%	Pardubice, 2017.
+%	Diplomová práce. Univerzita Pardubice. Vedoucí práce Tomáš \textsc{Hudec}.
+%
+%\end{thebibliography}
 
 \fi									% else: při použití BibLaTeXu
 
@@ -826,14 +827,14 @@ Klíčový soubor \texttt{manifest.json} (dle specifikace Manifest V3), který d
 }
 \end{lstlisting}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PŘÍLOHA C
-\appendix{Soubor metadat XMP v~PDF}
-\label{priloha:xmp}
-
-Obsah souboru s~metadaty ve formátu XMP. Vyžadováno pro archivaci ve formátu PDF/A.
-
-\VerbatimInput[breaklines=true, fontsize=\small]{\jobname.xmpdata}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% PŘÍLOHA C
+%\appendix{Soubor metadat XMP v~PDF}
+%\label{priloha:xmp}
+%
+%Obsah souboru s~metadaty ve formátu XMP. Vyžadováno pro archivaci ve formátu PDF/A.
+%
+%\VerbatimInput[breaklines=true, fontsize=\small]{\jobname.xmpdata}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % KONEC DOKUMENTU
